@@ -1,5 +1,7 @@
-import { concat } from "./tools";
-export class ArrayValidator {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const tools_1 = require("./tools");
+class ArrayValidator {
     constructor(name, validator) {
         this.validate = (data, state, props) => {
             const errors = this.validator(data, state, props);
@@ -14,10 +16,12 @@ export class ArrayValidator {
         this.validator = validator;
     }
 }
-export const createValidator = (name, validator) => new ArrayValidator(name, validator);
-export const createValidatorFactory = (name, validator) => () => new ArrayValidator(name, validator);
-export function combineValidators(...validators) {
+exports.ArrayValidator = ArrayValidator;
+exports.createValidator = (name, validator) => new ArrayValidator(name, validator);
+exports.createValidatorFactory = (name, validator) => () => new ArrayValidator(name, validator);
+function combineValidators(...validators) {
     return {
-        validate: concat(...validators.map(validator => validator.validate)),
+        validate: tools_1.concat(...validators.map(validator => validator.validate)),
     };
 }
+exports.combineValidators = combineValidators;

@@ -1,3 +1,4 @@
+"use strict";
 var __rest = (this && this.__rest) || function (s, e) {
     var t = {};
     for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
@@ -7,11 +8,12 @@ var __rest = (this && this.__rest) || function (s, e) {
             t[p[i]] = s[p[i]];
     return t;
 };
-import * as React from "react";
-import shallowequal from "shallowequal";
-export const { Provider, Consumer } = React.createContext();
+Object.defineProperty(exports, "__esModule", { value: true });
+const React = require("react");
+const shallowequal = require("shallowequal");
+_a = React.createContext(), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 const EmptyModel = {};
-export class Form extends React.Component {
+class Form extends React.Component {
     constructor(props) {
         super(props);
         this.handleSubmit = (event) => {
@@ -93,7 +95,9 @@ export class Form extends React.Component {
     }
     render() {
         const _a = this.props, { componentId, children, onModelChange, onSubmit } = _a, rest = __rest(_a, ["componentId", "children", "onModelChange", "onSubmit"]);
-        return (React.createElement(Provider, { value: this.state },
+        return (React.createElement(exports.Provider, { value: this.state },
             React.createElement("form", Object.assign({ onSubmit: this.handleSubmit }, rest), children)));
     }
 }
+exports.Form = Form;
+var _a;

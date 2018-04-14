@@ -1,6 +1,6 @@
 {
   "name": "react-painlessform",
-  "version": "0.0.0-alpha1",
+  "version": "0.0.0-alpha2",
   "description": "React Forms without pain",
   "main": "lib/index.js",
   "module": "lib/index.js",
@@ -36,6 +36,7 @@
     "shallowequal": "^1.0.2"
   },
   "devDependencies": {
+    "@types/shallowequal": "^0.2.1",
     "@types/chai": "^4.1.2",
     "@types/mocha": "^5.0.0",
     "@types/react": "^16.3.5",

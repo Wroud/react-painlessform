@@ -1,5 +1,7 @@
-import { mergeFormErrors } from "./tools";
-export class FieldValidator {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const tools_1 = require("./tools");
+class FieldValidator {
     constructor(name, validator, map) {
         this.validate = (data, state, props) => {
             if (this.map(data) === undefined) {
@@ -14,23 +16,28 @@ export class FieldValidator {
         this.validator = validator;
     }
 }
-export function createRawFormValidator(validator) {
+exports.FieldValidator = FieldValidator;
+function createRawFormValidator(validator) {
     return { validate: validator };
 }
-export function createFieldValidator(name, validator, map) {
+exports.createRawFormValidator = createRawFormValidator;
+function createFieldValidator(name, validator, map) {
     return new FieldValidator(name, validator, map);
 }
-export function createFieldValidatorFactory(name, validator, map) {
+exports.createFieldValidator = createFieldValidator;
+function createFieldValidatorFactory(name, validator, map) {
     return () => new FieldValidator(name, validator, map);
 }
-export function combineFieldValidators(...validators) {
+exports.createFieldValidatorFactory = createFieldValidatorFactory;
+function combineFieldValidators(...validators) {
     return {
         validate: (model, state, props) => {
             let errors = {};
             validators.forEach(validator => {
-                errors = mergeFormErrors(errors, validator.validate(model, state, props));
+                errors = tools_1.mergeFormErrors(errors, validator.validate(model, state, props));
             });
             return errors;
         },
     };
 }
+exports.combineFieldValidators = combineFieldValidators;

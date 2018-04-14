@@ -1,10 +1,14 @@
-export function concat(...units) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function concat(...units) {
     return ((...args) => [].concat(...units.map(unit => unit(...args))));
 }
-export function reduce(...units) {
+exports.concat = concat;
+function reduce(...units) {
     return ((...args) => units.reduce((prev, unit) => (Object.assign({}, prev, unit(...args))), {}));
 }
-export function isArrayEqual(array0, array1) {
+exports.reduce = reduce;
+function isArrayEqual(array0, array1) {
     if (array0 !== array1
         && (array0 === undefined || array1 === undefined)) {
         return false;
@@ -21,7 +25,8 @@ export function isArrayEqual(array0, array1) {
     }
     return true;
 }
-export function mergeFormErrors(one, two) {
+exports.isArrayEqual = isArrayEqual;
+function mergeFormErrors(one, two) {
     let merged = one || {};
     if (two) {
         for (const key of Object.keys(two)) {
@@ -32,3 +37,4 @@ export function mergeFormErrors(one, two) {
     }
     return merged;
 }
+exports.mergeFormErrors = mergeFormErrors;

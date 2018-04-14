@@ -1,12 +1,14 @@
-import * as React from "react";
-import shallowequal from "shallowequal";
-import { Consumer as FormContext } from "./Form";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const React = require("react");
+const shallowequal = require("shallowequal");
+const Form_1 = require("./Form");
 const NoErrors = {};
-export const { Provider, Consumer } = React.createContext({
+_a = React.createContext({
     errors: NoErrors,
     isValid: true,
-});
-export class Validation extends React.Component {
+}), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
+class Validation extends React.Component {
     constructor() {
         super(...arguments);
         this.prevErrors = {
@@ -46,6 +48,8 @@ export class Validation extends React.Component {
         }
     }
     render() {
-        return (React.createElement(FormContext, null, context => React.createElement(Provider, { value: this.validate(context) }, this.props.children)));
+        return (React.createElement(Form_1.Consumer, null, context => React.createElement(exports.Provider, { value: this.validate(context) }, this.props.children)));
     }
 }
+exports.Validation = Validation;
+var _a;

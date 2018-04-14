@@ -1,9 +1,11 @@
-import * as React from "react";
-import { isArrayEqual } from "../tools";
-import { Consumer as FormContext } from "./Form";
-import { Consumer as ValidationContext } from "./Validation";
-export const { Provider, Consumer } = React.createContext();
-export class FieldClass extends React.Component {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const React = require("react");
+const tools_1 = require("../tools");
+const Form_1 = require("./Form");
+const Validation_1 = require("./Validation");
+_a = React.createContext(), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
+class FieldClass extends React.Component {
     constructor(props) {
         super(props);
         this.onClick = () => {
@@ -48,7 +50,7 @@ export class FieldClass extends React.Component {
         if (prevValue !== nextValue) {
             value = nextValue === undefined ? "" : nextValue;
         }
-        if (!isArrayEqual(prevValidationErrors, nextErrors)) {
+        if (!tools_1.isArrayEqual(prevValidationErrors, nextErrors)) {
             validationErrors = nextErrors;
         }
         return {
@@ -64,7 +66,7 @@ export class FieldClass extends React.Component {
             && typeof children === "function"
             ? children(this.state)
             : children;
-        return (React.createElement(Provider, { value: this.state }, rChildren));
+        return (React.createElement(exports.Provider, { value: this.state }, rChildren));
     }
     componentDidMount() {
         this.update(this.state.value);
@@ -73,7 +75,7 @@ export class FieldClass extends React.Component {
     }
     shouldComponentUpdate(nextProps, nextState) {
         if (this.props.name !== nextProps.name
-            || !isArrayEqual(this.props.validationErrors, nextProps.validationErrors)
+            || !tools_1.isArrayEqual(this.props.validationErrors, nextProps.validationErrors)
             || this.props.onChange !== nextProps.onChange
             || this.props.name !== nextProps.name
             || this.props.value !== nextProps.value
@@ -84,9 +86,12 @@ export class FieldClass extends React.Component {
         return false;
     }
 }
-export function withFormState(Component) {
+exports.FieldClass = FieldClass;
+function withFormState(Component) {
     return function FieldComponent(props) {
-        return (React.createElement(FormContext, null, formState => (React.createElement(ValidationContext, null, validation => (React.createElement(Component, Object.assign({}, props, { value: formState.model[props.name], validationErrors: validation.errors[props.name], formState: formState })))))));
+        return (React.createElement(Form_1.Consumer, null, formState => (React.createElement(Validation_1.Consumer, null, validation => (React.createElement(Component, Object.assign({}, props, { value: formState.model[props.name], validationErrors: validation.errors[props.name], formState: formState })))))));
     };
 }
-export const Field = withFormState(FieldClass);
+exports.withFormState = withFormState;
+exports.Field = withFormState(FieldClass);
+var _a;
