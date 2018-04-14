@@ -1,0 +1,24 @@
+{
+  "name": "react-painlessform",
+  "version": "0.0.0",
+  "description": "React Forms without pain",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Wroud/react-painlessform.git"
+  },
+  "keywords": [
+    "typescript",
+    "react",
+    "form"
+  ],
+  "author": "Alexey Potsetsuev",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Wroud/react-painlessform/issues"
+  },
+  "homepage": "https://github.com/Wroud/react-painlessform#readme"
+}

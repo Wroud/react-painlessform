@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "outDir": "./es",
+    "baseUrl": "./src",
+    "module": "es6",
+    "moduleResolution": "node",
+    "target": "es6",
+    "declaration": false,
+    "jsx": "react",
+    "noImplicitAny": false,
+    "removeComments": true,
+    "experimentalDecorators": false,
+    "sourceMap": false,
+    "skipDefaultLibCheck": false,
+    "strict": false,
+    "lib": [
+      "es6",
+      "dom"
+    ],
+    "types": [
+      "webpack-env"
+    ]
+  },
+  "exclude": [
+    "tests",
+    "bin",
+    "lib",
+    "node_modules"
+  ]
+}
