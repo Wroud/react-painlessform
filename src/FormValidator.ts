@@ -1,4 +1,5 @@
-import { IValidator } from "./ArrayValidator";
+import { IValidator, Validator } from "./ArrayValidator";
+import { IFieldErrors } from "./FieldValidator";
 import { mergeFormErrors } from "./tools";
 
 export type FormErrors<T> = {
@@ -21,8 +22,14 @@ export class FormValidator<TSource, TMeta = {}> implements IValidator<TSource, F
     }
 }
 
-export function createFormValidator<TSource, TMeta>(
+export function createFormValidator<TSource, TMeta = {}>(
     ...validators: Array<IValidator<TSource, any, TMeta>>,
 ): IValidator<TSource, FormErrors<TSource>, TMeta> {
     return new FormValidator(...validators);
+}
+
+export function createRawFormValidator<TSource, TMeta = {}>(
+    validator: Validator<TSource, FormErrors<TSource>, TMeta>,
+): IValidator<TSource, FormErrors<TSource>, TMeta> {
+    return { validate: validator };
 }

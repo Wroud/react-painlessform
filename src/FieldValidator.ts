@@ -31,11 +31,6 @@ export class FieldValidator<TSource, TValue, TMeta = {}> implements IValidator<T
     }
 }
 
-export function createRawFormValidator<TSource, TMeta = {}>(
-    validator: Validator<TSource, IFieldErrors, TMeta>,
-): IValidator<TSource, IFieldErrors, TMeta> {
-    return { validate: validator };
-}
 export function createFieldValidator<TSource, TValue, TMeta = {}>(
     name: keyof TSource,
     validator: IValidator<TValue, string[], TMeta>,

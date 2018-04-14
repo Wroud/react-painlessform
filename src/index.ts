@@ -4,6 +4,7 @@ export {
     IFieldProps,
     IFieldState,
     withFormState,
+    Provider as FieldProvider,
 } from "./components/Field";
 export {
     Form,
@@ -18,7 +19,6 @@ export {
 } from "./components/Validation";
 export {
     createFieldValidator,
-    createRawFormValidator,
     FieldValidator,
     IFieldErrors,
 } from "./FieldValidator";
@@ -26,6 +26,7 @@ export {
     createFormValidator,
     FormErrors,
     FormValidator,
+    createRawFormValidator,
 } from "./FormValidator";
 export {
     concat,
