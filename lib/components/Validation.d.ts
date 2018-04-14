@@ -1,12 +1,15 @@
 /// <reference types="react" />
 import * as React from "react";
+import { IValidator } from "../ArrayValidator";
 import { FormErrors } from "../FormValidator";
-import { IValidator } from "../Validator";
 import { IFormState } from "./Form";
 export interface IValidationProps {
     isValid?: boolean;
     errors?: FormErrors<any>;
-    validator?: IValidator<any, FormErrors<any>>;
+    validator?: IValidator<any, FormErrors<any>, {
+        state: IValidationState;
+        props: IValidationProps;
+    }>;
     [rest: string]: any;
 }
 export interface IValidationState {

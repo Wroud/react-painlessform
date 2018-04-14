@@ -27,7 +27,10 @@ class Validation extends React.Component {
         let errors = NoErrors;
         let isValid = true;
         if (validator && form.model) {
-            const preErrors = validator.validate(form.model, this.state, this.props);
+            const preErrors = validator.validate(form.model, {
+                state: this.state,
+                props: this.props,
+            });
             for (const key of Object.keys(preErrors)) {
                 if (preErrors[key].length > 0) {
                     isValid = false;
