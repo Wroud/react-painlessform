@@ -8,7 +8,12 @@ chai.use(assertArrays);
 describe("ArrayValidator", () => {
 
     it("test", () => {
-        const stringNotNull = value => value === undefined || value.length === 0 ? "Requered" : [];
+        const stringNotNull = value =>
+            value === undefined
+                || value.length === 0
+                ? "Requered"
+                : [];
+
         const stringMaxLength = value =>
             value === undefined
                 || !value.length

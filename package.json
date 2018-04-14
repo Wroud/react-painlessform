@@ -14,7 +14,8 @@
     "build:commonjs": "tsc",
     "build:es": "tsc -p tsconfig.es.json",
     "build": "npm run build:es && npm run build:commonjs",
-    "test": "mocha -r ts-node/register tests/**/*.spec.ts"
+    "test:components": "mocha -r ts-node/register tests/components/**/*.spec.tsx",
+    "test": "mocha -r ts-node/register tests/**/*.spec.ts && npm run test:components"
   },
   "repository": {
     "type": "git",
@@ -32,15 +33,19 @@
   },
   "homepage": "https://github.com/Wroud/react-painlessform#readme",
   "dependencies": {
-    "react": "^15.0.0-0 || ^16.0.0-0",
+    "react": "^16.3.0-0",
+    "react-dom": "^16.0.0-0",
     "shallowequal": "^1.0.2"
   },
   "devDependencies": {
     "@types/shallowequal": "^0.2.1",
     "@types/chai": "^4.1.2",
     "@types/mocha": "^5.0.0",
+    "@types/react-dom": "^16.0.5",
     "@types/react": "^16.3.5",
     "@types/chai-arrays": "^1.0.2",
+    "@types/react-test-renderer": "^16.0.1",
+    "react-test-renderer": "^16.3.1",
     "chai-arrays": "^2.0.0",
     "chai": "^4.1.2",
     "mocha": "^5.0.5",
