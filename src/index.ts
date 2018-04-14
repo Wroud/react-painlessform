@@ -9,11 +9,18 @@ export {
     Form,
     IFormProps,
     IFormState,
+    Consumer as FormContext,
 } from "./components/Form";
+export {
+    Validation,
+    IValidationProps,
+    IValidationState,
+} from "./components/Validation";
 export {
     combineFieldValidators,
     createFieldValidator,
     createFieldValidatorFactory,
+    createRawFormValidator,
     FieldValidator,
     IFieldErrors,
 } from "./FieldValidator";
