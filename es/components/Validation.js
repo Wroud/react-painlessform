@@ -1,43 +1,27 @@
 import * as React from "react";
 import shallowequal from "shallowequal";
-import { FormErrors } from "../FormValidator";
-import { IValidator } from "../Validator";
-import { Consumer as FormContext, IFormState } from "./Form";
-
-export interface IValidationProps {
-    isValid?: boolean;
-    errors?: FormErrors<any>;
-    validator?: IValidator<any, FormErrors<any>>;
-    [rest: string]: any;
-}
-
-export interface IValidationState {
-    errors: FormErrors<any>;
-    isValid: boolean;
-}
-
+import { Consumer as FormContext } from "./Form";
 const NoErrors = {};
-
-export const { Provider, Consumer } = React.createContext<IValidationState>({
+export const { Provider, Consumer } = React.createContext({
     errors: NoErrors,
     isValid: true,
 });
-
-export class Validation extends React.Component<IValidationProps, IValidationState> {
-    prevErrors = {
-        errors: NoErrors,
-        isValid: true,
-    };
-    validate(form: IFormState) {
+export class Validation extends React.Component {
+    constructor() {
+        super(...arguments);
+        this.prevErrors = {
+            errors: NoErrors,
+            isValid: true,
+        };
+    }
+    validate(form) {
         if (this.props.errors) {
             return {
                 isValid: this.props.isValid,
                 errors: this.props.errors,
             };
         }
-
         const { validator } = this.props;
-
         let errors = NoErrors;
         let isValid = true;
         if (validator && form.model) {
@@ -52,22 +36,16 @@ export class Validation extends React.Component<IValidationProps, IValidationSta
                 errors = preErrors;
             }
         }
-
         const result = { isValid, errors };
-
         if (!shallowequal(result, this.prevErrors)) {
             this.prevErrors = result;
             return result;
-        } else {
+        }
+        else {
             return this.prevErrors;
         }
     }
-
     render() {
-        return (
-            <FormContext>
-                {context => <Provider value={this.validate(context)}>{this.props.children}</Provider>}
-            </FormContext>
-        );
+        return (React.createElement(FormContext, null, context => React.createElement(Provider, { value: this.validate(context) }, this.props.children)));
     }
 }
