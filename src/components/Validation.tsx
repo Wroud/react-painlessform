@@ -7,7 +7,7 @@ import { Consumer as FormContext, IFormState } from "./Form";
 export interface IValidationProps {
     isValid?: boolean;
     errors?: FormErrors<any>;
-    validator?: IValidator<any, FormErrors<any>>;
+    validator?: IValidator<any, FormErrors<any>, { state: IValidationState, props: IValidationProps }>;
     [rest: string]: any;
 }
 
@@ -41,7 +41,13 @@ export class Validation extends React.Component<IValidationProps, IValidationSta
         let errors = NoErrors;
         let isValid = true;
         if (validator && form.model) {
-            const preErrors = validator.validate(form.model, this.state, this.props);
+            const preErrors = validator.validate(
+                form.model,
+                {
+                    state: this.state,
+                    props: this.props,
+                },
+            );
             for (const key of Object.keys(preErrors)) {
                 if (preErrors[key].length > 0) {
                     isValid = false;

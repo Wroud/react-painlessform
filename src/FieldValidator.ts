@@ -5,62 +5,41 @@ export interface IFieldErrors {
     [key: string]: string[];
 }
 
-export class FieldValidator<TSource, TValue> implements IValidator<TSource, IFieldErrors> {
+export class FieldValidator<TSource, TValue, TMeta = {}> implements IValidator<TSource, IFieldErrors, TMeta> {
     private name: keyof TSource;
-    private validator: IValidator<TValue | TSource[keyof TSource], string[]>;
+    private validator: IValidator<TValue | TSource[keyof TSource], string[], TMeta>;
     private map: (source: TSource) => TValue | TSource[keyof TSource];
 
     constructor(
         name: keyof TSource,
-        validator: IValidator<TValue, string[]>,
+        validator: IValidator<TValue, string[], TMeta>,
         map?: (source: TSource) => TValue | TSource[keyof TSource],
     ) {
         this.name = name;
         this.map = map || (data => data[name]);
         this.validator = validator;
+        this.validate = this.validate.bind(this);
     }
 
-    validate = (data: TSource, state?, props?): IFieldErrors => {
+    validate(data: TSource, meta: TMeta): IFieldErrors {
         if (this.map(data) === undefined) {
             return {};
         }
         return {
-            [this.name]: this.validator.validate(this.map(data), state, props),
+            [this.name]: this.validator.validate(this.map(data), meta),
         };
     }
 }
 
-export function createRawFormValidator<TSource>(
-    validator: Validator<TSource, IFieldErrors>,
-): IValidator<TSource, IFieldErrors> {
+export function createRawFormValidator<TSource, TMeta = {}>(
+    validator: Validator<TSource, IFieldErrors, TMeta>,
+): IValidator<TSource, IFieldErrors, TMeta> {
     return { validate: validator };
 }
-export function createFieldValidator<TSource, TValue>(
+export function createFieldValidator<TSource, TValue, TMeta = {}>(
     name: keyof TSource,
-    validator: IValidator<TValue, string[]>,
+    validator: IValidator<TValue, string[], TMeta>,
     map?: (source: TSource) => TValue,
-): IValidator<TSource, IFieldErrors> {
+): IValidator<TSource, IFieldErrors, TMeta> {
     return new FieldValidator(name, validator, map);
-}
-
-export function createFieldValidatorFactory<TSource, TValue>(
-    name: keyof TSource,
-    validator: ArrayValidator<TValue, string>,
-    map?: (source: TSource) => TValue,
-) {
-    return () => new FieldValidator(name, validator, map);
-}
-
-export function combineFieldValidators<TSource>(
-    ...validators: Array<IValidator<TSource, IFieldErrors>>,
-): IValidator<TSource, IFieldErrors> {
-    return {
-        validate: (model, state, props) => {
-            let errors = {};
-            validators.forEach(validator => {
-                errors = mergeFormErrors(errors, validator.validate(model, state, props));
-            });
-            return errors;
-        },
-    };
 }

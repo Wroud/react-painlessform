@@ -17,9 +17,7 @@ export {
     IValidationState,
 } from "./components/Validation";
 export {
-    combineFieldValidators,
     createFieldValidator,
-    createFieldValidatorFactory,
     createRawFormValidator,
     FieldValidator,
     IFieldErrors,
@@ -36,10 +34,7 @@ export {
 } from "./tools";
 export {
     Validator,
-    ValidatorFactory,
     IValidator,
     ArrayValidator,
-    combineValidators,
     createValidator,
-    createValidatorFactory,
 } from "./ArrayValidator";

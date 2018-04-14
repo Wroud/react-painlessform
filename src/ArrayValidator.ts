@@ -1,44 +1,41 @@
 import { concat } from "./tools";
 
-export type Validator<TValue, TError> = (data: TValue, state?, props?) => TError;
-
-export interface IValidator<TValue, TError> {
-    validate: (data: TValue, state?, props?) => TError;
+export interface IValidatorMeta {
+    state?: any;
+    props?: any;
 }
 
-export type ValidatorFactory<T, TError> = () => IValidator<T, TError>;
+export type Validator<TValue, TError, TMeta = {}> = (data: TValue, meta?: TMeta) => TError;
 
-export class ArrayValidator<T, TError> implements IValidator<T, TError[] | TError> {
+export interface IValidator<TValue, TError, TMeta = {}> {
+    validate(data: TValue, meta?: TMeta): TError;
+}
+
+export class ArrayValidator<TValue, TError, TMeta = {}> implements IValidator<TValue, TError[] | TError, TMeta> {
     private name: string;
-    private validator: Validator<T, TError[] | TError>;
+    private validators: Array<Validator<TValue, TError[] | TError, TMeta>>;
 
-    constructor(name: string, validator: Validator<T, TError[] | TError>) {
+    constructor(name: string, validators: Array<Validator<TValue, TError[] | TError, TMeta>>) {
         this.name = name;
-        this.validator = validator;
+        this.validators = validators;
+        this.validate = this.validate.bind(this);
     }
 
-    validate = (data: T, state, props): TError[] => {
-        const errors = this.validator(data, state, props);
-        if (Array.isArray(errors)) {
-            return errors;
-        } else {
-            return [errors];
-        }
+    validate(data, meta) {
+        let errors = [];
+        this.validators.forEach(validator => {
+            const validatorErrors = validator(data, meta);
+            errors = Array.isArray(validatorErrors)
+                ? [...errors, ...validatorErrors]
+                : [...errors, validatorErrors];
+        });
+        return errors;
     }
 }
 
-export const createValidator =
-    <T>(name: string, validator: Validator<T, string | string[]>): IValidator<T, string[]> =>
-        new ArrayValidator(name, validator);
-
-export const createValidatorFactory =
-    <T>(name: string, validator: Validator<T, string | string[]>) =>
-        () => new ArrayValidator(name, validator);
-
-export function combineValidators<TValue, TError>(
-    ...validators: Array<IValidator<TValue, TError[]>>,
-): IValidator<TValue, TError[]> {
-    return {
-        validate: concat(...validators.map(validator => validator.validate)),
-    };
+export function createValidator<TValue, TMeta = {}>(
+    name: string,
+    ...validator: Array<Validator<TValue, string | string[], TMeta>>,
+): IValidator<TValue, string[], TMeta> {
+    return new ArrayValidator(name, validator);
 }
