@@ -1,5 +1,5 @@
+import { ArrayValidator, IValidator, Validator } from "./ArrayValidator";
 import { mergeFormErrors, reduce } from "./tools";
-import { ArrayValidator, IValidator, Validator } from "./Validator";
 
 export interface IFieldErrors {
     [key: string]: string[];
@@ -30,10 +30,6 @@ export class FieldValidator<TSource, TValue> implements IValidator<TSource, IFie
     }
 }
 
-// export function createFieldValidator<TSource, TValue = keyof TSource>(
-//     name: TValue,
-//     validator: Validator<TValue, string>,
-// );
 export function createRawFormValidator<TSource>(
     validator: Validator<TSource, IFieldErrors>,
 ): IValidator<TSource, IFieldErrors> {

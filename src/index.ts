@@ -42,4 +42,4 @@ export {
     combineValidators,
     createValidator,
     createValidatorFactory,
-} from "./Validator";
+} from "./ArrayValidator";

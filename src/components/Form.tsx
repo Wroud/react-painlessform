@@ -1,8 +1,8 @@
 import * as React from "react";
 import shallowequal = require("shallowequal");
+import { IValidator } from "../ArrayValidator";
 import { FormErrors } from "../FormValidator";
 import { mergeFormErrors } from "../tools";
-import { IValidator } from "../Validator";
 
 export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement> {
     values?: Partial<T>;

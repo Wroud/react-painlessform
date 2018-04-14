@@ -1,7 +1,7 @@
 import * as React from "react";
 import shallowequal = require("shallowequal");
+import { IValidator } from "../ArrayValidator";
 import { FormErrors } from "../FormValidator";
-import { IValidator } from "../Validator";
 import { Consumer as FormContext, IFormState } from "./Form";
 
 export interface IValidationProps {
