@@ -6,7 +6,7 @@ import { mergeFormErrors } from "../tools";
 
 export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement> {
     values?: Partial<T>;
-    onModelChange?: (prevModel: T, nextModel: T) => any;
+    onModelChange?: (nextModel: T, prevModel: T) => any;
     onReset?: () => any;
     [rest: string]: any;
 }
@@ -45,32 +45,12 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState> {
     }
 
     shouldComponentUpdate(nextProps: IFormProps<T>, nextState: IFormState) {
-        const {
-            values,
-            onModelChange,
-            ...rest,
-        } = this.props;
-
-        for (const key of Object.keys(rest)) {
-            if (rest[key] !== nextProps[key]) {
-                return true;
-            }
-        }
-
-        const {
-            model,
-            isSubmitting,
-            handleChange,
-            ...stateRest,
-        } = this.state;
-
-        for (const key of Object.keys(stateRest)) {
-            if (stateRest[key] !== nextState[key]) {
-                return true;
-            }
-        }
-        if (!shallowequal(model, nextState.model)
-            || isSubmitting !== nextState.isSubmitting
+        const { model, ...rest } = this.state;
+        const { model: nextModel, ...nextRest } = nextState;
+        if (
+            !shallowequal(this.props, nextProps)
+            || !shallowequal(model, nextModel)
+            || !shallowequal(rest, nextRest)
         ) {
             return true;
         }
@@ -78,8 +58,11 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState> {
     }
 
     componentDidUpdate(prevProps: IFormProps<any>, prevState: IFormState) {
-        if (this.props.onModelChange && !shallowequal(this.state.model, prevState.model)) {
-            this.props.onModelChange(prevState.model, this.state.model);
+        if (
+            this.props.onModelChange
+            && !shallowequal(this.state.model, prevState.model)
+        ) {
+            this.props.onModelChange(this.state.model, prevState.model);
         }
     }
 
@@ -117,7 +100,6 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState> {
             this.setState({
                 model: EmptyModel,
             });
-            return;
         }
     }
 
@@ -131,7 +113,7 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState> {
                 ...model,
                 [field]: value,
             };
-            this.props.onModelChange(this.state.model, nextModel);
+            this.props.onModelChange(nextModel, this.state.model);
             return;
         }
 

@@ -31,7 +31,6 @@ class Form extends React.Component {
                 this.setState({
                     model: EmptyModel,
                 });
-                return;
             }
         };
         this.handleChange = (field, value) => {
@@ -41,7 +40,7 @@ class Form extends React.Component {
                     return;
                 }
                 const nextModel = Object.assign({}, model, { [field]: value });
-                this.props.onModelChange(this.state.model, nextModel);
+                this.props.onModelChange(nextModel, this.state.model);
                 return;
             }
             this.setState((prev, props) => {
@@ -70,27 +69,19 @@ class Form extends React.Component {
         return nextState;
     }
     shouldComponentUpdate(nextProps, nextState) {
-        const _a = this.props, { values, onModelChange } = _a, rest = __rest(_a, ["values", "onModelChange"]);
-        for (const key of Object.keys(rest)) {
-            if (rest[key] !== nextProps[key]) {
-                return true;
-            }
-        }
-        const _b = this.state, { model, isSubmitting, handleChange } = _b, stateRest = __rest(_b, ["model", "isSubmitting", "handleChange"]);
-        for (const key of Object.keys(stateRest)) {
-            if (stateRest[key] !== nextState[key]) {
-                return true;
-            }
-        }
-        if (!shallowequal(model, nextState.model)
-            || isSubmitting !== nextState.isSubmitting) {
+        const _a = this.state, { model } = _a, rest = __rest(_a, ["model"]);
+        const { model: nextModel } = nextState, nextRest = __rest(nextState, ["model"]);
+        if (!shallowequal(this.props, nextProps)
+            || !shallowequal(model, nextModel)
+            || !shallowequal(rest, nextRest)) {
             return true;
         }
         return false;
     }
     componentDidUpdate(prevProps, prevState) {
-        if (this.props.onModelChange && !shallowequal(this.state.model, prevState.model)) {
-            this.props.onModelChange(prevState.model, this.state.model);
+        if (this.props.onModelChange
+            && !shallowequal(this.state.model, prevState.model)) {
+            this.props.onModelChange(this.state.model, prevState.model);
         }
     }
     render() {

@@ -6,22 +6,23 @@ import { IFormState } from "./Form";
 export interface IValidationProps {
     isValid?: boolean;
     errors?: FormErrors<any>;
-    validator?: IValidator<any, FormErrors<any>, {
-        state: IValidationState;
-        props: IValidationProps;
-    }>;
+    validator?: IValidator<any, FormErrors<any>, IValidationMeta>;
     [rest: string]: any;
 }
-export interface IValidationState {
+export interface IValidationMeta {
+    state: any;
+    props: IValidationProps;
+}
+export interface IValidationContext {
     errors: FormErrors<any>;
     isValid: boolean;
 }
 export declare const Provider: React.ComponentClass<{
-    value: IValidationState;
+    value: IValidationContext;
 }>, Consumer: React.ComponentClass<{
-    children?: (context: IValidationState) => React.ReactNode;
+    children?: (context: IValidationContext) => React.ReactNode;
 }>;
-export declare class Validation extends React.Component<IValidationProps, IValidationState> {
+export declare class Validation extends React.Component<IValidationProps, any> {
     prevErrors: {
         errors: {};
         isValid: boolean;

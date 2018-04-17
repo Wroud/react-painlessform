@@ -1,7 +1,3 @@
-export interface IValidatorMeta {
-    state?: any;
-    props?: any;
-}
 export declare type Validator<TValue, TError, TMeta = {}> = (data: TValue, meta?: TMeta) => TError;
 export interface IValidator<TValue, TError, TMeta = {}> {
     validate(data: TValue, meta?: TMeta): TError;

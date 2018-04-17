@@ -1,23 +1,23 @@
 /// <reference types="react" />
 import * as React from "react";
 import { IFormState } from "./Form";
-export interface IFieldState {
-    name: string;
-    value: any;
-    validationErrors?: string[] | undefined;
-    isVisited: boolean;
-    isValid?: boolean;
-    onClick: () => any;
-    onChange: (value: any) => any;
-}
 export interface IFieldProps<T> {
     name: string;
     value?: any;
-    formState: IFormState;
-    validationErrors?: string[] | undefined;
+    formState?: IFormState;
+    validationErrors?: string[];
     onClick?: () => any;
-    onChange?: (field: string, value: any) => any;
-    children?: (state: IFieldState) => React.ReactNode | React.ReactNode;
+    onChange?: (field: string, value) => any;
+    children?: ((state: IFieldState) => React.ReactNode) | React.ReactNode;
+}
+export interface IFieldState {
+    name: string;
+    value: any;
+    validationErrors?: string[];
+    isVisited: boolean;
+    isValid?: boolean;
+    onClick: () => any;
+    onChange: (value: any | React.ChangeEvent<HTMLInputElement>) => any;
 }
 export declare const Provider: React.ComponentClass<{
     value: {};

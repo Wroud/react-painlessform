@@ -1,10 +1,5 @@
 import { concat } from "./tools";
 
-export interface IValidatorMeta {
-    state?: any;
-    props?: any;
-}
-
 export type Validator<TValue, TError, TMeta = {}> = (data: TValue, meta?: TMeta) => TError;
 
 export interface IValidator<TValue, TError, TMeta = {}> {
@@ -23,6 +18,9 @@ export class ArrayValidator<TValue, TError, TMeta = {}> implements IValidator<TV
 
     validate(data, meta) {
         let errors = [];
+        if (data === undefined) {
+            return errors;
+        }
         this.validators.forEach(validator => {
             const validatorErrors = validator(data, meta);
             errors = Array.isArray(validatorErrors)

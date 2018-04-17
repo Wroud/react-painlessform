@@ -19,21 +19,25 @@ class FieldClass extends React.Component {
             }
         };
         this.handleChange = (value) => {
-            if (value !== undefined
-                && value.target !== undefined
-                && value.target.value !== undefined) {
-                const target = value.target;
-                value = target.type === "checkbox" ? target.checked : target.value;
+            let nextValue;
+            if (value.target !== undefined) {
+                const { type, checked, value: targetValue } = value.target;
+                nextValue = type === "checkbox" ? checked : targetValue;
+            }
+            else {
+                nextValue = value;
             }
             if (this.props.onChange) {
-                this.props.onChange(this.props.name, value);
+                this.props.onChange(this.props.name, nextValue);
             }
-            this.setState({ value });
-            this.update(value);
+            if (this.props.value === undefined) {
+                this.setState({ value: nextValue });
+            }
+            this.update(nextValue);
         };
-        this.update = (value) => {
-            const { formState } = this.props;
-            this.props.formState.handleChange(this.props.name, value);
+        this.update = value => {
+            const { formState, name } = this.props;
+            formState.handleChange(name, value);
         };
         this.state = {
             value: "",
@@ -47,10 +51,10 @@ class FieldClass extends React.Component {
     static getDerivedStateFromProps({ validationErrors: nextErrors, value: nextValue, name, }, { value: prevValue, validationErrors: prevValidationErrors, }) {
         let value = prevValue;
         let validationErrors = prevValidationErrors;
-        if (prevValue !== nextValue) {
+        if (value !== nextValue) {
             value = nextValue === undefined ? "" : nextValue;
         }
-        if (!tools_1.isArrayEqual(prevValidationErrors, nextErrors)) {
+        if (!tools_1.isArrayEqual(validationErrors, nextErrors)) {
             validationErrors = nextErrors;
         }
         return {
@@ -74,13 +78,15 @@ class FieldClass extends React.Component {
     componentDidUpdate(prevProps, prevState) {
     }
     shouldComponentUpdate(nextProps, nextState) {
-        if (this.props.name !== nextProps.name
-            || !tools_1.isArrayEqual(this.props.validationErrors, nextProps.validationErrors)
-            || this.props.onChange !== nextProps.onChange
-            || this.props.name !== nextProps.name
-            || this.props.value !== nextProps.value
-            || this.state.isValid !== nextState.isValid
-            || this.state.isVisited !== nextState.isVisited) {
+        const { onChange, value: propsValue } = this.props;
+        const { value, name, isVisited, isValid, validationErrors } = this.state;
+        if (onChange !== nextProps.onChange
+            || propsValue !== nextProps.value
+            || name !== nextState.name
+            || value !== nextState.value
+            || isVisited !== nextState.isVisited
+            || isValid !== nextState.isValid
+            || !tools_1.isArrayEqual(validationErrors, nextState.validationErrors)) {
             return true;
         }
         return false;

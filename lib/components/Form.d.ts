@@ -2,7 +2,7 @@
 import * as React from "react";
 export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement> {
     values?: Partial<T>;
-    onModelChange?: (prevModel: T, nextModel: T) => any;
+    onModelChange?: (nextModel: T, prevModel: T) => any;
     onReset?: () => any;
     [rest: string]: any;
 }

@@ -7,23 +7,28 @@ import { Consumer as FormContext, IFormState } from "./Form";
 export interface IValidationProps {
     isValid?: boolean;
     errors?: FormErrors<any>;
-    validator?: IValidator<any, FormErrors<any>, { state: IValidationState, props: IValidationProps }>;
+    validator?: IValidator<any, FormErrors<any>, IValidationMeta>;
     [rest: string]: any;
 }
 
-export interface IValidationState {
+export interface IValidationMeta {
+    state: any;
+    props: IValidationProps;
+}
+
+export interface IValidationContext {
     errors: FormErrors<any>;
     isValid: boolean;
 }
 
 const NoErrors = {};
 
-export const { Provider, Consumer } = React.createContext<IValidationState>({
+export const { Provider, Consumer } = React.createContext<IValidationContext>({
     errors: NoErrors,
     isValid: true,
 });
 
-export class Validation extends React.Component<IValidationProps, IValidationState> {
+export class Validation extends React.Component<IValidationProps, any> {
     prevErrors = {
         errors: NoErrors,
         isValid: true,

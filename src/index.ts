@@ -15,12 +15,11 @@ export {
 export {
     Validation,
     IValidationProps,
-    IValidationState,
+    IValidationContext,
 } from "./components/Validation";
 export {
     createFieldValidator,
     FieldValidator,
-    IFieldErrors,
 } from "./FieldValidator";
 export {
     createFormValidator,

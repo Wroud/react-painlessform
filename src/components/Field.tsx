@@ -1,26 +1,26 @@
 import * as React from "react";
 import { isArrayEqual } from "../tools";
 import { Consumer as FormContext, IFormState } from "./Form";
-import { Consumer as ValidationContext, IValidationState } from "./Validation";
-
-export interface IFieldState {
-    name: string;
-    value: any;
-    validationErrors?: string[] | undefined;
-    isVisited: boolean;
-    isValid?: boolean;
-    onClick: () => any;
-    onChange: (value: any) => any;
-}
+import { Consumer as ValidationContext, IValidationContext } from "./Validation";
 
 export interface IFieldProps<T> {
     name: string;
     value?: any;
-    formState: IFormState;
-    validationErrors?: string[] | undefined;
+    formState?: IFormState;
+    validationErrors?: string[];
     onClick?: () => any;
-    onChange?: (field: string, value: any) => any;
-    children?: (state: IFieldState) => React.ReactNode | React.ReactNode;
+    onChange?: (field: string, value) => any;
+    children?: ((state: IFieldState) => React.ReactNode) | React.ReactNode;
+}
+
+export interface IFieldState {
+    name: string;
+    value: any;
+    validationErrors?: string[];
+    isVisited: boolean;
+    isValid?: boolean;
+    onClick: () => any;
+    onChange: (value: any | React.ChangeEvent<HTMLInputElement>) => any;
 }
 
 export const { Provider, Consumer } = React.createContext();
@@ -39,10 +39,10 @@ export class FieldClass<T> extends React.Component<IFieldProps<T>, IFieldState> 
     ): Partial<IFieldState> {
         let value = prevValue;
         let validationErrors = prevValidationErrors;
-        if (prevValue !== nextValue) {
+        if (value !== nextValue) {
             value = nextValue === undefined ? "" : nextValue;
         }
-        if (!isArrayEqual(prevValidationErrors, nextErrors)) {
+        if (!isArrayEqual(validationErrors, nextErrors)) {
             validationErrors = nextErrors;
         }
         return {
@@ -81,7 +81,7 @@ export class FieldClass<T> extends React.Component<IFieldProps<T>, IFieldState> 
     }
 
     componentDidMount() {
-        this.update(this.state.value);
+        this.update(this.state.value); // mount field to form model
     }
 
     componentDidUpdate(prevProps: IFieldProps<T>, prevState: IFieldState) {
@@ -93,13 +93,16 @@ export class FieldClass<T> extends React.Component<IFieldProps<T>, IFieldState> 
     }
 
     shouldComponentUpdate(nextProps: IFieldProps<T>, nextState: IFieldState) {
-        if (this.props.name !== nextProps.name
-            || !isArrayEqual(this.props.validationErrors, nextProps.validationErrors)
-            || this.props.onChange !== nextProps.onChange
-            || this.props.name !== nextProps.name
-            || this.props.value !== nextProps.value
-            || this.state.isValid !== nextState.isValid
-            || this.state.isVisited !== nextState.isVisited
+        const { onChange, value: propsValue } = this.props;
+        const { value, name, isVisited, isValid, validationErrors } = this.state;
+        if (
+            onChange !== nextProps.onChange
+            || propsValue !== nextProps.value
+            || name !== nextState.name
+            || value !== nextState.value
+            || isVisited !== nextState.isVisited
+            || isValid !== nextState.isValid
+            || !isArrayEqual(validationErrors, nextState.validationErrors)
         ) {
             return true;
         }
@@ -117,27 +120,28 @@ export class FieldClass<T> extends React.Component<IFieldProps<T>, IFieldState> 
         }
     }
 
-    private handleChange = (value: any) => {
-        if (
-            value !== undefined
-            && value.target !== undefined
-            && value.target.value !== undefined
-        ) {
-            const target = value.target;
-            value = target.type === "checkbox" ? target.checked : target.value;
+    private handleChange = (value: any | React.ChangeEvent<HTMLInputElement>) => {
+        let nextValue;
+        if (value.target !== undefined) {
+            const { type, checked, value: targetValue } = (value as React.ChangeEvent<HTMLInputElement>).target;
+            nextValue = type === "checkbox" ? checked : targetValue;
             // const name = !target.name ? target.id : target.name;
+        } else {
+            nextValue = value;
         }
 
         if (this.props.onChange) {
-            this.props.onChange(this.props.name, value);
+            this.props.onChange(this.props.name, nextValue);
         }
-        this.setState({ value });
-        this.update(value);
+        if (this.props.value === undefined) {
+            this.setState({ value: nextValue });
+        }
+        this.update(nextValue);
     }
 
-    private update = (value: any) => {
-        const { formState } = this.props;
-        this.props.formState.handleChange(this.props.name, value);
+    private update = value => {
+        const { formState, name } = this.props;
+        formState.handleChange(name, value);
     }
 }
 

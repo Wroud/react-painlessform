@@ -8,6 +8,9 @@ class ArrayValidator {
     }
     validate(data, meta) {
         let errors = [];
+        if (data === undefined) {
+            return errors;
+        }
         this.validators.forEach(validator => {
             const validatorErrors = validator(data, meta);
             errors = Array.isArray(validatorErrors)

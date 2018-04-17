@@ -4,8 +4,8 @@ export declare type FormErrors<T> = {
 };
 export declare class FormValidator<TSource, TMeta = {}> implements IValidator<TSource, FormErrors<TSource>, TMeta> {
     private validators;
-    constructor(...validators: Array<IValidator<TSource, any, TMeta>>);
+    constructor(...validators: Array<IValidator<TSource, FormErrors<TSource>, TMeta>>);
     validate: (data: TSource, meta: TMeta) => FormErrors<TSource>;
 }
-export declare function createFormValidator<TSource, TMeta = {}>(...validators: Array<IValidator<TSource, any, TMeta>>): IValidator<TSource, FormErrors<TSource>, TMeta>;
+export declare function createFormValidator<TSource, TMeta = {}>(...validators: Array<IValidator<TSource, FormErrors<TSource>, TMeta>>): IValidator<TSource, FormErrors<TSource>, TMeta>;
 export declare function createRawFormValidator<TSource, TMeta = {}>(validator: Validator<TSource, FormErrors<TSource>, TMeta>): IValidator<TSource, FormErrors<TSource>, TMeta>;

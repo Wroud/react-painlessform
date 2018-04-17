@@ -9,15 +9,12 @@ describe("ArrayValidator", () => {
 
     it("test", () => {
         const stringNotNull = value =>
-            value === undefined
-                || value.length === 0
+            value.length === 0
                 ? "Requered"
                 : [];
 
         const stringMaxLength = value =>
-            value === undefined
-                || !value.length
-                || value.length < 3
+            value.length < 3
                 ? "Min 3"
                 : [];
 
