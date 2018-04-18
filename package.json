@@ -1,6 +1,6 @@
 {
   "name": "react-painlessform",
-  "version": "0.0.0-alpha6",
+  "version": "0.0.0-alpha7",
   "description": "React Forms without pain",
   "main": "lib/index.js",
   "module": "lib/index.js",

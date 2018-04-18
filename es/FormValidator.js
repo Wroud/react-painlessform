@@ -6,7 +6,24 @@ class FormValidator {
         this.validate = (data, meta) => {
             let errors = {};
             this.validators.forEach(validator => {
-                errors = tools_1.mergeFormErrors(errors, validator.validate(data, meta));
+                if (validator.validateSync) {
+                    try {
+                        validator.validateSync(data, {
+                            abortEarly: false,
+                            context: meta || {},
+                        });
+                    }
+                    catch (_errors) {
+                        if (_errors.path === undefined) {
+                            _errors.inner.forEach(error => {
+                                errors = tools_1.mergeFormErrors(errors, { [error.path]: error.errors });
+                            });
+                        }
+                    }
+                }
+                else {
+                    errors = tools_1.mergeFormErrors(errors, validator.validate(data, meta));
+                }
             });
             return errors;
         };
