@@ -58,10 +58,8 @@ export class FieldClass<T> extends React.Component<IFieldProps<T>, IFieldState> 
             name,
             validationErrors,
             validationScope,
-            isValid: validationErrors === undefined
-                || validationErrors.length === 0
-                || validationScope === undefined
-                || validationScope.length === 0,
+            isValid: (validationErrors === undefined || validationErrors.length === 0)
+                && (validationScope === undefined || validationScope.length === 0),
         };
     }
 
