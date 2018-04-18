@@ -4,8 +4,10 @@ const React = require("react");
 const shallowequal = require("shallowequal");
 const Form_1 = require("./Form");
 const NoErrors = {};
+const NoScopeErrors = [];
 _a = React.createContext({
     errors: NoErrors,
+    scope: NoScopeErrors,
     isValid: true,
 }), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 class Validation extends React.Component {
@@ -13,42 +15,77 @@ class Validation extends React.Component {
         super(...arguments);
         this.prevErrors = {
             errors: NoErrors,
+            scope: NoScopeErrors,
             isValid: true,
         };
-    }
-    validate(form) {
-        if (this.props.errors) {
-            return {
-                isValid: this.props.isValid,
-                errors: this.props.errors,
-            };
-        }
-        const { validator } = this.props;
-        let errors = NoErrors;
-        let isValid = true;
-        if (validator && form.model) {
-            const preErrors = validator.validate(form.model, {
-                state: this.state,
-                props: this.props,
-            });
-            for (const key of Object.keys(preErrors)) {
-                if (preErrors[key].length > 0) {
-                    isValid = false;
-                    break;
+        this.validate = (form) => {
+            if (this.props.errors || this.props.scope) {
+                return {
+                    errors: this.props.errors,
+                    scope: this.props.scope,
+                    isValid: this.props.isValid,
+                };
+            }
+            const { validator, scopeValidator } = this.props;
+            let errors = NoErrors;
+            let scope = NoScopeErrors;
+            let isValid = true;
+            if (validator && form.model) {
+                if (validator.validateSync) {
+                    try {
+                        validator.validateSync(form.model, {
+                            abortEarly: false,
+                            context: {
+                                state: this.state,
+                                props: this.props,
+                            },
+                        });
+                    }
+                    catch (_errors) {
+                        if (_errors.path === undefined) {
+                            _errors.inner.forEach(error => {
+                                errors = Object.assign({}, errors, { [error.path]: [...(errors[error.path] || []), ...error.errors] });
+                            });
+                        }
+                        else {
+                            this.context = _errors.errors;
+                        }
+                        isValid = false;
+                    }
+                }
+                else {
+                    const preErrors = validator.validate(form.model, {
+                        state: this.state,
+                        props: this.props,
+                    });
+                    for (const key of Object.keys(preErrors)) {
+                        if (preErrors[key].length > 0) {
+                            isValid = false;
+                            errors = preErrors;
+                            break;
+                        }
+                    }
                 }
             }
-            if (!isValid) {
-                errors = preErrors;
+            if (scopeValidator && form.model) {
+                const preScope = scopeValidator.validate(form.model, {
+                    state: this.state,
+                    props: this.props,
+                });
+                if (preScope.length > 0) {
+                    isValid = false;
+                    scope = preScope;
+                }
             }
-        }
-        const result = { isValid, errors };
-        if (!shallowequal(result, this.prevErrors)) {
-            this.prevErrors = result;
-            return result;
-        }
-        else {
-            return this.prevErrors;
-        }
+            const result = { errors, scope, isValid };
+            if (!shallowequal(result, this.prevErrors)) {
+                this.prevErrors = result;
+                return result;
+            }
+            else {
+                return this.prevErrors;
+            }
+        };
     }
     render() {
         return (React.createElement(Form_1.Consumer, null, context => React.createElement(exports.Provider, { value: this.validate(context) }, this.props.children)));

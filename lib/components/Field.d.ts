@@ -6,6 +6,7 @@ export interface IFieldProps<T> {
     value?: any;
     formState?: IFormState;
     validationErrors?: string[];
+    validationScope?: string[];
     onClick?: () => any;
     onChange?: (field: string, value) => any;
     children?: ((state: IFieldState) => React.ReactNode) | React.ReactNode;
@@ -14,6 +15,7 @@ export interface IFieldState {
     name: string;
     value: any;
     validationErrors?: string[];
+    validationScope?: string[];
     isVisited: boolean;
     isValid?: boolean;
     onClick: () => any;
@@ -25,7 +27,8 @@ export declare const Provider: React.ComponentClass<{
     children?: (context: {}) => React.ReactNode;
 }>;
 export declare class FieldClass<T> extends React.Component<IFieldProps<T>, IFieldState> {
-    private static getDerivedStateFromProps({validationErrors: nextErrors, value: nextValue, name}, {value: prevValue, validationErrors: prevValidationErrors});
+    private static getDerivedStateFromProps({validationErrors: nextErrors, validationScope: nextValidationScope, value: nextValue, name}, {value: prevValue, validationErrors: prevValidationErrors, validationScope: prevValidationScope});
+    private inputValue;
     constructor(props: IFieldProps<T>);
     render(): JSX.Element;
     componentDidMount(): void;
@@ -35,5 +38,5 @@ export declare class FieldClass<T> extends React.Component<IFieldProps<T>, IFiel
     private handleChange;
     private update;
 }
-export declare function withFormState(Component: any): <T>(props: Pick<IFieldProps<T>, "children" | "name" | "onChange" | "onClick">) => JSX.Element;
-export declare const Field: <T>(props: Pick<IFieldProps<T>, "children" | "name" | "onChange" | "onClick">) => JSX.Element;
+export declare function withFormState(Component: any): <T>(props: Pick<IFieldProps<T>, "children" | "name" | "onChange" | "onClick" | "validationScope">) => JSX.Element;
+export declare const Field: <T>(props: Pick<IFieldProps<T>, "children" | "name" | "onChange" | "onClick" | "validationScope">) => JSX.Element;

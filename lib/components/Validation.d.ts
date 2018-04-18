@@ -1,12 +1,15 @@
 /// <reference types="react" />
 import * as React from "react";
+import * as Yup from "yup";
 import { IValidator } from "../ArrayValidator";
 import { FormErrors } from "../FormValidator";
 import { IFormState } from "./Form";
 export interface IValidationProps {
-    isValid?: boolean;
     errors?: FormErrors<any>;
-    validator?: IValidator<any, FormErrors<any>, IValidationMeta>;
+    scope?: string[];
+    isValid?: boolean;
+    validator?: IValidator<any, FormErrors<any>, IValidationMeta> | Yup.Schema<any>;
+    scopeValidator?: IValidator<any, string[], IValidationMeta>;
     [rest: string]: any;
 }
 export interface IValidationMeta {
@@ -15,6 +18,7 @@ export interface IValidationMeta {
 }
 export interface IValidationContext {
     errors: FormErrors<any>;
+    scope: string[];
     isValid: boolean;
 }
 export declare const Provider: React.ComponentClass<{
@@ -25,11 +29,9 @@ export declare const Provider: React.ComponentClass<{
 export declare class Validation extends React.Component<IValidationProps, any> {
     prevErrors: {
         errors: {};
+        scope: string[];
         isValid: boolean;
     };
-    validate(form: IFormState): {
-        isValid: boolean;
-        errors: FormErrors<any>;
-    };
+    validate: (form: IFormState) => IValidationContext;
     render(): JSX.Element;
 }
