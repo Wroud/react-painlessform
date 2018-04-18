@@ -5,9 +5,11 @@ import { FormErrors } from "../FormValidator";
 import { Consumer as FormContext, IFormState } from "./Form";
 
 export interface IValidationProps {
-    isValid?: boolean;
     errors?: FormErrors<any>;
+    scope?: string[];
+    isValid?: boolean;
     validator?: IValidator<any, FormErrors<any>, IValidationMeta>;
+    scopeValidator?: IValidator<any, string[], IValidationMeta>;
     [rest: string]: any;
 }
 
@@ -18,32 +20,38 @@ export interface IValidationMeta {
 
 export interface IValidationContext {
     errors: FormErrors<any>;
+    scope: string[];
     isValid: boolean;
 }
 
 const NoErrors = {};
+const NoScopeErrors: string[] = [];
 
 export const { Provider, Consumer } = React.createContext<IValidationContext>({
     errors: NoErrors,
+    scope: NoScopeErrors,
     isValid: true,
 });
 
 export class Validation extends React.Component<IValidationProps, any> {
     prevErrors = {
         errors: NoErrors,
+        scope: NoScopeErrors,
         isValid: true,
     };
-    validate(form: IFormState) {
-        if (this.props.errors) {
+    validate(form: IFormState): IValidationContext {
+        if (this.props.errors || this.props.scope) {
             return {
-                isValid: this.props.isValid,
                 errors: this.props.errors,
+                scope: this.props.scope,
+                isValid: this.props.isValid,
             };
         }
 
-        const { validator } = this.props;
+        const { validator, scopeValidator } = this.props;
 
         let errors = NoErrors;
+        let scope = NoScopeErrors;
         let isValid = true;
         if (validator && form.model) {
             const preErrors = validator.validate(
@@ -56,15 +64,26 @@ export class Validation extends React.Component<IValidationProps, any> {
             for (const key of Object.keys(preErrors)) {
                 if (preErrors[key].length > 0) {
                     isValid = false;
+                    errors = preErrors;
                     break;
                 }
             }
-            if (!isValid) {
-                errors = preErrors;
+        }
+        if (scopeValidator && form.model) {
+            const preScope = scopeValidator.validate(
+                form.model,
+                {
+                    state: this.state,
+                    props: this.props,
+                },
+            );
+            if (preScope.length > 0) {
+                isValid = false;
+                scope = preScope;
             }
         }
 
-        const result = { isValid, errors };
+        const result = { errors, scope, isValid };
 
         if (!shallowequal(result, this.prevErrors)) {
             this.prevErrors = result;

@@ -8,6 +8,7 @@ export interface IFieldProps<T> {
     value?: any;
     formState?: IFormState;
     validationErrors?: string[];
+    validationScope?: string[];
     onClick?: () => any;
     onChange?: (field: string, value) => any;
     children?: ((state: IFieldState) => React.ReactNode) | React.ReactNode;
@@ -17,6 +18,7 @@ export interface IFieldState {
     name: string;
     value: any;
     validationErrors?: string[];
+    validationScope?: string[];
     isVisited: boolean;
     isValid?: boolean;
     onClick: () => any;
@@ -29,33 +31,46 @@ export class FieldClass<T> extends React.Component<IFieldProps<T>, IFieldState> 
     private static getDerivedStateFromProps(
         {
             validationErrors: nextErrors,
+            validationScope: nextValidationScope,
             value: nextValue,
             name,
         }: IFieldProps<any>,
         {
             value: prevValue,
             validationErrors: prevValidationErrors,
+            validationScope: prevValidationScope,
         }: IFieldState,
     ): Partial<IFieldState> {
         let value = prevValue;
         let validationErrors = prevValidationErrors;
+        let validationScope = prevValidationScope;
         if (value !== nextValue) {
             value = nextValue === undefined ? "" : nextValue;
         }
         if (!isArrayEqual(validationErrors, nextErrors)) {
             validationErrors = nextErrors;
         }
+        if (!isArrayEqual(validationScope, nextValidationScope)) {
+            validationScope = nextValidationScope;
+        }
         return {
             value,
             name,
             validationErrors,
-            isValid: validationErrors === undefined || validationErrors.length === 0,
+            validationScope,
+            isValid: validationErrors === undefined
+                || validationErrors.length === 0
+                || validationScope === undefined
+                || validationScope.length === 0,
         };
     }
+
+    private inputValue: any;
 
     constructor(props: IFieldProps<T>) {
         super(props);
 
+        this.inputValue = "";
         this.state = {
             value: "",
             name: "",
@@ -94,15 +109,16 @@ export class FieldClass<T> extends React.Component<IFieldProps<T>, IFieldState> 
 
     shouldComponentUpdate(nextProps: IFieldProps<T>, nextState: IFieldState) {
         const { onChange, value: propsValue } = this.props;
-        const { value, name, isVisited, isValid, validationErrors } = this.state;
+        const { value, name, isVisited, isValid, validationErrors, validationScope } = this.state;
         if (
             onChange !== nextProps.onChange
-            || propsValue !== nextProps.value
+            || propsValue !== nextProps.value // || this.inputValue !== nextProps.value
             || name !== nextState.name
-            || value !== nextState.value
+            || value !== nextState.value // || this.inputValue !== nextState.value
             || isVisited !== nextState.isVisited
             || isValid !== nextState.isValid
             || !isArrayEqual(validationErrors, nextState.validationErrors)
+            || !isArrayEqual(validationScope, nextState.validationScope)
         ) {
             return true;
         }
@@ -141,6 +157,7 @@ export class FieldClass<T> extends React.Component<IFieldProps<T>, IFieldState> 
 
     private update = value => {
         const { formState, name } = this.props;
+        this.inputValue = value;
         formState.handleChange(name, value);
     }
 }
@@ -159,6 +176,7 @@ export function withFormState(Component) {
                                 {...props}
                                 value={formState.model[props.name]}
                                 validationErrors={validation.errors[props.name]}
+                                validationScope={validation.scope}
                                 formState={formState}
                             />
                         )}
