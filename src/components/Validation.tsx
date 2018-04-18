@@ -1,5 +1,6 @@
 import * as React from "react";
 import shallowequal = require("shallowequal");
+import * as Yup from "yup";
 import { IValidator } from "../ArrayValidator";
 import { FormErrors } from "../FormValidator";
 import { Consumer as FormContext, IFormState } from "./Form";
@@ -8,7 +9,7 @@ export interface IValidationProps {
     errors?: FormErrors<any>;
     scope?: string[];
     isValid?: boolean;
-    validator?: IValidator<any, FormErrors<any>, IValidationMeta>;
+    validator?: IValidator<any, FormErrors<any>, IValidationMeta> | Yup.Schema<any>;
     scopeValidator?: IValidator<any, string[], IValidationMeta>;
     [rest: string]: any;
 }
@@ -39,7 +40,7 @@ export class Validation extends React.Component<IValidationProps, any> {
         scope: NoScopeErrors,
         isValid: true,
     };
-    validate(form: IFormState): IValidationContext {
+    validate = (form: IFormState): IValidationContext => {
         if (this.props.errors || this.props.scope) {
             return {
                 errors: this.props.errors,
@@ -54,18 +55,42 @@ export class Validation extends React.Component<IValidationProps, any> {
         let scope = NoScopeErrors;
         let isValid = true;
         if (validator && form.model) {
-            const preErrors = validator.validate(
-                form.model,
-                {
-                    state: this.state,
-                    props: this.props,
-                },
-            );
-            for (const key of Object.keys(preErrors)) {
-                if (preErrors[key].length > 0) {
+            if ((validator as Yup.Schema<any>).validateSync) {
+                try {
+                    (validator as Yup.Schema<any>).validateSync(form.model, {
+                        abortEarly: false,
+                        context: {
+                            state: this.state,
+                            props: this.props,
+                        },
+                    });
+                } catch (_errors) { // : Yup.ValidationError
+                    if (_errors.path === undefined) {
+                        _errors.inner.forEach(error => {
+                            errors = {
+                                ...errors,
+                                [error.path]: [...(errors[error.path] || []), ...error.errors],
+                            };
+                        });
+                    } else {
+                        this.context = _errors.errors;
+                    }
                     isValid = false;
-                    errors = preErrors;
-                    break;
+                }
+            } else {
+                const preErrors = (validator as IValidator<any, FormErrors<any>, IValidationMeta>).validate(
+                    form.model,
+                    {
+                        state: this.state,
+                        props: this.props,
+                    },
+                );
+                for (const key of Object.keys(preErrors)) {
+                    if (preErrors[key].length > 0) {
+                        isValid = false;
+                        errors = preErrors;
+                        break;
+                    }
                 }
             }
         }
