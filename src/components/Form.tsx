@@ -72,6 +72,8 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState> {
             children,
             onModelChange,
             onSubmit,
+            values,
+            actions,
             ...rest,
         } = this.props;
 
@@ -85,6 +87,9 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState> {
     }
 
     private handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+        if (event) {
+            event.preventDefault();
+        }
         const { onSubmit } = this.props;
         if (onSubmit) {
             onSubmit(event);
