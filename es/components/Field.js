@@ -68,10 +68,8 @@ class FieldClass extends React.Component {
             name,
             validationErrors,
             validationScope,
-            isValid: validationErrors === undefined
-                || validationErrors.length === 0
-                || validationScope === undefined
-                || validationScope.length === 0,
+            isValid: (validationErrors === undefined || validationErrors.length === 0)
+                && (validationScope === undefined || validationScope.length === 0),
         };
     }
     render() {

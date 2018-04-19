@@ -17,6 +17,9 @@ class Form extends React.Component {
     constructor(props) {
         super(props);
         this.handleSubmit = (event) => {
+            if (event) {
+                event.preventDefault();
+            }
             const { onSubmit } = this.props;
             if (onSubmit) {
                 onSubmit(event);
@@ -85,7 +88,7 @@ class Form extends React.Component {
         }
     }
     render() {
-        const _a = this.props, { componentId, children, onModelChange, onSubmit } = _a, rest = __rest(_a, ["componentId", "children", "onModelChange", "onSubmit"]);
+        const _a = this.props, { componentId, children, onModelChange, onSubmit, values, actions } = _a, rest = __rest(_a, ["componentId", "children", "onModelChange", "onSubmit", "values", "actions"]);
         return (React.createElement(exports.Provider, { value: this.state },
             React.createElement("form", Object.assign({ onSubmit: this.handleSubmit }, rest), children)));
     }
