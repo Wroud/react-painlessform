@@ -4,7 +4,7 @@ import { IFormState } from "./Form";
 export interface IFieldProps<T> {
     name: string;
     value?: any;
-    formState?: IFormState;
+    formState?: IFormState<T>;
     validationErrors?: string[];
     validationScope?: string[];
     onClick?: () => any;

@@ -32,6 +32,6 @@ export declare class Validation extends React.Component<IValidationProps, any> {
         scope: string[];
         isValid: boolean;
     };
-    validate: (form: IFormState) => IValidationContext;
+    validate: (form: IFormState<any>) => IValidationContext;
     render(): JSX.Element;
 }
