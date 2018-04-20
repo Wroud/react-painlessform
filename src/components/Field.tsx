@@ -1,4 +1,5 @@
 import * as React from "react";
+import shallowequal = require("shallowequal");
 import { isArrayEqual } from "../tools";
 import { Consumer as FormContext, IFormState } from "./Form";
 import { Consumer as ValidationContext, IValidationContext } from "./Validation";
@@ -106,7 +107,8 @@ export class FieldClass<T> extends React.Component<IFieldProps<T>, IFieldState> 
     }
 
     shouldComponentUpdate(nextProps: IFieldProps<T>, nextState: IFieldState) {
-        const { onChange, value: propsValue } = this.props;
+        const { onChange: _, value: __, ...nextRest } = nextProps;
+        const { onChange, value: propsValue, ...rest } = this.props;
         const { value, name, isVisited, isValid, validationErrors, validationScope } = this.state;
         if (
             onChange !== nextProps.onChange
@@ -117,6 +119,7 @@ export class FieldClass<T> extends React.Component<IFieldProps<T>, IFieldState> 
             || isValid !== nextState.isValid
             || !isArrayEqual(validationErrors, nextState.validationErrors)
             || !isArrayEqual(validationScope, nextState.validationScope)
+            || !shallowequal(nextRest, rest)
         ) {
             return true;
         }
