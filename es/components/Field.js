@@ -1,6 +1,16 @@
 "use strict";
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) if (e.indexOf(p[i]) < 0)
+            t[p[i]] = s[p[i]];
+    return t;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const React = require("react");
+const shallowequal = require("shallowequal");
 const tools_1 = require("../tools");
 const Form_1 = require("./Form");
 const Validation_1 = require("./Validation");
@@ -86,7 +96,8 @@ class FieldClass extends React.Component {
     componentDidUpdate(prevProps, prevState) {
     }
     shouldComponentUpdate(nextProps, nextState) {
-        const { onChange, value: propsValue } = this.props;
+        const { onChange: _, value: __ } = nextProps, nextRest = __rest(nextProps, ["onChange", "value"]);
+        const _a = this.props, { onChange, value: propsValue } = _a, rest = __rest(_a, ["onChange", "value"]);
         const { value, name, isVisited, isValid, validationErrors, validationScope } = this.state;
         if (onChange !== nextProps.onChange
             || propsValue !== nextProps.value
@@ -95,7 +106,8 @@ class FieldClass extends React.Component {
             || isVisited !== nextState.isVisited
             || isValid !== nextState.isValid
             || !tools_1.isArrayEqual(validationErrors, nextState.validationErrors)
-            || !tools_1.isArrayEqual(validationScope, nextState.validationScope)) {
+            || !tools_1.isArrayEqual(validationScope, nextState.validationScope)
+            || !shallowequal(nextRest, rest)) {
             return true;
         }
         return false;
