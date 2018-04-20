@@ -34,6 +34,7 @@ export declare class FieldClass<T> extends React.Component<IFieldProps<T>, IFiel
     componentDidMount(): void;
     componentDidUpdate(prevProps: IFieldProps<T>, prevState: IFieldState): void;
     shouldComponentUpdate(nextProps: IFieldProps<T>, nextState: IFieldState): boolean;
+    private setVisited();
     private onClick;
     private handleChange;
     private update;

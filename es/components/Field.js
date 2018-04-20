@@ -19,11 +19,7 @@ class FieldClass extends React.Component {
     constructor(props) {
         super(props);
         this.onClick = () => {
-            if (!this.state.isVisited) {
-                this.setState({
-                    isVisited: true,
-                });
-            }
+            this.setVisited();
             if (this.props.onClick) {
                 this.props.onClick();
             }
@@ -37,6 +33,7 @@ class FieldClass extends React.Component {
             else {
                 nextValue = value;
             }
+            this.setVisited();
             if (this.props.onChange) {
                 this.props.onChange(this.props.name, nextValue);
             }
@@ -112,6 +109,13 @@ class FieldClass extends React.Component {
             return true;
         }
         return false;
+    }
+    setVisited() {
+        if (!this.state.isVisited) {
+            this.setState({
+                isVisited: true,
+            });
+        }
     }
 }
 exports.FieldClass = FieldClass;

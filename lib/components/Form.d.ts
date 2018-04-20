@@ -21,6 +21,9 @@ export interface IFormState {
     handleReset: () => any;
     handleChange: (field: string, value: any) => any;
 }
+export interface IForm<T = {}> extends Form<T> {
+    new (props: IFormProps<T>): Form<T>;
+}
 export declare const Provider: React.ComponentClass<{
     value: IFormState;
 }>, Consumer: React.ComponentClass<{
