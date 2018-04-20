@@ -6,6 +6,7 @@ import * as ReactDOM from "react-dom";
 import { createRenderer, ShallowRenderer } from "react-test-renderer/shallow";
 import * as Yup from "yup";
 import { FormContext, IFormState, IValidationProps, Validation } from "../../src";
+import { defaultConfiguration } from "../../src/components/Form";
 
 use(assertArrays);
 describe("Validation", () => {
@@ -50,6 +51,7 @@ describe("Validation Yup", () => {
             model: {
                 field: "",
             },
+            configure: defaultConfiguration,
             isSubmitting: false,
             handleChange: () => "handleChange",
             handleReset: () => "handleReset",
