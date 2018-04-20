@@ -33,13 +33,10 @@ class Validation extends React.Component {
             if (validator && form.model) {
                 if (validator.validateSync) {
                     try {
-                        validator.validateSync(form.model, {
-                            abortEarly: false,
-                            context: {
+                        validator.validateSync(form.model, Object.assign({ abortEarly: false, context: {
                                 state: this.state,
                                 props: this.props,
-                            },
-                        });
+                            } }, form.configure.validation));
                     }
                     catch (_errors) {
                         if (_errors.path === undefined) {

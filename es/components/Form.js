@@ -11,13 +11,19 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const React = require("react");
 const shallowequal = require("shallowequal");
+exports.defaultConfiguration = {
+    submitting: {
+        preventDefault: true,
+    },
+    validation: {},
+};
 _a = React.createContext(), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 const EmptyModel = {};
 class Form extends React.Component {
     constructor(props) {
         super(props);
         this.handleSubmit = (event) => {
-            if (event) {
+            if (event && this.props.configure.submitting.preventDefault) {
                 event.preventDefault();
             }
             const { onSubmit } = this.props;
@@ -64,10 +70,11 @@ class Form extends React.Component {
         };
     }
     static getDerivedStateFromProps(props, state) {
-        const { values } = props;
+        const { values, configure } = props;
         let nextState = null;
         nextState = {
-            model: values ? values : state.model,
+            model: values || state.model,
+            configure: configure || exports.defaultConfiguration,
         };
         return nextState;
     }
@@ -93,5 +100,8 @@ class Form extends React.Component {
             React.createElement("form", Object.assign({ onSubmit: this.handleSubmit }, rest), children)));
     }
 }
+Form.defaultProps = {
+    configure: exports.defaultConfiguration,
+};
 exports.Form = Form;
 var _a;
