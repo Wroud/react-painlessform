@@ -7,7 +7,7 @@ import { Consumer as ValidationContext, IValidationContext } from "./Validation"
 export interface IFieldProps<T> {
     name: string;
     value?: any;
-    formState?: IFormState;
+    formState?: IFormState<T>;
     validationErrors?: string[];
     validationScope?: string[];
     onClick?: () => any;

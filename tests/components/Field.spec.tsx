@@ -14,7 +14,7 @@ describe("Field", () => {
 
     beforeEach(() => {
         renderer = createRenderer();
-        const formState: IFormState = {
+        const formState: IFormState<any> = {
             model: { field: 1 },
             isSubmitting: false,
             handleChange: () => "handleChange",

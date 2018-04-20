@@ -47,7 +47,7 @@ describe("Validation Yup", () => {
             },
             scope: [],
         };
-        const formState: IFormState = {
+        const formState: IFormState<any> = {
             model: {
                 field: "",
             },

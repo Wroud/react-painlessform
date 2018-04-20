@@ -26,8 +26,8 @@ export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement>
     [rest: string]: any;
 }
 
-export interface IFormState {
-    model: any;
+export interface IFormState<T> {
+    model: T;
     isSubmitting: boolean;
     configure?: IFormConfiguration;
     handleReset: () => any;
@@ -38,14 +38,14 @@ export interface IForm<T = {}> extends Form<T> {
     new(props: IFormProps<T>): Form<T>;
 }
 
-export const { Provider, Consumer } = React.createContext<IFormState>();
+export const { Provider, Consumer } = React.createContext<IFormState<any>>();
 const EmptyModel = {};
 
-export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState> {
+export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> {
     static defaultProps: Partial<IFormProps<any>> = {
         configure: defaultConfiguration,
     };
-    static getDerivedStateFromProps(props: IFormProps<any>, state: IFormState) {
+    static getDerivedStateFromProps(props: IFormProps<any>, state: IFormState<any>) {
         const { values, configure } = props;
         let nextState = null;
 
@@ -61,14 +61,14 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState> {
         super(props);
 
         this.state = {
-            model: EmptyModel,
+            model: EmptyModel as T,
             isSubmitting: false,
             handleReset: this.handleReset,
             handleChange: this.handleChange,
         };
     }
 
-    shouldComponentUpdate(nextProps: IFormProps<T>, nextState: IFormState) {
+    shouldComponentUpdate(nextProps: IFormProps<T>, nextState: IFormState<T>) {
         const { model, ...rest } = this.state;
         const { model: nextModel, ...nextRest } = nextState;
         if (
@@ -81,7 +81,7 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState> {
         return false;
     }
 
-    componentDidUpdate(prevProps: IFormProps<any>, prevState: IFormState) {
+    componentDidUpdate(prevProps: IFormProps<any>, prevState: IFormState<T>) {
         if (
             this.props.onModelChange
             && !shallowequal(this.state.model, prevState.model)
@@ -127,7 +127,7 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState> {
         }
         if (!this.props.values) {
             this.setState({
-                model: EmptyModel,
+                model: EmptyModel as T,
             });
         }
     }
@@ -139,7 +139,7 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState> {
                 return;
             }
             const nextModel = {
-                ...model,
+                ...(model as any),
                 [field]: value,
             };
             this.props.onModelChange(nextModel, this.state.model);
@@ -151,7 +151,7 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState> {
                 return null;
             }
             const nextModel = {
-                ...prev.model,
+                ...(prev.model as any),
                 [field]: value,
             };
 

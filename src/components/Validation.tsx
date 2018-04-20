@@ -40,7 +40,7 @@ export class Validation extends React.Component<IValidationProps, any> {
         scope: NoScopeErrors,
         isValid: true,
     };
-    validate = (form: IFormState): IValidationContext => {
+    validate = (form: IFormState<any>): IValidationContext => {
         if (this.props.errors || this.props.scope) {
             return {
                 errors: this.props.errors,
