@@ -128,12 +128,16 @@ export class FieldClass<T> extends React.Component<IFieldProps<T>, IFieldState> 
         return false;
     }
 
-    private onClick = () => {
+    private setVisited() {
         if (!this.state.isVisited) {
             this.setState({
                 isVisited: true,
             });
         }
+    }
+
+    private onClick = () => {
+        this.setVisited();
         if (this.props.onClick) {
             this.props.onClick();
         }
@@ -149,6 +153,7 @@ export class FieldClass<T> extends React.Component<IFieldProps<T>, IFieldState> 
             nextValue = value;
         }
 
+        this.setVisited();
         if (this.props.onChange) {
             this.props.onChange(this.props.name, nextValue);
         }
