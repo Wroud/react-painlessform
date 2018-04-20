@@ -4,8 +4,23 @@ import { IValidator } from "../ArrayValidator";
 import { FormErrors } from "../FormValidator";
 import { mergeFormErrors } from "../tools";
 
+export interface IFormConfiguration {
+    submitting: {
+        preventDefault: boolean;
+    };
+    validation: any;
+}
+
+export const defaultConfiguration: IFormConfiguration = {
+    submitting: {
+        preventDefault: true,
+    },
+    validation: {},
+};
+
 export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement> {
     values?: Partial<T>;
+    configure?: IFormConfiguration;
     onModelChange?: (nextModel: T, prevModel: T) => any;
     onReset?: () => any;
     [rest: string]: any;
@@ -14,6 +29,7 @@ export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement>
 export interface IFormState {
     model: any;
     isSubmitting: boolean;
+    configure?: IFormConfiguration;
     handleReset: () => any;
     handleChange: (field: string, value: any) => any;
 }
@@ -22,12 +38,16 @@ export const { Provider, Consumer } = React.createContext<IFormState>();
 const EmptyModel = {};
 
 export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState> {
+    static defaultProps: Partial<IFormProps<any>> = {
+        configure: defaultConfiguration,
+    };
     static getDerivedStateFromProps(props: IFormProps<any>, state: IFormState) {
-        const { values } = props;
+        const { values, configure } = props;
         let nextState = null;
 
         nextState = {
-            model: values ? values : state.model,
+            model: values || state.model,
+            configure: configure || defaultConfiguration,
         };
 
         return nextState;
@@ -87,7 +107,7 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState> {
     }
 
     private handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-        if (event) {
+        if (event && this.props.configure.submitting.preventDefault) {
             event.preventDefault();
         }
         const { onSubmit } = this.props;

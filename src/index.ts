@@ -10,6 +10,7 @@ export {
     Form,
     IFormProps,
     IFormState,
+    IFormConfiguration,
     Consumer as FormContext,
 } from "./components/Form";
 export {

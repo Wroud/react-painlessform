@@ -63,6 +63,7 @@ export class Validation extends React.Component<IValidationProps, any> {
                             state: this.state,
                             props: this.props,
                         },
+                        ...form.configure.validation,
                     });
                 } catch (_errors) { // : Yup.ValidationError
                     if (_errors.path === undefined) {
