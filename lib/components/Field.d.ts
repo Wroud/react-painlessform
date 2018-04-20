@@ -27,7 +27,7 @@ export declare const Provider: React.ComponentClass<{
     children?: (context: {}) => React.ReactNode;
 }>;
 export declare class FieldClass<T> extends React.Component<IFieldProps<T>, IFieldState> {
-    private static getDerivedStateFromProps({validationErrors: nextErrors, validationScope: nextValidationScope, value: nextValue, name}, {value: prevValue, validationErrors: prevValidationErrors, validationScope: prevValidationScope});
+    private static getDerivedStateFromProps({validationErrors: nextErrors, validationScope: nextValidationScope, value: nextValue, name}, {isVisited, value: prevValue, validationErrors: prevValidationErrors, validationScope: prevValidationScope});
     private inputValue;
     constructor(props: IFieldProps<T>);
     render(): JSX.Element;

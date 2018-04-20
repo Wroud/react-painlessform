@@ -60,7 +60,7 @@ class FieldClass extends React.Component {
             onChange: this.handleChange,
         };
     }
-    static getDerivedStateFromProps({ validationErrors: nextErrors, validationScope: nextValidationScope, value: nextValue, name, }, { value: prevValue, validationErrors: prevValidationErrors, validationScope: prevValidationScope, }) {
+    static getDerivedStateFromProps({ validationErrors: nextErrors, validationScope: nextValidationScope, value: nextValue, name, }, { isVisited, value: prevValue, validationErrors: prevValidationErrors, validationScope: prevValidationScope, }) {
         let value = prevValue;
         let validationErrors = prevValidationErrors;
         let validationScope = prevValidationScope;
@@ -78,6 +78,7 @@ class FieldClass extends React.Component {
             name,
             validationErrors,
             validationScope,
+            isVisited: (nextValue === undefined || nextValue === "") ? false : isVisited,
             isValid: (validationErrors === undefined || validationErrors.length === 0)
                 && (validationScope === undefined || validationScope.length === 0),
         };
