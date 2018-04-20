@@ -78,7 +78,7 @@ class FieldClass extends React.Component {
             name,
             validationErrors,
             validationScope,
-            isVisited: (nextValue === undefined || nextValue === "") ? false : isVisited,
+            isVisited: nextValue !== prevValue && (nextValue === undefined || nextValue === "") ? false : isVisited,
             isValid: (validationErrors === undefined || validationErrors.length === 0)
                 && (validationScope === undefined || validationScope.length === 0),
         };
