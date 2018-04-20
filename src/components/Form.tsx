@@ -34,6 +34,10 @@ export interface IFormState {
     handleChange: (field: string, value: any) => any;
 }
 
+export interface IForm<T = {}> extends Form<T> {
+    new(props: IFormProps<T>): Form<T>;
+}
+
 export const { Provider, Consumer } = React.createContext<IFormState>();
 const EmptyModel = {};
 

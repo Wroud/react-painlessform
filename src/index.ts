@@ -7,6 +7,7 @@ export {
     Provider as FieldProvider,
 } from "./components/Field";
 export {
+    IForm,
     Form,
     IFormProps,
     IFormState,
