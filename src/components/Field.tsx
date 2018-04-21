@@ -1,5 +1,6 @@
 import * as React from "react";
 import shallowequal = require("shallowequal");
+import { IErrorMessage } from "../FormValidator";
 import { isArrayEqual } from "../tools";
 import { Consumer as FormContext, IFormState } from "./Form";
 import { Consumer as ValidationContext, IValidationContext } from "./Validation";
@@ -8,8 +9,8 @@ export interface IFieldProps<T> {
     name: string;
     value?: any;
     formState?: IFormState<T>;
-    validationErrors?: string[];
-    validationScope?: string[];
+    validationErrors?: Array<IErrorMessage<any>>;
+    validationScope?: Array<IErrorMessage<any>>;
     onClick?: () => any;
     onChange?: (field: string, value) => any;
     children?: ((state: IFieldState) => React.ReactNode) | React.ReactNode;
@@ -18,8 +19,8 @@ export interface IFieldProps<T> {
 export interface IFieldState {
     name: string;
     value: any;
-    validationErrors?: string[];
-    validationScope?: string[];
+    validationErrors?: Array<IErrorMessage<any>>;
+    validationScope?: Array<IErrorMessage<any>>;
     isVisited: boolean;
     isValid?: boolean;
     onClick: () => any;
@@ -49,10 +50,18 @@ export class FieldClass<T> extends React.Component<IFieldProps<T>, IFieldState> 
         if (value !== nextValue) {
             value = nextValue === undefined ? "" : nextValue;
         }
-        if (!isArrayEqual(validationErrors, nextErrors)) {
+        if (
+            !isArrayEqual(
+                (validationErrors || []).map(error => error.message),
+                (nextErrors || []).map(error => error.message))
+        ) {
             validationErrors = nextErrors;
         }
-        if (!isArrayEqual(validationScope, nextValidationScope)) {
+        if (
+            !isArrayEqual(
+                (validationScope || []).map(error => error.message),
+                (nextValidationScope || []).map(error => error.message))
+        ) {
             validationScope = nextValidationScope;
         }
         return {
@@ -60,7 +69,11 @@ export class FieldClass<T> extends React.Component<IFieldProps<T>, IFieldState> 
             name,
             validationErrors,
             validationScope,
-            isVisited: nextValue !== prevValue && (nextValue === undefined || nextValue === "") ? false : isVisited,
+            isVisited:
+                nextValue !== prevValue
+                    && (nextValue === undefined || nextValue === "")
+                    ? false
+                    : isVisited,
             isValid: (validationErrors === undefined || validationErrors.length === 0)
                 && (validationScope === undefined || validationScope.length === 0),
         };
@@ -119,8 +132,12 @@ export class FieldClass<T> extends React.Component<IFieldProps<T>, IFieldState> 
             || value !== nextState.value // || this.inputValue !== nextState.value
             || isVisited !== nextState.isVisited
             || isValid !== nextState.isValid
-            || !isArrayEqual(validationErrors, nextState.validationErrors)
-            || !isArrayEqual(validationScope, nextState.validationScope)
+            || !isArrayEqual(
+                (validationErrors || []).map(error => error.message),
+                (nextState.validationErrors || []).map(error => error.message))
+            || !isArrayEqual(
+                (validationScope || []).map(error => error.message),
+                (nextState.validationScope || []).map(error => error.message))
             || !shallowequal(nextRest, rest)
         ) {
             return true;

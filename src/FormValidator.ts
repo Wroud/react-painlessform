@@ -2,8 +2,13 @@ import * as Yup from "yup";
 import { IValidator, Validator } from "./ArrayValidator";
 import { mergeFormErrors } from "./tools";
 
+export interface IErrorMessage<T = {}> {
+    message: string;
+    meta?: T;
+}
+
 export type FormErrors<T> = {
-    [P in keyof T]: string[];
+    [P in keyof T]: Array<IErrorMessage<any>>;
 };
 
 export class FormValidator<TSource, TMeta = {}> implements IValidator<TSource, FormErrors<TSource>, TMeta> {
@@ -22,14 +27,15 @@ export class FormValidator<TSource, TMeta = {}> implements IValidator<TSource, F
                         abortEarly: false,
                         context: meta || {},
                     });
-                } catch (_errors) { // : Yup.ValidationError
-                    if (_errors.path === undefined) {
-                        _errors.inner.forEach(error => {
-                            errors = mergeFormErrors(errors, { [error.path]: error.errors });
+                } catch (_errors) {
+                    const __errors: Yup.ValidationError = _errors;
+                    if (__errors.path === undefined) {
+                        __errors.inner.forEach(error => {
+                            errors = mergeFormErrors(errors, {
+                                [error.path]: error.errors.map(message => ({ message })),
+                            });
                         });
-                    }//  else {
-                    // this.context = _errors.errors;
-                    // }
+                    }
                 }
             } else {
                 errors = mergeFormErrors(errors, (validator as IValidator<TSource, FormErrors<TSource>, TMeta>).validate(data, meta));

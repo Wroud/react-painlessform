@@ -43,7 +43,14 @@ describe("Validation Yup", () => {
         const resultSnapshot = {
             isValid: false,
             errors: {
-                field: ["C'mon, your name is longer than that", "First name is required."],
+                field: [
+                    {
+                        message: "C'mon, your name is longer than that",
+                    },
+                    {
+                        message: "First name is required.",
+                    },
+                ],
             },
             scope: [],
         };
@@ -58,7 +65,7 @@ describe("Validation Yup", () => {
         };
         const validationResult = resultInstance.validate(formState);
         expect(validationResult.isValid).to.be.equal(resultSnapshot.isValid);
-        expect(validationResult.scope).to.be.equalTo(resultSnapshot.scope);
-        expect(validationResult.errors.field).to.be.equalTo(resultSnapshot.errors.field);
+        expect(validationResult.scope.map(error => error.message)).to.be.equalTo(resultSnapshot.scope);
+        expect(validationResult.errors.field.map(error => error.message)).to.be.equalTo(resultSnapshot.errors.field.map(error => error.message));
     });
 });

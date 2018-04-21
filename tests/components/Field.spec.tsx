@@ -4,7 +4,7 @@ import "mocha";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { createRenderer, ShallowRenderer } from "react-test-renderer/shallow";
-import { FieldClass, FieldProvider, IFormState } from "../../src";
+import { FieldClass, FieldProvider, IFieldProps, IFieldState, IFormState } from "../../src";
 
 use(assertArrays);
 describe("Field", () => {
@@ -24,7 +24,7 @@ describe("Field", () => {
             name={"field"}
             value={formState.model.field}
             formState={formState}
-            validationErrors={["one"]}
+            validationErrors={[{ message: "one" }]}
             onClick={onClick}
             onChange={onChange}
         >
@@ -38,7 +38,7 @@ describe("Field", () => {
     });
 
     it("should have correct prop values", () => {
-        const result = renderer.getRenderOutput();
+        const result = renderer.getRenderOutput<React.ReactElement<{ value: IFieldProps<any> }>>();
         const resultInstance = renderer.getMountedInstance();
         const {
             props: {
@@ -56,6 +56,6 @@ describe("Field", () => {
         assert.strictEqual(name, "field");
         // expect(rOnChange).to.be.equal(onChange);
         // expect(rOnClick).to.be.equal(onClick);
-        expect(validationErrors).to.be.equalTo(["one"]);
+        expect(validationErrors.map(error => error.message)).to.be.equalTo(["one"]);
     });
 });

@@ -2,15 +2,15 @@ import * as React from "react";
 import shallowequal = require("shallowequal");
 import * as Yup from "yup";
 import { IValidator } from "../ArrayValidator";
-import { FormErrors } from "../FormValidator";
+import { FormErrors, IErrorMessage } from "../FormValidator";
 import { Consumer as FormContext, IFormState } from "./Form";
 
 export interface IValidationProps {
     errors?: FormErrors<any>;
-    scope?: string[];
+    scope?: Array<IErrorMessage<any>>;
     isValid?: boolean;
     validator?: IValidator<any, FormErrors<any>, IValidationMeta> | Yup.Schema<any>;
-    scopeValidator?: IValidator<any, string[], IValidationMeta>;
+    scopeValidator?: IValidator<any, Array<IErrorMessage<any>>, IValidationMeta>;
     [rest: string]: any;
 }
 
@@ -21,12 +21,13 @@ export interface IValidationMeta {
 
 export interface IValidationContext {
     errors: FormErrors<any>;
-    scope: string[];
+    scope: Array<IErrorMessage<any>>;
     isValid: boolean;
 }
 
-const NoErrors = {};
-const NoScopeErrors: string[] = [];
+// tslint:disable-next-line:no-object-literal-type-assertion
+const NoErrors = {} as FormErrors<any>;
+const NoScopeErrors: Array<IErrorMessage<any>> = [];
 
 export const { Provider, Consumer } = React.createContext<IValidationContext>({
     errors: NoErrors,
@@ -65,16 +66,19 @@ export class Validation extends React.Component<IValidationProps, any> {
                         },
                         ...form.configure.validation,
                     });
-                } catch (_errors) { // : Yup.ValidationError
-                    if (_errors.path === undefined) {
-                        _errors.inner.forEach(error => {
+                } catch (_errors) {
+                    const __errors: Yup.ValidationError = _errors;
+                    if (__errors.path === undefined) {
+                        __errors.inner.forEach(error => {
                             errors = {
                                 ...errors,
-                                [error.path]: [...(errors[error.path] || []), ...error.errors],
+                                [error.path]:
+                                    [...(errors[error.path] || []),
+                                    ...error.errors.map(message => ({ message }))],
                             };
                         });
                     } else {
-                        this.context = _errors.errors;
+                        this.context = __errors.errors;
                     }
                     isValid = false;
                 }

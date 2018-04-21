@@ -1,15 +1,15 @@
 import { ArrayValidator, IValidator, Validator } from "./ArrayValidator";
-import { FormErrors } from "./FormValidator";
+import { FormErrors, IErrorMessage } from "./FormValidator";
 import { mergeFormErrors, reduce } from "./tools";
 
 export class FieldValidator<TSource, TValue, TMeta = {}> implements IValidator<TSource, FormErrors<TSource>, TMeta> {
     private name: keyof TSource;
-    private validator: IValidator<TValue | TSource[keyof TSource], string[], TMeta>;
+    private validator: IValidator<TValue | TSource[keyof TSource], Array<IErrorMessage<any>>, TMeta>;
     private selectValue: (source: TSource) => TValue | TSource[keyof TSource];
 
     constructor(
         name: keyof TSource,
-        validator: IValidator<TValue | TSource[keyof TSource], string[], TMeta>,
+        validator: IValidator<TValue | TSource[keyof TSource], Array<IErrorMessage<any>>, TMeta>,
         selectValue?: (source: TSource) => TValue | TSource[keyof TSource],
     ) {
         this.name = name;
@@ -32,7 +32,7 @@ export class FieldValidator<TSource, TValue, TMeta = {}> implements IValidator<T
 
 export function createFieldValidator<TSource, TValue, TMeta = {}>(
     name: keyof TSource,
-    validator: IValidator<TValue | TSource[keyof TSource], string[], TMeta>,
+    validator: IValidator<TValue | TSource[keyof TSource], Array<IErrorMessage<any>>, TMeta>,
     seelctValue?: (source: TSource) => TValue | TSource[keyof TSource],
 ): IValidator<TSource, FormErrors<TSource>, TMeta> {
     return new FieldValidator(name, validator, seelctValue);
