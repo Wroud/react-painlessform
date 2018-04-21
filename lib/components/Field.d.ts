@@ -1,12 +1,13 @@
 /// <reference types="react" />
 import * as React from "react";
+import { IErrorMessage } from "../FormValidator";
 import { IFormState } from "./Form";
 export interface IFieldProps<T> {
     name: string;
     value?: any;
     formState?: IFormState<T>;
-    validationErrors?: string[];
-    validationScope?: string[];
+    validationErrors?: Array<IErrorMessage<any>>;
+    validationScope?: Array<IErrorMessage<any>>;
     onClick?: () => any;
     onChange?: (field: string, value) => any;
     children?: ((state: IFieldState) => React.ReactNode) | React.ReactNode;
@@ -14,8 +15,8 @@ export interface IFieldProps<T> {
 export interface IFieldState {
     name: string;
     value: any;
-    validationErrors?: string[];
-    validationScope?: string[];
+    validationErrors?: Array<IErrorMessage<any>>;
+    validationScope?: Array<IErrorMessage<any>>;
     isVisited: boolean;
     isValid?: boolean;
     onClick: () => any;

@@ -1,7 +1,11 @@
 import * as Yup from "yup";
 import { IValidator, Validator } from "./ArrayValidator";
+export interface IErrorMessage<T = {}> {
+    message: string;
+    meta?: T;
+}
 export declare type FormErrors<T> = {
-    [P in keyof T]: string[];
+    [P in keyof T]: Array<IErrorMessage<any>>;
 };
 export declare class FormValidator<TSource, TMeta = {}> implements IValidator<TSource, FormErrors<TSource>, TMeta> {
     private validators;

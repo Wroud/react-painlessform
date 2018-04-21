@@ -64,10 +64,10 @@ class FieldClass extends React.Component {
         if (value !== nextValue) {
             value = nextValue === undefined ? "" : nextValue;
         }
-        if (!tools_1.isArrayEqual(validationErrors, nextErrors)) {
+        if (!tools_1.isArrayEqual((validationErrors || []).map(error => error.message), (nextErrors || []).map(error => error.message))) {
             validationErrors = nextErrors;
         }
-        if (!tools_1.isArrayEqual(validationScope, nextValidationScope)) {
+        if (!tools_1.isArrayEqual((validationScope || []).map(error => error.message), (nextValidationScope || []).map(error => error.message))) {
             validationScope = nextValidationScope;
         }
         return {
@@ -75,7 +75,10 @@ class FieldClass extends React.Component {
             name,
             validationErrors,
             validationScope,
-            isVisited: nextValue !== prevValue && (nextValue === undefined || nextValue === "") ? false : isVisited,
+            isVisited: nextValue !== prevValue
+                && (nextValue === undefined || nextValue === "")
+                ? false
+                : isVisited,
             isValid: (validationErrors === undefined || validationErrors.length === 0)
                 && (validationScope === undefined || validationScope.length === 0),
         };
@@ -103,8 +106,8 @@ class FieldClass extends React.Component {
             || value !== nextState.value
             || isVisited !== nextState.isVisited
             || isValid !== nextState.isValid
-            || !tools_1.isArrayEqual(validationErrors, nextState.validationErrors)
-            || !tools_1.isArrayEqual(validationScope, nextState.validationScope)
+            || !tools_1.isArrayEqual((validationErrors || []).map(error => error.message), (nextState.validationErrors || []).map(error => error.message))
+            || !tools_1.isArrayEqual((validationScope || []).map(error => error.message), (nextState.validationScope || []).map(error => error.message))
             || !shallowequal(nextRest, rest)) {
             return true;
         }

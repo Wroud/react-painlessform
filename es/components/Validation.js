@@ -39,13 +39,15 @@ class Validation extends React.Component {
                             } }, form.configure.validation));
                     }
                     catch (_errors) {
-                        if (_errors.path === undefined) {
-                            _errors.inner.forEach(error => {
-                                errors = Object.assign({}, errors, { [error.path]: [...(errors[error.path] || []), ...error.errors] });
+                        const __errors = _errors;
+                        if (__errors.path === undefined) {
+                            __errors.inner.forEach(error => {
+                                errors = Object.assign({}, errors, { [error.path]: [...(errors[error.path] || []),
+                                        ...error.errors.map(message => ({ message }))] });
                             });
                         }
                         else {
-                            this.context = _errors.errors;
+                            this.context = __errors.errors;
                         }
                         isValid = false;
                     }

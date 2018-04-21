@@ -14,9 +14,12 @@ class FormValidator {
                         });
                     }
                     catch (_errors) {
-                        if (_errors.path === undefined) {
-                            _errors.inner.forEach(error => {
-                                errors = tools_1.mergeFormErrors(errors, { [error.path]: error.errors });
+                        const __errors = _errors;
+                        if (__errors.path === undefined) {
+                            __errors.inner.forEach(error => {
+                                errors = tools_1.mergeFormErrors(errors, {
+                                    [error.path]: error.errors.map(message => ({ message })),
+                                });
                             });
                         }
                     }
