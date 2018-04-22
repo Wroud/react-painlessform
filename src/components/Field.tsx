@@ -35,13 +35,18 @@ export class FieldClass<N extends keyof T, V extends T[N], T> extends React.Comp
 
     render() {
         const { children } = this.props;
+        const props = {
+            ...this.props,
+            onChange: this.handleChange,
+            onClick: this.onClick,
+        };
         const rChildren = children
             && typeof children === "function"
-            ? children(this.props)
+            ? children(props)
             : children;
 
         return (
-            <Provider value={this.props}>
+            <Provider value={props}>
                 {rChildren}
             </Provider>
         );
