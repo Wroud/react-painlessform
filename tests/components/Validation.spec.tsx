@@ -56,8 +56,13 @@ describe("Validation Yup", () => {
         };
         const formState: IFormState<any> = {
             model: {
-                field: "",
+                field: {
+                    value: "",
+                    isChanged: false,
+                    isVisited: false,
+                },
             },
+            isChanged: false,
             configure: defaultConfiguration,
             isSubmitting: false,
             handleChange: () => "handleChange",

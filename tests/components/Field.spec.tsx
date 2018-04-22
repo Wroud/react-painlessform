@@ -3,33 +3,48 @@ import * as assertArrays from "chai-arrays";
 import "mocha";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
+
 import { createRenderer, ShallowRenderer } from "react-test-renderer/shallow";
 import { FieldClass, FieldProvider, IFieldProps, IFieldState, IFormState } from "../../src";
+import { IFieldClass } from "../../src/components/Field";
+import { Provider } from "../../src/components/Form";
+import { updateModel } from "../../src/helpers/form";
 
 use(assertArrays);
 describe("Field", () => {
     let renderer: ShallowRenderer;
     const onChange = () => "";
     const onClick = () => "";
+    const model = {
+        field: 1,
+        field2: "123",
+    };
 
     beforeEach(() => {
         renderer = createRenderer();
-        const formState: IFormState<any> = {
-            model: { field: 1 },
+        const formState: IFormState<typeof model> = {
+            model: updateModel(model, {} as any),
+            isChanged: false,
             isSubmitting: false,
             handleChange: () => "handleChange",
             handleReset: () => "handleReset",
         };
-        renderer.render(<FieldClass
-            name={"field"}
-            value={formState.model.field}
-            formState={formState}
-            validationErrors={[{ message: "one" }]}
-            onClick={onClick}
-            onChange={onChange}
-        >
-            {({ value }) => <div>{value}</div>}
-        </FieldClass>);
+        renderer.render(
+            <FieldClass
+                name={"field2"}
+                value={model.field2}
+                formState={formState}
+                validationErrors={[{ message: "one" }]}
+                validationScope={[]}
+                isChanged={false}
+                isVisited={false}
+                isValid={true}
+                onClick={onClick}
+                onChange={onChange}
+            >
+                {({ value }) => <div>{value}</div>}
+            </FieldClass>,
+        );
     });
 
     it("should render correctly", () => {
@@ -38,24 +53,22 @@ describe("Field", () => {
     });
 
     it("should have correct prop values", () => {
-        const result = renderer.getRenderOutput<React.ReactElement<{ value: IFieldProps<any> }>>();
-        const resultInstance = renderer.getMountedInstance();
+        type elementInstance = IFieldClass<"field2", string, typeof model>;
+        type element = React.ReactElement<IFieldProps<"field2", string, typeof model>>;
+        const result = renderer.getRenderOutput<element>();
+        const resultInstance = renderer.getMountedInstance() as elementInstance;
         const {
             props: {
-                value: {
-                    value,
-                    name,
-                    validationErrors,
-                    onChange: rOnChange,
-                    onClick: rOnClick,
-                },
+                value,
+                name,
+                validationErrors,
+                onChange: rOnChange,
+                onClick: rOnClick,
             },
-        } = result;
+        } = resultInstance;
 
-        assert.strictEqual(value, 1);
-        assert.strictEqual(name, "field");
-        // expect(rOnChange).to.be.equal(onChange);
-        // expect(rOnClick).to.be.equal(onClick);
+        assert.strictEqual(value, model.field2);
+        assert.strictEqual(name, "field2");
         expect(validationErrors.map(error => error.message)).to.be.equalTo(["one"]);
     });
 });
