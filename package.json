@@ -1,6 +1,6 @@
 {
   "name": "react-painlessform",
-  "version": "0.0.1-alpha7",
+  "version": "0.0.1-alpha8",
   "description": "React Forms without pain",
   "main": "lib/index.js",
   "module": "lib/index.js",
@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "publish:alpha": "npm run build & npm publish -tag alpha",
-    "publish": "npm run build & npm publish",
+    "publish:latest": "npm run build & npm publish",
     "build:commonjs": "tsc",
     "build:es": "tsc -p tsconfig.es.json",
     "build": "npm run build:es && npm run build:commonjs",

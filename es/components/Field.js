@@ -52,11 +52,12 @@ class FieldClass extends React.Component {
     }
     render() {
         const { children } = this.props;
+        const props = Object.assign({}, this.props, { onChange: this.handleChange, onClick: this.onClick });
         const rChildren = children
             && typeof children === "function"
-            ? children(this.props)
+            ? children(props)
             : children;
-        return (React.createElement(exports.Provider, { value: this.props }, rChildren));
+        return (React.createElement(exports.Provider, { value: props }, rChildren));
     }
     componentDidMount() {
         this.update();
