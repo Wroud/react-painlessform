@@ -11,6 +11,7 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const React = require("react");
 const shallowequal = require("shallowequal");
+const form_1 = require("../helpers/form");
 exports.defaultConfiguration = {
     submitting: {
         preventDefault: true,
@@ -27,8 +28,14 @@ class Form extends React.Component {
                 event.preventDefault();
             }
             const { onSubmit } = this.props;
+            this.setState(state => ({
+                model: form_1.updateModelFields({
+                    isChanged: false,
+                    isVisited: true,
+                }, state.model),
+            }));
             if (onSubmit) {
-                onSubmit(event);
+                onSubmit(event)(form_1.getValuesFromModel(this.state.model));
             }
         };
         this.handleReset = () => {
@@ -37,26 +44,20 @@ class Form extends React.Component {
                 onReset();
             }
             if (!this.props.values) {
-                this.setState({
-                    model: EmptyModel,
+                this.setState(({ model }) => {
+                    const nextModel = form_1.resetModel(model);
+                    return {
+                        model: nextModel,
+                    };
                 });
             }
         };
         this.handleChange = (field, value) => {
-            if (this.props.values) {
-                const { model } = this.state;
-                if (model[field] === value) {
-                    return;
-                }
-                const nextModel = Object.assign({}, model, { [field]: value });
-                this.props.onModelChange(nextModel, this.state.model);
-                return;
-            }
             this.setState((prev, props) => {
-                if (prev.model[field] === value) {
+                if (prev.model[field] && shallowequal(prev.model[field], value)) {
                     return null;
                 }
-                const nextModel = Object.assign({}, prev.model, { [field]: value });
+                const nextModel = Object.assign({}, prev.model, { [field]: Object.assign({}, value) });
                 return {
                     model: nextModel,
                 };
@@ -64,6 +65,7 @@ class Form extends React.Component {
         };
         this.state = {
             model: EmptyModel,
+            isChanged: false,
             isSubmitting: false,
             handleReset: this.handleReset,
             handleChange: this.handleChange,
@@ -72,8 +74,9 @@ class Form extends React.Component {
     static getDerivedStateFromProps(props, state) {
         const { values, configure } = props;
         let nextState = null;
+        const model = values ? form_1.updateModel(values, state.model) : state.model;
         nextState = {
-            model: values || state.model,
+            model: props.isReset ? form_1.resetModel(model) : model,
             configure: configure || exports.defaultConfiguration,
         };
         return nextState;
@@ -89,15 +92,22 @@ class Form extends React.Component {
         return false;
     }
     componentDidUpdate(prevProps, prevState) {
-        if (this.props.onModelChange
-            && !shallowequal(this.state.model, prevState.model)) {
-            this.props.onModelChange(this.state.model, prevState.model);
-        }
+        this.callModelChange(this.state.model, prevState.model);
     }
     render() {
-        const _a = this.props, { componentId, children, onModelChange, onSubmit, values, actions } = _a, rest = __rest(_a, ["componentId", "children", "onModelChange", "onSubmit", "values", "actions"]);
+        const _a = this.props, { componentId, values, actions, children, configure, isReset, isChanged, isSubmitting, onModelReset, onModelChange, onSubmit } = _a, rest = __rest(_a, ["componentId", "values", "actions", "children", "configure", "isReset", "isChanged", "isSubmitting", "onModelReset", "onModelChange", "onSubmit"]);
         return (React.createElement(exports.Provider, { value: this.state },
             React.createElement("form", Object.assign({ onSubmit: this.handleSubmit }, rest), children)));
+    }
+    callModelChange(model, prevModel) {
+        if (!this.props.onModelChange) {
+            return;
+        }
+        const values = form_1.getValuesFromModel(model);
+        const prevValues = form_1.getValuesFromModel(prevModel);
+        if (!shallowequal(values, prevValues)) {
+            this.props.onModelChange(values, prevValues);
+        }
     }
 }
 Form.defaultProps = {

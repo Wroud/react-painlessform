@@ -3,6 +3,7 @@ import * as React from "react";
 import * as Yup from "yup";
 import { IValidator } from "../ArrayValidator";
 import { FormErrors, IErrorMessage } from "../FormValidator";
+import { IValidationMeta } from "../interfaces/validation";
 import { IFormState } from "./Form";
 export interface IValidationProps {
     errors?: FormErrors<any>;
@@ -11,10 +12,6 @@ export interface IValidationProps {
     validator?: IValidator<any, FormErrors<any>, IValidationMeta> | Yup.Schema<any>;
     scopeValidator?: IValidator<any, Array<IErrorMessage<any>>, IValidationMeta>;
     [rest: string]: any;
-}
-export interface IValidationMeta {
-    state: any;
-    props: IValidationProps;
 }
 export interface IValidationContext {
     errors: FormErrors<any>;

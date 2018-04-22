@@ -1,5 +1,7 @@
-export { Field, FieldClass, IFieldProps, IFieldState, withFormState, Provider as FieldProvider } from "./components/Field";
-export { IForm, Form, IFormProps, IFormState, IFormConfiguration, Consumer as FormContext } from "./components/Form";
+export { IFieldState } from "./interfaces/field";
+export { IFormConfiguration } from "./interfaces/form";
+export { Field, FieldClass, IFieldProps, withFormState, Provider as FieldProvider } from "./components/Field";
+export { IForm, Form, IFormProps, IFormState, Consumer as FormContext } from "./components/Form";
 export { Validation, IValidationProps, IValidationContext } from "./components/Validation";
 export { createFieldValidator, FieldValidator } from "./FieldValidator";
 export { createFormValidator, FormErrors, FormValidator, createRawFormValidator } from "./FormValidator";

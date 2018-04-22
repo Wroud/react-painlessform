@@ -1,29 +1,30 @@
 /// <reference types="react" />
 import * as React from "react";
-export interface IFormConfiguration {
-    submitting: {
-        preventDefault: boolean;
-    };
-    validation: any;
-}
-export declare const defaultConfiguration: IFormConfiguration;
+import { IFieldState } from "../interfaces/field";
+import { FormModel, IFormConfiguration } from "../interfaces/form";
 export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement> {
     values?: Partial<T>;
     configure?: IFormConfiguration;
+    isReset?: boolean;
+    isChanged?: boolean;
+    isSubmitting?: boolean;
     onModelChange?: (nextModel: T, prevModel: T) => any;
     onReset?: () => any;
+    onSubmit?: (event: React.FormEvent<HTMLFormElement>) => (values: T) => any;
     [rest: string]: any;
 }
 export interface IFormState<T> {
-    model: T;
+    model: FormModel<T>;
+    isChanged: boolean;
     isSubmitting: boolean;
     configure?: IFormConfiguration;
     handleReset: () => any;
-    handleChange: (field: string, value: any) => any;
+    handleChange: (field: string, value: IFieldState<any>) => any;
 }
 export interface IForm<T = {}> extends Form<T> {
     new (props: IFormProps<T>): Form<T>;
 }
+export declare const defaultConfiguration: IFormConfiguration;
 export declare const Provider: React.ComponentClass<{
     value: IFormState<any>;
 }>, Consumer: React.ComponentClass<{
@@ -36,6 +37,7 @@ export declare class Form<T = {}> extends React.Component<IFormProps<T>, IFormSt
     shouldComponentUpdate(nextProps: IFormProps<T>, nextState: IFormState<T>): boolean;
     componentDidUpdate(prevProps: IFormProps<any>, prevState: IFormState<T>): void;
     render(): JSX.Element;
+    private callModelChange(model, prevModel);
     private handleSubmit;
     private handleReset;
     private handleChange;

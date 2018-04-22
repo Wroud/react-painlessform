@@ -16,8 +16,8 @@ const Form_1 = require("./Form");
 const Validation_1 = require("./Validation");
 _a = React.createContext(), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 class FieldClass extends React.Component {
-    constructor(props) {
-        super(props);
+    constructor() {
+        super(...arguments);
         this.onClick = () => {
             this.setVisited();
             if (this.props.onClick) {
@@ -33,98 +33,65 @@ class FieldClass extends React.Component {
             else {
                 nextValue = value;
             }
-            this.setVisited();
+            this.update({
+                value: nextValue,
+                isVisited: true,
+                isChanged: true,
+            });
+        };
+        this.update = (nextValue) => {
+            const { formState: { handleChange }, name, value, isChanged, isVisited, } = this.props;
+            const updValue = Object.assign({ value,
+                isChanged,
+                isVisited }, (nextValue || {}));
+            handleChange(name, updValue);
             if (this.props.onChange) {
-                this.props.onChange(this.props.name, nextValue);
+                this.props.onChange(this.props.name, updValue);
             }
-            if (this.props.value === undefined) {
-                this.setState({ value: nextValue });
-            }
-            this.update(nextValue);
-        };
-        this.update = value => {
-            const { formState, name } = this.props;
-            this.inputValue = value;
-            formState.handleChange(name, value);
-        };
-        this.inputValue = "";
-        this.state = {
-            value: "",
-            name: "",
-            isValid: true,
-            isVisited: false,
-            onClick: this.onClick,
-            onChange: this.handleChange,
-        };
-    }
-    static getDerivedStateFromProps({ validationErrors: nextErrors, validationScope: nextValidationScope, value: nextValue, name, }, { isVisited, value: prevValue, validationErrors: prevValidationErrors, validationScope: prevValidationScope, }) {
-        let value = prevValue;
-        let validationErrors = prevValidationErrors;
-        let validationScope = prevValidationScope;
-        if (value !== nextValue) {
-            value = nextValue === undefined ? "" : nextValue;
-        }
-        if (!tools_1.isArrayEqual((validationErrors || []).map(error => error.message), (nextErrors || []).map(error => error.message))) {
-            validationErrors = nextErrors;
-        }
-        if (!tools_1.isArrayEqual((validationScope || []).map(error => error.message), (nextValidationScope || []).map(error => error.message))) {
-            validationScope = nextValidationScope;
-        }
-        return {
-            value,
-            name,
-            validationErrors,
-            validationScope,
-            isVisited: nextValue !== prevValue
-                && (nextValue === undefined || nextValue === "")
-                ? false
-                : isVisited,
-            isValid: (validationErrors === undefined || validationErrors.length === 0)
-                && (validationScope === undefined || validationScope.length === 0),
         };
     }
     render() {
         const { children } = this.props;
         const rChildren = children
             && typeof children === "function"
-            ? children(this.state)
+            ? children(this.props)
             : children;
         return (React.createElement(exports.Provider, { value: this.state }, rChildren));
     }
     componentDidMount() {
-        this.update(this.state.value);
+        this.update();
     }
-    componentDidUpdate(prevProps, prevState) {
+    componentDidUpdate(prevProps) {
     }
-    shouldComponentUpdate(nextProps, nextState) {
-        const { onChange: _, value: __ } = nextProps, nextRest = __rest(nextProps, ["onChange", "value"]);
-        const _a = this.props, { onChange, value: propsValue } = _a, rest = __rest(_a, ["onChange", "value"]);
-        const { value, name, isVisited, isValid, validationErrors, validationScope } = this.state;
-        if (onChange !== nextProps.onChange
-            || propsValue !== nextProps.value
-            || name !== nextState.name
-            || value !== nextState.value
-            || isVisited !== nextState.isVisited
-            || isValid !== nextState.isValid
-            || !tools_1.isArrayEqual((validationErrors || []).map(error => error.message), (nextState.validationErrors || []).map(error => error.message))
-            || !tools_1.isArrayEqual((validationScope || []).map(error => error.message), (nextState.validationScope || []).map(error => error.message))
+    shouldComponentUpdate(nextProps) {
+        const { validationErrors: nextErrors, validationScope: nextScope, formState: _ } = nextProps, nextRest = __rest(nextProps, ["validationErrors", "validationScope", "formState"]);
+        const _a = this.props, { validationErrors, validationScope, formState } = _a, rest = __rest(_a, ["validationErrors", "validationScope", "formState"]);
+        if (!tools_1.isArrayEqual((validationErrors || []).map(error => error.message), (nextErrors || []).map(error => error.message))
+            || !tools_1.isArrayEqual((validationScope || []).map(error => error.message), (nextScope || []).map(error => error.message))
             || !shallowequal(nextRest, rest)) {
             return true;
         }
         return false;
     }
     setVisited() {
-        if (!this.state.isVisited) {
-            this.setState({
-                isVisited: true,
-            });
+        if (!this.props.isVisited) {
+            this.update({ isVisited: true });
         }
     }
 }
 exports.FieldClass = FieldClass;
 function withFormState(Component) {
     return function FieldComponent(props) {
-        return (React.createElement(Form_1.Consumer, null, formState => (React.createElement(Validation_1.Consumer, null, validation => (React.createElement(Component, Object.assign({}, props, { value: formState.model[props.name], validationErrors: validation.errors[props.name], validationScope: validation.scope, formState: formState })))))));
+        return (React.createElement(Form_1.Consumer, null, formState => (React.createElement(Validation_1.Consumer, null, validation => {
+            const modelValue = formState.model[props.name];
+            const value = modelValue ? "" : modelValue.value;
+            const isChanged = modelValue ? false : modelValue.isChanged;
+            const isVisited = modelValue ? false : modelValue.isVisited;
+            const isValid = (validation.errors[props.name] === undefined
+                || validation.errors[props.name].length === 0)
+                && (validation.scope === undefined || validation.scope.length === 0);
+            return (React.createElement(Component, Object.assign({}, props, { value: value, validationErrors: validation.errors[props.name], validationScope: validation.scope, formState: formState, isChanged: isChanged, isVisited: isVisited, isValid: isValid })));
+        }))));
     };
 }
 exports.withFormState = withFormState;

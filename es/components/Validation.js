@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const React = require("react");
 const shallowequal = require("shallowequal");
+const form_1 = require("../helpers/form");
 const Form_1 = require("./Form");
 const NoErrors = {};
 const NoScopeErrors = [];
@@ -30,10 +31,11 @@ class Validation extends React.Component {
             let errors = NoErrors;
             let scope = NoScopeErrors;
             let isValid = true;
-            if (validator && form.model) {
+            const model = form_1.getValuesFromModel(form.model);
+            if (validator && model) {
                 if (validator.validateSync) {
                     try {
-                        validator.validateSync(form.model, Object.assign({ abortEarly: false, context: {
+                        validator.validateSync(model, Object.assign({ abortEarly: false, context: {
                                 state: this.state,
                                 props: this.props,
                             } }, form.configure.validation));
@@ -53,7 +55,7 @@ class Validation extends React.Component {
                     }
                 }
                 else {
-                    const preErrors = validator.validate(form.model, {
+                    const preErrors = validator.validate(model, {
                         state: this.state,
                         props: this.props,
                     });
@@ -66,8 +68,8 @@ class Validation extends React.Component {
                     }
                 }
             }
-            if (scopeValidator && form.model) {
-                const preScope = scopeValidator.validate(form.model, {
+            if (scopeValidator && model) {
+                const preScope = scopeValidator.validate(model, {
                     state: this.state,
                     props: this.props,
                 });

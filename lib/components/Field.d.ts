@@ -1,44 +1,39 @@
 /// <reference types="react" />
 import * as React from "react";
 import { IErrorMessage } from "../FormValidator";
+import { IFieldState } from "../interfaces/field";
 import { IFormState } from "./Form";
-export interface IFieldProps<T> {
-    name: string;
-    value?: any;
-    formState?: IFormState<T>;
-    validationErrors?: Array<IErrorMessage<any>>;
-    validationScope?: Array<IErrorMessage<any>>;
-    onClick?: () => any;
-    onChange?: (field: string, value) => any;
-    children?: ((state: IFieldState) => React.ReactNode) | React.ReactNode;
+export interface IFieldClass<N extends keyof T, V extends T[N], T> extends FieldClass<N, V, T> {
+    new (props: IFieldProps<N, V, T>): FieldClass<N, V, T>;
 }
-export interface IFieldState {
-    name: string;
-    value: any;
-    validationErrors?: Array<IErrorMessage<any>>;
-    validationScope?: Array<IErrorMessage<any>>;
+export interface IFieldProps<N extends keyof T, V extends T[N], T> {
+    value: V;
+    formState: IFormState<T>;
+    validationErrors: Array<IErrorMessage<any>>;
+    validationScope: Array<IErrorMessage<any>>;
     isVisited: boolean;
-    isValid?: boolean;
-    onClick: () => any;
-    onChange: (value: any | React.ChangeEvent<HTMLInputElement>) => any;
+    isChanged: boolean;
+    isValid: boolean;
+    name: N;
+    children?: ((state: IFieldProps<N, V, T>) => React.ReactNode) | React.ReactNode;
+    onClick?: () => any;
+    onChange?: (field: string, value: IFieldState<V>) => any;
 }
 export declare const Provider: React.ComponentClass<{
     value: {};
 }>, Consumer: React.ComponentClass<{
     children?: (context: {}) => React.ReactNode;
 }>;
-export declare class FieldClass<T> extends React.Component<IFieldProps<T>, IFieldState> {
-    private static getDerivedStateFromProps({validationErrors: nextErrors, validationScope: nextValidationScope, value: nextValue, name}, {isVisited, value: prevValue, validationErrors: prevValidationErrors, validationScope: prevValidationScope});
+export declare class FieldClass<N extends keyof T, V extends T[N], T> extends React.Component<IFieldProps<N, V, T>> {
     private inputValue;
-    constructor(props: IFieldProps<T>);
     render(): JSX.Element;
     componentDidMount(): void;
-    componentDidUpdate(prevProps: IFieldProps<T>, prevState: IFieldState): void;
-    shouldComponentUpdate(nextProps: IFieldProps<T>, nextState: IFieldState): boolean;
+    componentDidUpdate(prevProps: IFieldProps<N, V, T>): void;
+    shouldComponentUpdate(nextProps: IFieldProps<N, V, T>): boolean;
     private setVisited();
     private onClick;
     private handleChange;
     private update;
 }
-export declare function withFormState(Component: any): <T>(props: Pick<IFieldProps<T>, "children" | "name" | "onChange" | "onClick" | "validationScope">) => JSX.Element;
-export declare const Field: <T>(props: Pick<IFieldProps<T>, "children" | "name" | "onChange" | "onClick" | "validationScope">) => JSX.Element;
+export declare function withFormState(Component: any): <N extends keyof T, V extends T[N], T>(props: Pick<IFieldProps<N, V, T>, "children" | "name" | "onChange" | "onClick">) => JSX.Element;
+export declare const Field: <N extends keyof T, V extends T[N], T>(props: Pick<IFieldProps<N, V, T>, "children" | "name" | "onChange" | "onClick">) => JSX.Element;
