@@ -56,7 +56,7 @@ class FieldClass extends React.Component {
             && typeof children === "function"
             ? children(this.props)
             : children;
-        return (React.createElement(exports.Provider, { value: this.state }, rChildren));
+        return (React.createElement(exports.Provider, { value: this.props }, rChildren));
     }
     componentDidMount() {
         this.update();
