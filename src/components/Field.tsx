@@ -156,9 +156,9 @@ export function withFormState(Component) {
                     <ValidationContext>
                         {validation => {
                             const modelValue = formState.model[props.name];
-                            const value = modelValue ? "" : modelValue.value;
-                            const isChanged = modelValue ? false : modelValue.isChanged;
-                            const isVisited = modelValue ? false : modelValue.isVisited;
+                            const value = modelValue === undefined ? "" : modelValue.value;
+                            const isChanged = modelValue === undefined ? false : modelValue.isChanged;
+                            const isVisited = modelValue === undefined ? false : modelValue.isVisited;
 
                             // if (modelValue === undefined) {
                             //     formState.handleChange(props.name, {
