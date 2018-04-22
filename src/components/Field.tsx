@@ -28,7 +28,7 @@ export interface IFieldProps<N extends keyof T, V extends T[N], T> {
     onChange?: (field: string, value: IFieldState<V>) => any;
 }
 
-export const { Provider, Consumer } = React.createContext();
+export const { Provider, Consumer } = React.createContext<IFieldProps<any, any, any>>();
 
 export class FieldClass<N extends keyof T, V extends T[N], T> extends React.Component<IFieldProps<N, V, T>> {
     private inputValue: any;
@@ -41,7 +41,7 @@ export class FieldClass<N extends keyof T, V extends T[N], T> extends React.Comp
             : children;
 
         return (
-            <Provider value={this.state}>
+            <Provider value={this.props}>
                 {rChildren}
             </Provider>
         );
