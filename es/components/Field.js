@@ -85,9 +85,9 @@ function withFormState(Component) {
     return function FieldComponent(props) {
         return (React.createElement(Form_1.Consumer, null, formState => (React.createElement(Validation_1.Consumer, null, validation => {
             const modelValue = formState.model[props.name];
-            const value = modelValue ? "" : modelValue.value;
-            const isChanged = modelValue ? false : modelValue.isChanged;
-            const isVisited = modelValue ? false : modelValue.isVisited;
+            const value = modelValue === undefined ? "" : modelValue.value;
+            const isChanged = modelValue === undefined ? false : modelValue.isChanged;
+            const isVisited = modelValue === undefined ? false : modelValue.isVisited;
             const isValid = (validation.errors[props.name] === undefined
                 || validation.errors[props.name].length === 0)
                 && (validation.scope === undefined || validation.scope.length === 0);
