@@ -74,9 +74,9 @@ class Form extends React.Component {
     static getDerivedStateFromProps(props, state) {
         const { values, configure } = props;
         let nextState = null;
-        const model = values ? form_1.updateModel(values, state.model) : state.model;
+        const model = props.isReset ? form_1.resetModel(state.model) : state.model;
         nextState = {
-            model: props.isReset ? form_1.resetModel(model) : model,
+            model: values ? form_1.updateModel(values, state.model) : state.model,
             configure: configure || exports.defaultConfiguration,
         };
         return nextState;
