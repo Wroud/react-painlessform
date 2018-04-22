@@ -1,8 +1,11 @@
 import * as React from "react";
 import shallowequal = require("shallowequal");
 import * as Yup from "yup";
+
 import { IValidator } from "../ArrayValidator";
 import { FormErrors, IErrorMessage } from "../FormValidator";
+import { getValuesFromModel } from "../helpers/form";
+import { IValidationMeta } from "../interfaces/validation";
 import { Consumer as FormContext, IFormState } from "./Form";
 
 export interface IValidationProps {
@@ -12,11 +15,6 @@ export interface IValidationProps {
     validator?: IValidator<any, FormErrors<any>, IValidationMeta> | Yup.Schema<any>;
     scopeValidator?: IValidator<any, Array<IErrorMessage<any>>, IValidationMeta>;
     [rest: string]: any;
-}
-
-export interface IValidationMeta {
-    state: any;
-    props: IValidationProps;
 }
 
 export interface IValidationContext {
@@ -55,10 +53,11 @@ export class Validation extends React.Component<IValidationProps, any> {
         let errors = NoErrors;
         let scope = NoScopeErrors;
         let isValid = true;
-        if (validator && form.model) {
+        const model = getValuesFromModel(form.model);
+        if (validator && model) {
             if ((validator as Yup.Schema<any>).validateSync) {
                 try {
-                    (validator as Yup.Schema<any>).validateSync(form.model, {
+                    (validator as Yup.Schema<any>).validateSync(model, {
                         abortEarly: false,
                         context: {
                             state: this.state,
@@ -84,7 +83,7 @@ export class Validation extends React.Component<IValidationProps, any> {
                 }
             } else {
                 const preErrors = (validator as IValidator<any, FormErrors<any>, IValidationMeta>).validate(
-                    form.model,
+                    model,
                     {
                         state: this.state,
                         props: this.props,
@@ -99,9 +98,9 @@ export class Validation extends React.Component<IValidationProps, any> {
                 }
             }
         }
-        if (scopeValidator && form.model) {
+        if (scopeValidator && model) {
             const preScope = scopeValidator.validate(
-                form.model,
+                model,
                 {
                     state: this.state,
                     props: this.props,

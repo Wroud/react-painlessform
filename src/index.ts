@@ -1,8 +1,13 @@
 export {
+    IFieldState,
+} from "./interfaces/field";
+export {
+    IFormConfiguration,
+} from "./interfaces/form";
+export {
     Field,
     FieldClass,
     IFieldProps,
-    IFieldState,
     withFormState,
     Provider as FieldProvider,
 } from "./components/Field";
@@ -11,7 +16,6 @@ export {
     Form,
     IFormProps,
     IFormState,
-    IFormConfiguration,
     Consumer as FormContext,
 } from "./components/Form";
 export {
