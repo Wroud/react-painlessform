@@ -5,10 +5,15 @@ export {
     IFormConfiguration,
 } from "./interfaces/form";
 export {
+    createFormFactory,
+} from "./helpers/form";
+export {
     Field,
     FieldClass,
+    IFieldClassProps,
     IFieldProps,
-    withFormState,
+    IField,
+    IFieldClass,
     Provider as FieldProvider,
 } from "./components/Field";
 export {

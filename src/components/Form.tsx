@@ -54,7 +54,7 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
         const model = props.isReset ? resetModel(state.model) : state.model;
 
         nextState = {
-            model: values ? updateModel(values, state.model) : state.model,
+            model: values ? updateModel(values, model) : model,
             configure: configure || defaultConfiguration,
         };
 
@@ -76,8 +76,11 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
     shouldComponentUpdate(nextProps: IFormProps<T>, nextState: IFormState<T>) {
         const { model, ...rest } = this.state;
         const { model: nextModel, ...nextRest } = nextState;
+        const { children, ...props } = this.props;
+        const { children: _, ...nnextProps } = nextProps;
+
         if (
-            !shallowequal(this.props, nextProps)
+            !shallowequal(props, nnextProps)
             || !shallowequal(model, nextModel)
             || !shallowequal(rest, nextRest)
         ) {
@@ -154,7 +157,6 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             this.setState(({ model }) => {
                 const nextModel = resetModel(model);
 
-                // this.callModelChange(nextModel, model);
                 return {
                     model: nextModel,
                 };
@@ -163,18 +165,6 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
     }
 
     private handleChange = (field: string, value: IFieldState<T>) => {
-        // if (this.props.values) {
-        //     const { model } = this.state;
-        //     if (model[field] && shallowequal(model[field], value)) {
-        //         return;
-        //     }
-        //     const nextModel: FormModel<T> = {
-        //         ...(model as any),
-        //         [field]: { ...value },
-        //     };
-        //     this.callModelChange(nextModel, this.state.model);
-        //     return;
-        // }
 
         this.setState((prev, props) => {
             if (prev.model[field] && shallowequal(prev.model[field], value)) {
@@ -185,7 +175,6 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
                 [field]: { ...value },
             };
 
-            // this.callModelChange(nextModel, prev.model);
             return {
                 model: nextModel,
             };

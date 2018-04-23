@@ -8,10 +8,10 @@ import { Consumer as FormContext, IFormState } from "./Form";
 import { Consumer as ValidationContext, IValidationContext } from "./Validation";
 
 export interface IFieldClass<N extends keyof T, V extends T[N], T> extends FieldClass<N, V, T> {
-    new(props: IFieldProps<N, V, T>): FieldClass<N, V, T>;
+    new(props: IFieldClassProps<N, V, T>): FieldClass<N, V, T>;
 }
 
-export interface IFieldProps<N extends keyof T, V extends T[N], T> {
+export interface IFieldClassProps<N extends keyof T, V extends T[N], T> {
     // Form controlled fields
     value: V;
     formState: IFormState<T>;
@@ -23,14 +23,14 @@ export interface IFieldProps<N extends keyof T, V extends T[N], T> {
     //
 
     name: N;
-    children?: ((state: IFieldProps<N, V, T>) => React.ReactNode) | React.ReactNode;
+    children?: ((state: IFieldClassProps<N, V, T>) => React.ReactNode) | React.ReactNode;
     onClick?: () => any;
     onChange?: (field: string, value: IFieldState<V>) => any;
 }
 
-export const { Provider, Consumer } = React.createContext<IFieldProps<any, any, any>>();
+export const { Provider, Consumer } = React.createContext<IFieldClassProps<any, any, any>>();
 
-export class FieldClass<N extends keyof T, V extends T[N], T> extends React.Component<IFieldProps<N, V, T>> {
+export class FieldClass<N extends keyof T, V extends T[N], T> extends React.Component<IFieldClassProps<N, V, T>> {
     private inputValue: any;
 
     render() {
@@ -56,23 +56,18 @@ export class FieldClass<N extends keyof T, V extends T[N], T> extends React.Comp
         this.update(); // mount field to form model
     }
 
-    componentDidUpdate(prevProps: IFieldProps<N, V, T>) {
-        // const { validator, formState } = this.props;
-        // const { name, value } = this.state;
-        // if (validator && value !== prevState.value) {
-        //     formState.handleValidation(name, validator.validate(value));
-        // }
-    }
-
-    shouldComponentUpdate(nextProps: IFieldProps<N, V, T>) {
+    shouldComponentUpdate(nextProps: IFieldClassProps<N, V, T>) {
         const {
             validationErrors: nextErrors, validationScope: nextScope,
             formState: _,
+            children: __,
             ...nextRest } = nextProps;
         const {
             validationErrors, validationScope,
             formState,
+            children,
             ...rest } = this.props;
+
         if (
             !isArrayEqual(
                 (validationErrors || []).map(error => error.message),
@@ -141,21 +136,27 @@ export class FieldClass<N extends keyof T, V extends T[N], T> extends React.Comp
     }
 }
 
-type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+// type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
-export function withFormState(Component) {
-    return function FieldComponent<N extends keyof T, V extends T[N], T>(
-        props: Omit<
-            IFieldProps<N, V, T>,
-            "value" | "validationErrors" | "validationScope" | "formState" | "isChanged" | "isVisited" | "isValid"
-            >,
-    ) {
+export interface IFieldProps<N extends keyof T, V extends T[N], T> {
+    name: N;
+    children?: ((state: IFieldClassProps<N, V, T>) => React.ReactNode) | React.ReactNode;
+    onClick?: () => any;
+    onChange?: (field: string, value: IFieldState<V>) => any;
+}
+
+export interface IField<N extends keyof T, V extends T[N], T> extends Field<N, V, T> {
+    new(props: IFieldProps<N, V, T>): Field<N, V, T>;
+}
+
+export class Field<N extends keyof T, V extends T[N], T> extends React.Component<IFieldProps<N, V, T>> {
+    render() {
         return (
             <FormContext>
                 {formState => (
                     <ValidationContext>
                         {validation => {
-                            const modelValue = formState.model[props.name];
+                            const modelValue = formState.model[this.props.name];
                             const value = modelValue === undefined ? "" : modelValue.value;
                             const isChanged = modelValue === undefined ? false : modelValue.isChanged;
                             const isVisited = modelValue === undefined ? false : modelValue.isVisited;
@@ -166,15 +167,15 @@ export function withFormState(Component) {
                             //     });
                             // }
                             const isValid =
-                                (validation.errors[props.name] === undefined
-                                    || validation.errors[props.name].length === 0)
+                                (validation.errors[this.props.name] === undefined
+                                    || validation.errors[this.props.name].length === 0)
                                 && (validation.scope === undefined || validation.scope.length === 0);
 
                             return (
-                                <Component
-                                    {...props}
+                                <FieldClass
+                                    {...this.props}
                                     value={value}
-                                    validationErrors={validation.errors[props.name]}
+                                    validationErrors={validation.errors[this.props.name]}
                                     validationScope={validation.scope}
                                     formState={formState}
                                     isChanged={isChanged}
@@ -187,7 +188,5 @@ export function withFormState(Component) {
                 )}
             </FormContext>
         );
-    };
+    }
 }
-
-export const Field = withFormState(FieldClass);
