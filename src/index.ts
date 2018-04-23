@@ -6,7 +6,7 @@ export {
 } from "./interfaces/form";
 export {
     createFormFactory,
-} from "./helpers/form";
+} from "./helpers/formFactory";
 export {
     Field,
     FieldClass,
@@ -15,6 +15,7 @@ export {
     IField,
     IFieldClass,
     Provider as FieldProvider,
+    Consumer as FieldContext,
 } from "./components/Field";
 export {
     IForm,

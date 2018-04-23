@@ -26,6 +26,7 @@ export interface IFieldClassProps<N extends keyof T, V extends T[N], T> {
     children?: ((state: IFieldClassProps<N, V, T>) => React.ReactNode) | React.ReactNode;
     onClick?: () => any;
     onChange?: (field: string, value: IFieldState<V>) => any;
+    [key: string]: any;
 }
 
 export const { Provider, Consumer } = React.createContext<IFieldClassProps<any, any, any>>();
