@@ -76,7 +76,7 @@ class Form extends React.Component {
         let nextState = null;
         const model = props.isReset ? form_1.resetModel(state.model) : state.model;
         nextState = {
-            model: values ? form_1.updateModel(values, state.model) : state.model,
+            model: values ? form_1.updateModel(values, model) : model,
             configure: configure || exports.defaultConfiguration,
         };
         return nextState;
@@ -84,7 +84,9 @@ class Form extends React.Component {
     shouldComponentUpdate(nextProps, nextState) {
         const _a = this.state, { model } = _a, rest = __rest(_a, ["model"]);
         const { model: nextModel } = nextState, nextRest = __rest(nextState, ["model"]);
-        if (!shallowequal(this.props, nextProps)
+        const _b = this.props, { children } = _b, props = __rest(_b, ["children"]);
+        const { children: _ } = nextProps, nnextProps = __rest(nextProps, ["children"]);
+        if (!shallowequal(props, nnextProps)
             || !shallowequal(model, nextModel)
             || !shallowequal(rest, nextRest)) {
             return true;

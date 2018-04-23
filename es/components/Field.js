@@ -62,11 +62,9 @@ class FieldClass extends React.Component {
     componentDidMount() {
         this.update();
     }
-    componentDidUpdate(prevProps) {
-    }
     shouldComponentUpdate(nextProps) {
-        const { validationErrors: nextErrors, validationScope: nextScope, formState: _ } = nextProps, nextRest = __rest(nextProps, ["validationErrors", "validationScope", "formState"]);
-        const _a = this.props, { validationErrors, validationScope, formState } = _a, rest = __rest(_a, ["validationErrors", "validationScope", "formState"]);
+        const { validationErrors: nextErrors, validationScope: nextScope, formState: _, children: __ } = nextProps, nextRest = __rest(nextProps, ["validationErrors", "validationScope", "formState", "children"]);
+        const _a = this.props, { validationErrors, validationScope, formState, children } = _a, rest = __rest(_a, ["validationErrors", "validationScope", "formState", "children"]);
         if (!tools_1.isArrayEqual((validationErrors || []).map(error => error.message), (nextErrors || []).map(error => error.message))
             || !tools_1.isArrayEqual((validationScope || []).map(error => error.message), (nextScope || []).map(error => error.message))
             || !shallowequal(nextRest, rest)) {
@@ -81,20 +79,19 @@ class FieldClass extends React.Component {
     }
 }
 exports.FieldClass = FieldClass;
-function withFormState(Component) {
-    return function FieldComponent(props) {
+class Field extends React.Component {
+    render() {
         return (React.createElement(Form_1.Consumer, null, formState => (React.createElement(Validation_1.Consumer, null, validation => {
-            const modelValue = formState.model[props.name];
+            const modelValue = formState.model[this.props.name];
             const value = modelValue === undefined ? "" : modelValue.value;
             const isChanged = modelValue === undefined ? false : modelValue.isChanged;
             const isVisited = modelValue === undefined ? false : modelValue.isVisited;
-            const isValid = (validation.errors[props.name] === undefined
-                || validation.errors[props.name].length === 0)
+            const isValid = (validation.errors[this.props.name] === undefined
+                || validation.errors[this.props.name].length === 0)
                 && (validation.scope === undefined || validation.scope.length === 0);
-            return (React.createElement(Component, Object.assign({}, props, { value: value, validationErrors: validation.errors[props.name], validationScope: validation.scope, formState: formState, isChanged: isChanged, isVisited: isVisited, isValid: isValid })));
+            return (React.createElement(FieldClass, Object.assign({}, this.props, { value: value, validationErrors: validation.errors[this.props.name], validationScope: validation.scope, formState: formState, isChanged: isChanged, isVisited: isVisited, isValid: isValid })));
         }))));
-    };
+    }
 }
-exports.withFormState = withFormState;
-exports.Field = withFormState(FieldClass);
+exports.Field = Field;
 var _a;

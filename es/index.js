@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var form_1 = require("./helpers/form");
+exports.createFormFactory = form_1.createFormFactory;
 var Field_1 = require("./components/Field");
 exports.Field = Field_1.Field;
 exports.FieldClass = Field_1.FieldClass;
-exports.withFormState = Field_1.withFormState;
 exports.FieldProvider = Field_1.Provider;
 var Form_1 = require("./components/Form");
 exports.Form = Form_1.Form;

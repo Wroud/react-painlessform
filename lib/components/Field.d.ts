@@ -4,9 +4,9 @@ import { IErrorMessage } from "../FormValidator";
 import { IFieldState } from "../interfaces/field";
 import { IFormState } from "./Form";
 export interface IFieldClass<N extends keyof T, V extends T[N], T> extends FieldClass<N, V, T> {
-    new (props: IFieldProps<N, V, T>): FieldClass<N, V, T>;
+    new (props: IFieldClassProps<N, V, T>): FieldClass<N, V, T>;
 }
-export interface IFieldProps<N extends keyof T, V extends T[N], T> {
+export interface IFieldClassProps<N extends keyof T, V extends T[N], T> {
     value: V;
     formState: IFormState<T>;
     validationErrors: Array<IErrorMessage<any>>;
@@ -15,25 +15,34 @@ export interface IFieldProps<N extends keyof T, V extends T[N], T> {
     isChanged: boolean;
     isValid: boolean;
     name: N;
-    children?: ((state: IFieldProps<N, V, T>) => React.ReactNode) | React.ReactNode;
+    children?: ((state: IFieldClassProps<N, V, T>) => React.ReactNode) | React.ReactNode;
     onClick?: () => any;
     onChange?: (field: string, value: IFieldState<V>) => any;
 }
 export declare const Provider: React.ComponentClass<{
-    value: IFieldProps<any, any, any>;
+    value: IFieldClassProps<any, any, any>;
 }>, Consumer: React.ComponentClass<{
-    children?: (context: IFieldProps<any, any, any>) => React.ReactNode;
+    children?: (context: IFieldClassProps<any, any, any>) => React.ReactNode;
 }>;
-export declare class FieldClass<N extends keyof T, V extends T[N], T> extends React.Component<IFieldProps<N, V, T>> {
+export declare class FieldClass<N extends keyof T, V extends T[N], T> extends React.Component<IFieldClassProps<N, V, T>> {
     private inputValue;
     render(): JSX.Element;
     componentDidMount(): void;
-    componentDidUpdate(prevProps: IFieldProps<N, V, T>): void;
-    shouldComponentUpdate(nextProps: IFieldProps<N, V, T>): boolean;
+    shouldComponentUpdate(nextProps: IFieldClassProps<N, V, T>): boolean;
     private setVisited();
     private onClick;
     private handleChange;
     private update;
 }
-export declare function withFormState(Component: any): <N extends keyof T, V extends T[N], T>(props: Pick<IFieldProps<N, V, T>, "children" | "name" | "onChange" | "onClick">) => JSX.Element;
-export declare const Field: <N extends keyof T, V extends T[N], T>(props: Pick<IFieldProps<N, V, T>, "children" | "name" | "onChange" | "onClick">) => JSX.Element;
+export interface IFieldProps<N extends keyof T, V extends T[N], T> {
+    name: N;
+    children?: ((state: IFieldClassProps<N, V, T>) => React.ReactNode) | React.ReactNode;
+    onClick?: () => any;
+    onChange?: (field: string, value: IFieldState<V>) => any;
+}
+export interface IField<N extends keyof T, V extends T[N], T> extends Field<N, V, T> {
+    new (props: IFieldProps<N, V, T>): Field<N, V, T>;
+}
+export declare class Field<N extends keyof T, V extends T[N], T> extends React.Component<IFieldProps<N, V, T>> {
+    render(): JSX.Element;
+}

@@ -1,5 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const Field_1 = require("../components/Field");
+const Form_1 = require("../components/Form");
 function updateModelFields(value, model) {
     const newModel = Object.assign({}, model);
     for (const key of Object.keys(model)) {
@@ -17,13 +19,13 @@ function updateModel(values, model) {
 }
 exports.updateModel = updateModel;
 function resetModel(model) {
-    const newModel = Object.assign({}, model);
+    let newModel = {};
     for (const key of Object.keys(model)) {
-        newModel[key] = {
-            value: "",
-            isChanged: false,
-            isVisited: false,
-        };
+        newModel = Object.assign({}, newModel, { [key]: {
+                value: "",
+                isChanged: false,
+                isVisited: false,
+            } });
     }
     return newModel;
 }
@@ -36,3 +38,14 @@ function getValuesFromModel(model) {
     return values;
 }
 exports.getValuesFromModel = getValuesFromModel;
+function createFormFactory(defaultValues) {
+    const Fields = {};
+    Object.keys(defaultValues).forEach(key => {
+        Fields[key] = Field_1.Field;
+    });
+    return {
+        Form: Form_1.Form,
+        Fields,
+    };
+}
+exports.createFormFactory = createFormFactory;
