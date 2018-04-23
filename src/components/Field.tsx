@@ -144,6 +144,7 @@ export interface IFieldProps<N extends keyof T, V extends T[N], T> {
     children?: ((state: IFieldClassProps<N, V, T>) => React.ReactNode) | React.ReactNode;
     onClick?: () => any;
     onChange?: (field: string, value: IFieldState<V>) => any;
+    [key: string]: any;
 }
 
 export interface IField<N extends keyof T, V extends T[N], T> extends Field<N, V, T> {
