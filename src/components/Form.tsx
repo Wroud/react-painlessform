@@ -1,12 +1,9 @@
 import * as React from "react";
 import shallowequal = require("shallowequal");
 
-import { IValidator } from "../ArrayValidator";
-import { FormErrors } from "../FormValidator";
 import { getValuesFromModel, resetModel, updateModel, updateModelFields } from "../helpers/form";
 import { IFieldState } from "../interfaces/field";
 import { FormModel, IFormConfiguration } from "../interfaces/form";
-import { mergeFormErrors } from "../tools";
 
 export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement> {
     values?: Partial<T>;
@@ -22,9 +19,9 @@ export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement>
 
 export interface IFormState<T> {
     model: FormModel<T>;
+    configure?: IFormConfiguration;
     isChanged: boolean;
     isSubmitting: boolean;
-    configure?: IFormConfiguration;
     handleReset: () => any;
     handleChange: (field: string, value: IFieldState<any>) => any;
 }
@@ -37,30 +34,30 @@ export const defaultConfiguration: IFormConfiguration = {
     submitting: {
         preventDefault: true,
     },
-    validation: {},
 };
 
-export const { Provider, Consumer } = React.createContext<IFormState<any>>();
 const EmptyModel: FormModel<any> = {};
+
+export const { Provider, Consumer } = React.createContext<IFormState<any>>({
+    model: EmptyModel,
+    configure: defaultConfiguration,
+    handleReset: () => ({}),
+    handleChange: () => ({}),
+});
 
 export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> {
     static defaultProps: Partial<IFormProps<any>> = {
         configure: defaultConfiguration,
     };
-
     static getDerivedStateFromProps(props: IFormProps<any>, state: IFormState<any>) {
         const { values, configure } = props;
-        let nextState = null;
         const model = props.isReset ? resetModel(state.model) : state.model;
 
-        nextState = {
+        return {
             model: values ? updateModel(values, model) : model,
-            configure: configure || defaultConfiguration,
+            configure,
         };
-
-        return nextState;
     }
-
     constructor(props: IFormProps<T>) {
         super(props);
 
@@ -72,7 +69,6 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             handleChange: this.handleChange,
         };
     }
-
     shouldComponentUpdate(nextProps: IFormProps<T>, nextState: IFormState<T>) {
         const { model, ...rest } = this.state;
         const { model: nextModel, ...nextRest } = nextState;
@@ -88,11 +84,9 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
         }
         return false;
     }
-
     componentDidUpdate(prevProps: IFormProps<any>, prevState: IFormState<T>) {
         this.callModelChange(this.state.model, prevState.model);
     }
-
     render() {
         const {
             componentId,
@@ -117,7 +111,6 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             </Provider>
         );
     }
-
     private callModelChange(model: FormModel<T>, prevModel: FormModel<T>) {
         if (!this.props.onModelChange) {
             return;
@@ -128,7 +121,6 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             this.props.onModelChange(values, prevValues);
         }
     }
-
     private handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         if (event && this.props.configure.submitting.preventDefault) {
             event.preventDefault();
@@ -147,36 +139,28 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             onSubmit(event)(getValuesFromModel(this.state.model));
         }
     }
-
     private handleReset = () => {
         const { onReset } = this.props;
         if (onReset) {
             onReset();
         }
         if (!this.props.values) {
-            this.setState(({ model }) => {
-                const nextModel = resetModel(model);
-
-                return {
-                    model: nextModel,
-                };
-            });
+            this.setState(({ model }) => ({
+                model: resetModel(model),
+            }));
         }
     }
-
     private handleChange = (field: string, value: IFieldState<T>) => {
-
-        this.setState((prev, props) => {
+        this.setState(prev => {
             if (prev.model[field] && shallowequal(prev.model[field], value)) {
                 return null;
             }
-            const nextModel = {
-                ...(prev.model as any),
-                [field]: { ...value },
-            };
 
             return {
-                model: nextModel,
+                model: {
+                    ...(prev.model as any),
+                    [field]: { ...value },
+                },
             };
         });
     }

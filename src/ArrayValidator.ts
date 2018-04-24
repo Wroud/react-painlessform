@@ -1,5 +1,3 @@
-import { concat } from "./tools";
-
 export type Validator<TValue, TError, TMeta = {}> = (data: TValue, meta?: TMeta) => TError;
 
 export interface IValidator<TValue, TError, TMeta = {}> {

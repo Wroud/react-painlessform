@@ -40,8 +40,6 @@ export {
     createRawFormValidator,
 } from "./FormValidator";
 export {
-    concat,
-    reduce,
     isArrayEqual,
 } from "./tools";
 export {

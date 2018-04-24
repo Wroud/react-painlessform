@@ -39,30 +39,36 @@ export interface IFieldClassProps<TName extends keyof TModel, TValue extends TMo
     children?: ((state: IFieldClassProps<TName, TValue, TModel>) => React.ReactNode) | React.ReactNode;
     onClick?: () => any;
     onChange?: (field: string, value: IFieldState<TValue>) => any;
-    [key: string]: any;
+    rest: { [key: string]: any };
 }
 
-export const { Provider, Consumer } = React.createContext<IClassProps<any>>();
+const defaultProps: Partial<IClassProps<any>> = {
+    validationErrors: [],
+    validationScope: [],
+    rest: {},
+    formState: {
+        model: {},
+    } as any,
+};
+
+export const { Provider, Consumer } = React.createContext<IClassProps<any>>(defaultProps);
 
 export class FieldClass<T> extends React.Component<IClassProps<T>> {
-    private inputValue: any;
-
+    static defaultProps = defaultProps;
     render() {
-        const { children } = this.props as IClassProps<T>;
-        const props: IClassProps<T> = {
+        const { value, children } = this.props as IClassProps<T>;
+
+        const context = {
             ...this.props as any,
+            value: value === undefined ? "" : value,
             onChange: this.handleChange,
             onClick: this.onClick,
         };
-        const rChildren = children
-            && typeof children === "function"
-            ? children(props)
-            : children;
 
         return (
-            <Provider value={props}>
-                {rChildren}
-            </Provider>
+            children && typeof children === "function"
+                ? children(context)
+                : <Provider value={context}>{children}</Provider>
         );
     }
 
@@ -70,26 +76,41 @@ export class FieldClass<T> extends React.Component<IClassProps<T>> {
         this.update(); // mount field to form model
     }
 
+    componentDidUpdate(prevProps: IClassProps<T>) {
+        if (prevProps.value === undefined) {
+            this.update(); // remount field if it not exists in form model
+        }
+    }
+
     shouldComponentUpdate(nextProps: IClassProps<T>) {
         const {
+            name: nextName,
+            value: nextValue,
+            isVisited: nextIsVisited,
+            isChanged: nextIsChanged,
+            isValid: nextIsValid,
+
             validationErrors: nextErrors, validationScope: nextScope,
-            formState: _,
-            children: __,
-            ...nextRest } = nextProps as any;
+            rest: nextRest,
+        } = nextProps as IClassProps<T>;
         const {
+            name, value, isVisited, isChanged, isValid,
             validationErrors, validationScope,
-            formState,
-            children,
-            ...rest } = this.props as IClassProps<T> as any;
+            rest,
+        } = this.props as IClassProps<T>;
 
         if (
             !isArrayEqual(
-                (validationErrors || []).map(error => error.message),
-                (nextErrors || []).map(error => error.message))
+                validationErrors.map(error => error.message),
+                nextErrors.map(error => error.message))
             || !isArrayEqual(
-                (validationScope || []).map(error => error.message),
-                (nextScope || []).map(error => error.message))
+                validationScope.map(error => error.message),
+                nextScope.map(error => error.message))
             || !shallowequal(nextRest, rest)
+            || !shallowequal(
+                { nextName, nextValue, nextIsChanged, nextIsValid, nextIsVisited },
+                { name, value, isVisited, isChanged, isValid },
+            )
         ) {
             return true;
         }
@@ -133,7 +154,8 @@ export class FieldClass<T> extends React.Component<IClassProps<T>> {
             value,
             isChanged,
             isVisited,
-        } = this.props;
+            onChange,
+        } = this.props as IClassProps<T>;
 
         const updValue = {
             value,
@@ -144,15 +166,14 @@ export class FieldClass<T> extends React.Component<IClassProps<T>> {
 
         handleChange(name, updValue);
 
-        if (this.props.onChange) {
-            this.props.onChange(this.props.name, updValue);
+        if (onChange) {
+            onChange(name, updValue);
         }
     }
 }
 
 export interface IFieldProps<TName extends keyof TModel, TValue extends TModel[TName], TModel> {
     name: TName;
-    value?: TValue;
     children?: ((state: IClassProps<TModel>) => React.ReactNode) | React.ReactNode;
     onClick?: () => any;
     onChange?: (field: string, value: IFieldState<TValue>) => any;
@@ -181,26 +202,27 @@ export class Field<T> extends React.Component<FieldProps<T>> {
                 {(formState: IFormState<T>) => (
                     <ValidationContext>
                         {validation => {
-                            const props = this.props as FieldProps<T>;
-                            const modelValue = formState.model[props.name];
-                            const value = modelValue === undefined ? "" : modelValue.value;
+                            const {
+                                name,
+                                children,
+                                onClick,
+                                onChange,
+                                ...rest,
+                            } = this.props as FieldProps<T> as any;
+                            const modelValue = formState.model[name];
+                            const value = modelValue === undefined ? undefined : modelValue.value;
                             const isChanged = modelValue === undefined ? false : modelValue.isChanged;
                             const isVisited = modelValue === undefined ? false : modelValue.isVisited;
 
-                            // if (modelValue === undefined) {
-                            //     formState.handleChange(props.name, {
-                            //         value, isChanged, isVisited,
-                            //     });
-                            // }
                             const isValid =
                                 (validation.errors[this.props.name] === undefined
                                     || validation.errors[this.props.name].length === 0)
                                 && (validation.scope === undefined || validation.scope.length === 0);
 
-                            const _Field = FieldClass as IFieldClass<any>;
+                            const _Field = FieldClass as any as IFieldClass<any>;
                             return (
                                 <_Field
-                                    {...props}
+                                    name={name}
                                     value={value}
                                     validationErrors={validation.errors[this.props.name]}
                                     validationScope={validation.scope}
@@ -208,6 +230,10 @@ export class Field<T> extends React.Component<FieldProps<T>> {
                                     isChanged={isChanged}
                                     isVisited={isVisited}
                                     isValid={isValid}
+                                    onClick={onClick}
+                                    onChange={onChange}
+                                    children={children}
+                                    rest={rest}
                                 />
                             );
                         }}
@@ -217,14 +243,3 @@ export class Field<T> extends React.Component<FieldProps<T>> {
         );
     }
 }
-
-// interface IModel {
-//     field: string;
-//     field2: number;
-// }
-
-// const F = Field as IField<IModel>;
-// const onChange = (field: string, value: IFieldState<string>) => ({});
-
-// const field = <F name={"field"} value={""} onChange={onChange} />;
-// const field2 = <F name={"field2"} value={2} onChange={onChange} />;

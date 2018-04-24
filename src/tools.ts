@@ -1,11 +1,5 @@
 import { FormErrors } from "./FormValidator";
 
-export function concat<T extends (...args) => any[]>(...units: T[]): T {
-    return ((...args) => ([] as any[]).concat(...units.map(unit => unit(...args)))) as T;
-}
-export function reduce<T extends (...args) => any>(...units: T[]): T {
-    return ((...args) => units.reduce((prev, unit) => ({ ...prev, ...unit(...args) }), {})) as T;
-}
 export function isArrayEqual(array0: any[], array1: any[]) {
     if (array0 !== array1
         && (array0 === undefined || array1 === undefined)

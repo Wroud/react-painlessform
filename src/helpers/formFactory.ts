@@ -6,7 +6,7 @@ export interface IFormFactory<T> {
     Field: IField<T>;
 }
 
-export function createFormFactory<T>(defaultValues: T): IFormFactory<T> {
+export function createFormFactory<T>(): IFormFactory<T> {
     return {
         Form: Form as any,
         Field: Field as any,

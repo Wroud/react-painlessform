@@ -2,7 +2,6 @@ import chai, { assert, expect, use } from "chai";
 import * as assertArrays from "chai-arrays";
 import "mocha";
 import * as React from "react";
-import * as ReactDOM from "react-dom";
 import { createRenderer, ShallowRenderer } from "react-test-renderer/shallow";
 import * as Yup from "yup";
 import { FormContext, IFormState, IValidationProps, Validation } from "../../src";

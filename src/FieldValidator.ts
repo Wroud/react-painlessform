@@ -1,6 +1,5 @@
-import { ArrayValidator, IValidator, Validator } from "./ArrayValidator";
+import { IValidator } from "./ArrayValidator";
 import { FormErrors, IErrorMessage } from "./FormValidator";
-import { mergeFormErrors, reduce } from "./tools";
 
 export class FieldValidator<TSource, TValue, TMeta = {}> implements IValidator<TSource, FormErrors<TSource>, TMeta> {
     private name: keyof TSource;

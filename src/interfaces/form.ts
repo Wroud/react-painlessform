@@ -4,7 +4,6 @@ export interface IFormConfiguration {
     submitting: {
         preventDefault: boolean;
     };
-    validation: any;
 }
 
 export type FormModel<T> = {

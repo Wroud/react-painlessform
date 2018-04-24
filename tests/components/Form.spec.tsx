@@ -2,13 +2,11 @@ import chai, { assert, expect, use } from "chai";
 import * as assertArrays from "chai-arrays";
 import "mocha";
 import * as React from "react";
-import * as ReactDOM from "react-dom";
 
 import { mount, ReactWrapper, shallow } from "enzyme";
-import { createRenderer, ShallowRenderer } from "react-test-renderer/shallow";
 
-import { Form, IFormProps, IFormState } from "../../src";
-import { Consumer, IForm, Provider } from "../../src/components/Form";
+import { Form } from "../../src";
+import { Consumer, IForm } from "../../src/components/Form";
 
 use(assertArrays);
 
@@ -71,7 +69,7 @@ describe("Form", () => {
 
     it("simulate reset", () => {
         wrapper.find("#reset").simulate("click");
-        wrapper.setProps({ isReset: true });
+        wrapper.setProps({ values: undefined, isReset: true });
 
         const {
             state: { model },

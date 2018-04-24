@@ -5,15 +5,16 @@ import * as Yup from "yup";
 import { IValidator } from "../ArrayValidator";
 import { FormErrors, IErrorMessage } from "../FormValidator";
 import { getValuesFromModel } from "../helpers/form";
-import { IValidationMeta } from "../interfaces/validation";
+import { IValidationConfiguration, IValidationMeta } from "../interfaces/validation";
 import { Consumer as FormContext, IFormState } from "./Form";
 
 export interface IValidationProps {
     errors?: FormErrors<any>;
     scope?: Array<IErrorMessage<any>>;
-    isValid?: boolean;
     validator?: IValidator<any, FormErrors<any>, IValidationMeta> | Yup.Schema<any>;
     scopeValidator?: IValidator<any, Array<IErrorMessage<any>>, IValidationMeta>;
+    configure?: IValidationConfiguration & Yup.ValidateOptions;
+    isValid?: boolean;
     [rest: string]: any;
 }
 
@@ -34,6 +35,10 @@ export const { Provider, Consumer } = React.createContext<IValidationContext>({
 });
 
 export class Validation extends React.Component<IValidationProps, any> {
+    static defaultProps: IValidationProps = {
+        isValid: true,
+        configure: {},
+    };
     prevErrors = {
         errors: NoErrors,
         scope: NoScopeErrors,
@@ -54,7 +59,12 @@ export class Validation extends React.Component<IValidationProps, any> {
         let scope = NoScopeErrors;
         let isValid = true;
         const model = getValuesFromModel(form.model);
-        if (validator && model) {
+
+        if (!model) {
+            return { errors, scope, isValid };
+        }
+
+        if (validator) {
             if ((validator as Yup.Schema<any>).validateSync) {
                 try {
                     (validator as Yup.Schema<any>).validateSync(model, {
@@ -63,12 +73,12 @@ export class Validation extends React.Component<IValidationProps, any> {
                             state: this.state,
                             props: this.props,
                         },
-                        ...form.configure.validation,
+                        ...this.props.configure,
                     });
-                } catch (_errors) {
-                    const __errors: Yup.ValidationError = _errors;
-                    if (__errors.path === undefined) {
-                        __errors.inner.forEach(error => {
+                } catch (validationErrors) {
+                    const _errors: Yup.ValidationError = validationErrors;
+                    if (_errors.path === undefined) {
+                        _errors.inner.forEach(error => {
                             errors = {
                                 ...errors,
                                 [error.path]:
@@ -77,7 +87,7 @@ export class Validation extends React.Component<IValidationProps, any> {
                             };
                         });
                     } else {
-                        this.context = __errors.errors;
+                        this.context = _errors.errors;
                     }
                     isValid = false;
                 }
@@ -98,7 +108,7 @@ export class Validation extends React.Component<IValidationProps, any> {
                 }
             }
         }
-        if (scopeValidator && model) {
+        if (scopeValidator) {
             const preScope = scopeValidator.validate(
                 model,
                 {
