@@ -90,7 +90,7 @@ class Field extends React.Component {
             const isValid = (validation.errors[this.props.name] === undefined
                 || validation.errors[this.props.name].length === 0)
                 && (validation.scope === undefined || validation.scope.length === 0);
-            const _Field = Field;
+            const _Field = FieldClass;
             return (React.createElement(_Field, Object.assign({}, props, { value: value, validationErrors: validation.errors[this.props.name], validationScope: validation.scope, formState: formState, isChanged: isChanged, isVisited: isVisited, isValid: isValid })));
         }))));
     }

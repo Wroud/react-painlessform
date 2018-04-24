@@ -52,5 +52,5 @@ export interface IField<T> extends Field<T> {
     new (props: FieldProps<T>): Field<T>;
 }
 export declare class Field<T> extends React.Component<FieldProps<T>> {
-    render(): any;
+    render(): JSX.Element;
 }
