@@ -5,16 +5,29 @@ import { IErrorMessage } from "../FormValidator";
 import { IFieldState } from "../interfaces/field";
 import { isArrayEqual } from "../tools";
 import { Consumer as FormContext, IFormState } from "./Form";
-import { Consumer as ValidationContext, IValidationContext } from "./Validation";
+import { Consumer as ValidationContext } from "./Validation";
 
-export interface IFieldClass<N extends keyof T, V extends T[N], T> extends FieldClass<N, V, T> {
-    new(props: IFieldClassProps<N, V, T>): FieldClass<N, V, T>;
+export type Exclude<C, U extends keyof M, M> = C extends M[U] ? M[U] : never;
+
+export type ExtendFieldClass<
+    TName extends keyof TModel,
+    TValue extends TModel[TName],
+    TModel,
+    > =
+    TName extends keyof TModel
+    ? IFieldClassProps<TName, Exclude<TValue, TName, TModel>, TModel>
+    : never;
+
+export type IClassProps<T> = ExtendFieldClass<keyof T, T[keyof T], T>;
+
+export interface IFieldClass<T> extends FieldClass<T> {
+    new(props: IClassProps<T>): FieldClass<T>;
 }
 
-export interface IFieldClassProps<N extends keyof T, V extends T[N], T> {
+export interface IFieldClassProps<TName extends keyof TModel, TValue extends TModel[TName], TModel> {
     // Form controlled fields
-    value: V;
-    formState: IFormState<T>;
+    value: TValue;
+    formState: IFormState<TModel>;
     validationErrors: Array<IErrorMessage<any>>;
     validationScope: Array<IErrorMessage<any>>;
     isVisited: boolean;
@@ -22,22 +35,22 @@ export interface IFieldClassProps<N extends keyof T, V extends T[N], T> {
     isValid: boolean;
     //
 
-    name: N;
-    children?: ((state: IFieldClassProps<N, V, T>) => React.ReactNode) | React.ReactNode;
+    name: TName;
+    children?: ((state: IFieldClassProps<TName, TValue, TModel>) => React.ReactNode) | React.ReactNode;
     onClick?: () => any;
-    onChange?: (field: string, value: IFieldState<V>) => any;
+    onChange?: (field: string, value: IFieldState<TValue>) => any;
     [key: string]: any;
 }
 
-export const { Provider, Consumer } = React.createContext<IFieldClassProps<any, any, any>>();
+export const { Provider, Consumer } = React.createContext<IClassProps<any>>();
 
-export class FieldClass<N extends keyof T, V extends T[N], T> extends React.Component<IFieldClassProps<N, V, T>> {
+export class FieldClass<T> extends React.Component<IClassProps<T>> {
     private inputValue: any;
 
     render() {
-        const { children } = this.props;
-        const props = {
-            ...this.props,
+        const { children } = this.props as IClassProps<T>;
+        const props: IClassProps<T> = {
+            ...this.props as any,
             onChange: this.handleChange,
             onClick: this.onClick,
         };
@@ -57,17 +70,17 @@ export class FieldClass<N extends keyof T, V extends T[N], T> extends React.Comp
         this.update(); // mount field to form model
     }
 
-    shouldComponentUpdate(nextProps: IFieldClassProps<N, V, T>) {
+    shouldComponentUpdate(nextProps: IClassProps<T>) {
         const {
             validationErrors: nextErrors, validationScope: nextScope,
             formState: _,
             children: __,
-            ...nextRest } = nextProps;
+            ...nextRest } = nextProps as any;
         const {
             validationErrors, validationScope,
             formState,
             children,
-            ...rest } = this.props;
+            ...rest } = this.props as IClassProps<T> as any;
 
         if (
             !isArrayEqual(
@@ -113,7 +126,7 @@ export class FieldClass<N extends keyof T, V extends T[N], T> extends React.Comp
         });
     }
 
-    private update = (nextValue?: Partial<IFieldState<V>>) => {
+    private update = (nextValue?: Partial<IFieldState<any>>) => {
         const {
             formState: { handleChange },
             name,
@@ -137,28 +150,39 @@ export class FieldClass<N extends keyof T, V extends T[N], T> extends React.Comp
     }
 }
 
-// type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-
-export interface IFieldProps<N extends keyof T, V extends T[N], T> {
-    name: N;
-    children?: ((state: IFieldClassProps<N, V, T>) => React.ReactNode) | React.ReactNode;
+export interface IFieldProps<TName extends keyof TModel, TValue extends TModel[TName], TModel> {
+    name: TName;
+    value?: TValue;
+    children?: ((state: IClassProps<TModel>) => React.ReactNode) | React.ReactNode;
     onClick?: () => any;
-    onChange?: (field: string, value: IFieldState<V>) => any;
+    onChange?: (field: string, value: IFieldState<TValue>) => any;
     [key: string]: any;
 }
 
-export interface IField<N extends keyof T, V extends T[N], T> extends Field<N, V, T> {
-    new(props: IFieldProps<N, V, T>): Field<N, V, T>;
+export type ExtendFieldProps<
+    TName extends keyof TModel,
+    TValue extends TModel[TName],
+    TModel,
+    > =
+    TName extends keyof TModel
+    ? IFieldProps<TName, Exclude<TValue, TName, TModel>, TModel>
+    : never;
+
+export type FieldProps<T> = ExtendFieldProps<keyof T, T[keyof T], T>;
+
+export interface IField<T> extends Field<T> {
+    new(props: FieldProps<T>): Field<T>;
 }
 
-export class Field<N extends keyof T, V extends T[N], T> extends React.Component<IFieldProps<N, V, T>> {
+export class Field<T> extends React.Component<FieldProps<T>> {
     render() {
         return (
             <FormContext>
-                {formState => (
+                {(formState: IFormState<T>) => (
                     <ValidationContext>
                         {validation => {
-                            const modelValue = formState.model[this.props.name];
+                            const props = this.props as FieldProps<T>;
+                            const modelValue = formState.model[props.name];
                             const value = modelValue === undefined ? "" : modelValue.value;
                             const isChanged = modelValue === undefined ? false : modelValue.isChanged;
                             const isVisited = modelValue === undefined ? false : modelValue.isVisited;
@@ -173,9 +197,10 @@ export class Field<N extends keyof T, V extends T[N], T> extends React.Component
                                     || validation.errors[this.props.name].length === 0)
                                 && (validation.scope === undefined || validation.scope.length === 0);
 
+                            const _Field = Field as IField<T>;
                             return (
-                                <FieldClass
-                                    {...this.props}
+                                <_Field
+                                    {...props}
                                     value={value}
                                     validationErrors={validation.errors[this.props.name]}
                                     validationScope={validation.scope}
@@ -192,3 +217,14 @@ export class Field<N extends keyof T, V extends T[N], T> extends React.Component
         );
     }
 }
+
+// interface IModel {
+//     field: string;
+//     field2: number;
+// }
+
+// const F = Field as IField<IModel>;
+// const onChange = (field: string, value: IFieldState<string>) => ({});
+
+// const field = <F name={"field"} value={""} onChange={onChange} />;
+// const field2 = <F name={"field2"} value={2} onChange={onChange} />;
