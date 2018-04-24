@@ -14,7 +14,15 @@ const shallowequal = require("shallowequal");
 const tools_1 = require("../tools");
 const Form_1 = require("./Form");
 const Validation_1 = require("./Validation");
-_a = React.createContext(), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
+const defaultProps = {
+    validationErrors: [],
+    validationScope: [],
+    rest: {},
+    formState: {
+        model: {},
+    },
+};
+_a = React.createContext(defaultProps), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 class FieldClass extends React.Component {
     constructor() {
         super(...arguments);
@@ -40,34 +48,38 @@ class FieldClass extends React.Component {
             });
         };
         this.update = (nextValue) => {
-            const { formState: { handleChange }, name, value, isChanged, isVisited, } = this.props;
+            const { formState: { handleChange }, name, value, isChanged, isVisited, onChange, } = this.props;
             const updValue = Object.assign({ value,
                 isChanged,
                 isVisited }, (nextValue || {}));
             handleChange(name, updValue);
-            if (this.props.onChange) {
-                this.props.onChange(this.props.name, updValue);
+            if (onChange) {
+                onChange(name, updValue);
             }
         };
     }
     render() {
-        const { children } = this.props;
-        const props = Object.assign({}, this.props, { onChange: this.handleChange, onClick: this.onClick });
-        const rChildren = children
-            && typeof children === "function"
-            ? children(props)
-            : children;
-        return (React.createElement(exports.Provider, { value: props }, rChildren));
+        const { value, children } = this.props;
+        const context = Object.assign({}, this.props, { value: value === undefined ? "" : value, onChange: this.handleChange, onClick: this.onClick });
+        return (children && typeof children === "function"
+            ? children(context)
+            : React.createElement(exports.Provider, { value: context }, children));
     }
     componentDidMount() {
         this.update();
     }
+    componentDidUpdate(prevProps) {
+        if (prevProps.value === undefined) {
+            this.update();
+        }
+    }
     shouldComponentUpdate(nextProps) {
-        const _a = nextProps, { validationErrors: nextErrors, validationScope: nextScope, formState: _, children: __ } = _a, nextRest = __rest(_a, ["validationErrors", "validationScope", "formState", "children"]);
-        const _b = this.props, { validationErrors, validationScope, formState, children } = _b, rest = __rest(_b, ["validationErrors", "validationScope", "formState", "children"]);
-        if (!tools_1.isArrayEqual((validationErrors || []).map(error => error.message), (nextErrors || []).map(error => error.message))
-            || !tools_1.isArrayEqual((validationScope || []).map(error => error.message), (nextScope || []).map(error => error.message))
-            || !shallowequal(nextRest, rest)) {
+        const { name: nextName, value: nextValue, isVisited: nextIsVisited, isChanged: nextIsChanged, isValid: nextIsValid, validationErrors: nextErrors, validationScope: nextScope, rest: nextRest, } = nextProps;
+        const { name, value, isVisited, isChanged, isValid, validationErrors, validationScope, rest, } = this.props;
+        if (!tools_1.isArrayEqual(validationErrors.map(error => error.message), nextErrors.map(error => error.message))
+            || !tools_1.isArrayEqual(validationScope.map(error => error.message), nextScope.map(error => error.message))
+            || !shallowequal(nextRest, rest)
+            || !shallowequal({ nextName, nextValue, nextIsChanged, nextIsValid, nextIsVisited }, { name, value, isVisited, isChanged, isValid })) {
             return true;
         }
         return false;
@@ -78,20 +90,21 @@ class FieldClass extends React.Component {
         }
     }
 }
+FieldClass.defaultProps = defaultProps;
 exports.FieldClass = FieldClass;
 class Field extends React.Component {
     render() {
         return (React.createElement(Form_1.Consumer, null, (formState) => (React.createElement(Validation_1.Consumer, null, validation => {
-            const props = this.props;
-            const modelValue = formState.model[props.name];
-            const value = modelValue === undefined ? "" : modelValue.value;
+            const _a = this.props, { name, children, onClick, onChange } = _a, rest = __rest(_a, ["name", "children", "onClick", "onChange"]);
+            const modelValue = formState.model[name];
+            const value = modelValue === undefined ? undefined : modelValue.value;
             const isChanged = modelValue === undefined ? false : modelValue.isChanged;
             const isVisited = modelValue === undefined ? false : modelValue.isVisited;
             const isValid = (validation.errors[this.props.name] === undefined
                 || validation.errors[this.props.name].length === 0)
                 && (validation.scope === undefined || validation.scope.length === 0);
             const _Field = FieldClass;
-            return (React.createElement(_Field, Object.assign({}, props, { value: value, validationErrors: validation.errors[this.props.name], validationScope: validation.scope, formState: formState, isChanged: isChanged, isVisited: isVisited, isValid: isValid })));
+            return (React.createElement(_Field, { name: name, value: value, validationErrors: validation.errors[this.props.name], validationScope: validation.scope, formState: formState, isChanged: isChanged, isVisited: isVisited, isValid: isValid, onClick: onClick, onChange: onChange, children: children, rest: rest }));
         }))));
     }
 }

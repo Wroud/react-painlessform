@@ -3,14 +3,15 @@ import * as React from "react";
 import * as Yup from "yup";
 import { IValidator } from "../ArrayValidator";
 import { FormErrors, IErrorMessage } from "../FormValidator";
-import { IValidationMeta } from "../interfaces/validation";
+import { IValidationConfiguration, IValidationMeta } from "../interfaces/validation";
 import { IFormState } from "./Form";
 export interface IValidationProps {
     errors?: FormErrors<any>;
     scope?: Array<IErrorMessage<any>>;
-    isValid?: boolean;
     validator?: IValidator<any, FormErrors<any>, IValidationMeta> | Yup.Schema<any>;
     scopeValidator?: IValidator<any, Array<IErrorMessage<any>>, IValidationMeta>;
+    configure?: IValidationConfiguration & Yup.ValidateOptions;
+    isValid?: boolean;
     [rest: string]: any;
 }
 export interface IValidationContext {
@@ -24,6 +25,7 @@ export declare const Provider: React.ComponentClass<{
     children?: (context: IValidationContext) => React.ReactNode;
 }>;
 export declare class Validation extends React.Component<IValidationProps, any> {
+    static defaultProps: IValidationProps;
     prevErrors: {
         errors: FormErrors<any>;
         scope: IErrorMessage<any>[];

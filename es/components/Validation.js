@@ -32,24 +32,27 @@ class Validation extends React.Component {
             let scope = NoScopeErrors;
             let isValid = true;
             const model = form_1.getValuesFromModel(form.model);
-            if (validator && model) {
+            if (!model) {
+                return { errors, scope, isValid };
+            }
+            if (validator) {
                 if (validator.validateSync) {
                     try {
                         validator.validateSync(model, Object.assign({ abortEarly: false, context: {
                                 state: this.state,
                                 props: this.props,
-                            } }, form.configure.validation));
+                            } }, this.props.configure));
                     }
-                    catch (_errors) {
-                        const __errors = _errors;
-                        if (__errors.path === undefined) {
-                            __errors.inner.forEach(error => {
+                    catch (validationErrors) {
+                        const _errors = validationErrors;
+                        if (_errors.path === undefined) {
+                            _errors.inner.forEach(error => {
                                 errors = Object.assign({}, errors, { [error.path]: [...(errors[error.path] || []),
                                         ...error.errors.map(message => ({ message }))] });
                             });
                         }
                         else {
-                            this.context = __errors.errors;
+                            this.context = _errors.errors;
                         }
                         isValid = false;
                     }
@@ -68,7 +71,7 @@ class Validation extends React.Component {
                     }
                 }
             }
-            if (scopeValidator && model) {
+            if (scopeValidator) {
                 const preScope = scopeValidator.validate(model, {
                     state: this.state,
                     props: this.props,
@@ -92,5 +95,9 @@ class Validation extends React.Component {
         return (React.createElement(Form_1.Consumer, null, context => React.createElement(exports.Provider, { value: this.validate(context) }, this.props.children)));
     }
 }
+Validation.defaultProps = {
+    isValid: true,
+    configure: {},
+};
 exports.Validation = Validation;
 var _a;

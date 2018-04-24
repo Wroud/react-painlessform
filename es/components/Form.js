@@ -16,10 +16,14 @@ exports.defaultConfiguration = {
     submitting: {
         preventDefault: true,
     },
-    validation: {},
 };
-_a = React.createContext(), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 const EmptyModel = {};
+_a = React.createContext({
+    model: EmptyModel,
+    configure: exports.defaultConfiguration,
+    handleReset: () => ({}),
+    handleChange: () => ({}),
+}), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 class Form extends React.Component {
     constructor(props) {
         super(props);
@@ -44,22 +48,18 @@ class Form extends React.Component {
                 onReset();
             }
             if (!this.props.values) {
-                this.setState(({ model }) => {
-                    const nextModel = form_1.resetModel(model);
-                    return {
-                        model: nextModel,
-                    };
-                });
+                this.setState(({ model }) => ({
+                    model: form_1.resetModel(model),
+                }));
             }
         };
         this.handleChange = (field, value) => {
-            this.setState((prev, props) => {
+            this.setState(prev => {
                 if (prev.model[field] && shallowequal(prev.model[field], value)) {
                     return null;
                 }
-                const nextModel = Object.assign({}, prev.model, { [field]: Object.assign({}, value) });
                 return {
-                    model: nextModel,
+                    model: Object.assign({}, prev.model, { [field]: Object.assign({}, value) }),
                 };
             });
         };
@@ -73,13 +73,11 @@ class Form extends React.Component {
     }
     static getDerivedStateFromProps(props, state) {
         const { values, configure } = props;
-        let nextState = null;
         const model = props.isReset ? form_1.resetModel(state.model) : state.model;
-        nextState = {
+        return {
             model: values ? form_1.updateModel(values, model) : model,
-            configure: configure || exports.defaultConfiguration,
+            configure,
         };
-        return nextState;
     }
     shouldComponentUpdate(nextProps, nextState) {
         const _a = this.state, { model } = _a, rest = __rest(_a, ["model"]);

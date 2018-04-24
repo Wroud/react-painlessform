@@ -4,4 +4,4 @@ export interface IFormFactory<T> {
     Form: IForm<T>;
     Field: IField<T>;
 }
-export declare function createFormFactory<T>(defaultValues: T): IFormFactory<T>;
+export declare function createFormFactory<T>(): IFormFactory<T>;

@@ -1,13 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-function concat(...units) {
-    return ((...args) => [].concat(...units.map(unit => unit(...args))));
-}
-exports.concat = concat;
-function reduce(...units) {
-    return ((...args) => units.reduce((prev, unit) => (Object.assign({}, prev, unit(...args))), {}));
-}
-exports.reduce = reduce;
 function isArrayEqual(array0, array1) {
     if (array0 !== array1
         && (array0 === undefined || array1 === undefined)) {

@@ -21,7 +21,9 @@ export interface IFieldClassProps<TName extends keyof TModel, TValue extends TMo
     children?: ((state: IFieldClassProps<TName, TValue, TModel>) => React.ReactNode) | React.ReactNode;
     onClick?: () => any;
     onChange?: (field: string, value: IFieldState<TValue>) => any;
-    [key: string]: any;
+    rest: {
+        [key: string]: any;
+    };
 }
 export declare const Provider: React.ComponentClass<{
     value: IFieldClassProps<string, any, any>;
@@ -29,9 +31,10 @@ export declare const Provider: React.ComponentClass<{
     children?: (context: IFieldClassProps<string, any, any>) => React.ReactNode;
 }>;
 export declare class FieldClass<T> extends React.Component<IClassProps<T>> {
-    private inputValue;
-    render(): JSX.Element;
+    static defaultProps: Partial<IFieldClassProps<string, any, any>>;
+    render(): {};
     componentDidMount(): void;
+    componentDidUpdate(prevProps: IClassProps<T>): void;
     shouldComponentUpdate(nextProps: IClassProps<T>): boolean;
     private setVisited();
     private onClick;
@@ -40,7 +43,6 @@ export declare class FieldClass<T> extends React.Component<IClassProps<T>> {
 }
 export interface IFieldProps<TName extends keyof TModel, TValue extends TModel[TName], TModel> {
     name: TName;
-    value?: TValue;
     children?: ((state: IClassProps<TModel>) => React.ReactNode) | React.ReactNode;
     onClick?: () => any;
     onChange?: (field: string, value: IFieldState<TValue>) => any;

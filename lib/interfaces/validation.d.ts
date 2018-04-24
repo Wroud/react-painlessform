@@ -3,3 +3,5 @@ export interface IValidationMeta {
     state: any;
     props: IValidationProps;
 }
+export interface IValidationConfiguration {
+}

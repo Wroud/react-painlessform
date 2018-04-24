@@ -15,9 +15,9 @@ export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement>
 }
 export interface IFormState<T> {
     model: FormModel<T>;
+    configure?: IFormConfiguration;
     isChanged: boolean;
     isSubmitting: boolean;
-    configure?: IFormConfiguration;
     handleReset: () => any;
     handleChange: (field: string, value: IFieldState<any>) => any;
 }
@@ -32,7 +32,10 @@ export declare const Provider: React.ComponentClass<{
 }>;
 export declare class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> {
     static defaultProps: Partial<IFormProps<any>>;
-    static getDerivedStateFromProps(props: IFormProps<any>, state: IFormState<any>): any;
+    static getDerivedStateFromProps(props: IFormProps<any>, state: IFormState<any>): {
+        model: FormModel<any>;
+        configure: IFormConfiguration;
+    };
     constructor(props: IFormProps<T>);
     shouldComponentUpdate(nextProps: IFormProps<T>, nextState: IFormState<T>): boolean;
     componentDidUpdate(prevProps: IFormProps<any>, prevState: IFormState<T>): void;
