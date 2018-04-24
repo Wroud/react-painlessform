@@ -197,7 +197,7 @@ export class Field<T> extends React.Component<FieldProps<T>> {
                                     || validation.errors[this.props.name].length === 0)
                                 && (validation.scope === undefined || validation.scope.length === 0);
 
-                            const _Field = Field as IField<T>;
+                            const _Field = FieldClass as IFieldClass<any>;
                             return (
                                 <_Field
                                     {...props}
