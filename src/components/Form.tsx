@@ -7,6 +7,7 @@ import { FormModel, IFormConfiguration } from "../interfaces/form";
 
 export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement> {
     values?: Partial<T>;
+    initValues?: Partial<T>;
     configure?: IFormConfiguration;
     isReset?: boolean;
     isChanged?: boolean;
@@ -52,11 +53,15 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
         configure: defaultConfiguration,
     };
     static getDerivedStateFromProps(props: IFormProps<any>, state: IFormState<any>) {
-        const { values, configure, isChanged, isSubmitting } = props;
+        const { values, initValues, configure, isChanged, isSubmitting } = props;
         const model = props.isReset ? resetModel(state.model) : state.model;
 
         return {
-            model: values ? updateModel(values, model) : model,
+            model: values
+                ? updateModel(values, model)
+                : initValues
+                    ? updateModel(initValues, model)
+                    : model,
             configure,
             isChanged: isChanged !== undefined ? isChanged : state.isChanged,
             isSubmitting: isSubmitting !== undefined ? isSubmitting : state.isSubmitting,
