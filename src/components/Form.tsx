@@ -50,12 +50,14 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
         configure: defaultConfiguration,
     };
     static getDerivedStateFromProps(props: IFormProps<any>, state: IFormState<any>) {
-        const { values, configure } = props;
+        const { values, configure, isChanged, isSubmitting } = props;
         const model = props.isReset ? resetModel(state.model) : state.model;
 
         return {
             model: values ? updateModel(values, model) : model,
             configure,
+            isChanged: isChanged !== undefined ? isChanged : state.isChanged,
+            isSubmitting: isSubmitting !== undefined ? isSubmitting : state.isSubmitting,
         };
     }
     constructor(props: IFormProps<T>) {
