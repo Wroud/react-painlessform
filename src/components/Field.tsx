@@ -73,9 +73,11 @@ export class FieldClass<T> extends React.Component<IClassProps<T>> {
     }
 
     componentDidMount() {
-        this.update({
-            value: "",
-        }); // mount field to form model
+        if (this.props.value === undefined) {
+            this.update({
+                value: "",
+            }); // mount field to form model
+        }
     }
 
     componentDidUpdate(prevProps: IClassProps<T>) {
