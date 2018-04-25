@@ -4,7 +4,7 @@ import shallowequal = require("shallowequal");
 import { IErrorMessage } from "../FormValidator";
 import { createFormFactory } from "../helpers/formFactory";
 import { IFieldState } from "../interfaces/field";
-import { isArrayEqual } from "../tools";
+import { isArrayEqual, isChangeEvent } from "../tools";
 import { IFormState } from "./Form";
 
 export type Exclude<C, U extends keyof M, M> = C extends M[U] ? M[U] : never;
@@ -136,10 +136,10 @@ export class FieldClass<T> extends React.Component<IClassProps<T>> {
         }
     }
 
-    private handleChange = (value: any | React.ChangeEvent<HTMLInputElement>) => {
+    private handleChange = (value: T | React.ChangeEvent<HTMLInputElement>) => {
         let nextValue;
-        if (value.target !== undefined) {
-            const { type, checked, value: targetValue } = (value as React.ChangeEvent<HTMLInputElement>).target;
+        if (isChangeEvent(value)) {
+            const { type, checked, value: targetValue } = value.target;
             nextValue = type === "checkbox" ? checked : targetValue;
             // const name = !target.name ? target.id : target.name;
         } else {

@@ -131,10 +131,10 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
         }
     }
     private handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-        if (event && this.props.configure.submitting.preventDefault) {
+        const { onSubmit, configure } = this.props;
+        if (event && configure.submitting.preventDefault) {
             event.preventDefault();
         }
-        const { onSubmit } = this.props;
         this.setState(state => ({
             model: updateModelFields(
                 {
@@ -150,11 +150,11 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
         }
     }
     private handleReset = () => {
-        const { onReset } = this.props;
+        const { onReset, values } = this.props;
         if (onReset) {
             onReset();
         }
-        if (!this.props.values) {
+        if (!values) {
             this.setState(({ model }, props) => ({
                 model: props.initValues
                     ? updateModel(props.initValues as T, EmptyModel as FormModel<T>)

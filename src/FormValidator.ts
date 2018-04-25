@@ -1,6 +1,6 @@
 import * as Yup from "yup";
 import { IValidator, Validator } from "./ArrayValidator";
-import { mergeFormErrors } from "./tools";
+import { isYup, mergeFormErrors } from "./tools";
 
 export interface IErrorMessage<T = {}> {
     message: string;
@@ -21,9 +21,9 @@ export class FormValidator<TSource, TMeta = {}> implements IValidator<TSource, F
     validate = (data: TSource, meta: TMeta) => {
         let errors = {};
         this.validators.forEach(validator => {
-            if ((validator as Yup.Schema<any>).validateSync) {
+            if (isYup(validator)) {
                 try {
-                    (validator as Yup.Schema<any>).validateSync(data, {
+                    validator.validateSync(data, {
                         abortEarly: false,
                         context: meta || {},
                     });
@@ -38,7 +38,7 @@ export class FormValidator<TSource, TMeta = {}> implements IValidator<TSource, F
                     }
                 }
             } else {
-                errors = mergeFormErrors(errors, (validator as IValidator<TSource, FormErrors<TSource>, TMeta>).validate(data, meta));
+                errors = mergeFormErrors(errors, validator.validate(data, meta));
             }
         });
         return errors as FormErrors<TSource>;

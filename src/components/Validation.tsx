@@ -6,6 +6,7 @@ import { IValidator } from "../ArrayValidator";
 import { FormErrors, IErrorMessage } from "../FormValidator";
 import { getValuesFromModel } from "../helpers/form";
 import { IValidationConfiguration, IValidationMeta } from "../interfaces/validation";
+import { isYup } from "../tools";
 import { Consumer as FormContext, IFormState } from "./Form";
 
 export interface IValidationProps<T> {
@@ -69,9 +70,9 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
         }
 
         if (validator) {
-            if ((validator as Yup.Schema<T>).validateSync) {
+            if (isYup(validator)) {
                 try {
-                    (validator as Yup.Schema<T>).validateSync(model, {
+                    validator.validateSync(model, {
                         abortEarly: false,
                         context: {
                             state: this.state,
@@ -96,7 +97,7 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
                     isValid = false;
                 }
             } else {
-                const preErrors = (validator as IValidator<T, FormErrors<T>, IValidationMeta<T>>).validate(
+                const preErrors = validator.validate(
                     model,
                     {
                         state: this.state,
