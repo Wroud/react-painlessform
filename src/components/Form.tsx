@@ -59,9 +59,7 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
         return {
             model: values
                 ? updateModel(values, model)
-                : initValues
-                    ? updateModel(initValues, model)
-                    : model,
+                : model,
             configure,
             isChanged: isChanged !== undefined ? isChanged : state.isChanged,
             isSubmitting: isSubmitting !== undefined ? isSubmitting : state.isSubmitting,
@@ -71,7 +69,7 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
         super(props);
 
         this.state = {
-            model: EmptyModel as any,
+            model: props.initValues ? updateModel(props.initValues, EmptyModel) : EmptyModel as any,
             isChanged: false,
             isSubmitting: false,
             handleReset: this.handleReset,
@@ -101,6 +99,7 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
         const {
             componentId,
             values,
+            initValues,
             actions,
             children,
             configure,
