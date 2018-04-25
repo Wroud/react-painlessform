@@ -36,10 +36,10 @@ export function mergeFormErrors(one: FormErrors<any>, two: FormErrors<any>) {
     return merged;
 }
 
-export function isChangeEvent(object: any): object is React.ChangeEvent<HTMLInputElement> {
+export function isChangeEvent(object): object is React.ChangeEvent<HTMLInputElement> {
     return "target" in object;
 }
 
-export function isYup(object: any): object is Yup.Schema<any> {
+export function isYup(object): object is Yup.Schema<any> {
     return "validateSync" in object;
 }

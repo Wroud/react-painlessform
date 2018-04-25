@@ -18,10 +18,21 @@ export type ExtendFieldClass<
     ? IFieldClassProps<TName, Exclude<TValue, TName, TModel>, TModel>
     : never;
 
-export type IClassProps<T> = ExtendFieldClass<keyof T, T[keyof T], T>;
+export type ClassProps<T> = ExtendFieldClass<keyof T, T[keyof T], T>;
+
+export type ExtendFieldContext<
+    TName extends keyof TModel,
+    TValue extends TModel[TName],
+    TModel,
+    > =
+    TName extends keyof TModel
+    ? IFieldContext<TName, Exclude<TValue, TName, TModel>, TModel>
+    : never;
+
+export type FieldModelContext<T> = ExtendFieldContext<keyof T, T[keyof T], T>;
 
 export interface IFieldClass<T> extends FieldClass<T> {
-    new(props: IClassProps<T>): FieldClass<T>;
+    new(props: ClassProps<T>): FieldClass<T>;
 }
 
 export interface IFieldClassProps<TName extends keyof TModel, TValue extends TModel[TName], TModel> {
@@ -36,13 +47,30 @@ export interface IFieldClassProps<TName extends keyof TModel, TValue extends TMo
     //
 
     name: TName;
-    children?: ((state: IFieldClassProps<TName, TValue, TModel>) => React.ReactNode) | React.ReactNode;
+    children?: ((context: FieldModelContext<TModel>) => React.ReactNode) | React.ReactNode;
     onClick?: () => any;
     onChange?: (field: string, value: IFieldState<TValue>) => any;
     rest: { [key: string]: any };
 }
 
-const defaultProps: Partial<IClassProps<any>> = {
+export interface IFieldContext<TName extends keyof TModel, TValue extends TModel[TName], TModel> {
+    // Form controlled fields
+    value: TValue;
+    formState: IFormState<TModel>;
+    validationErrors: Array<IErrorMessage<any>>;
+    validationScope: Array<IErrorMessage<any>>;
+    isVisited: boolean;
+    isChanged: boolean;
+    isValid: boolean;
+    //
+
+    name: TName;
+    onClick?: () => any;
+    onChange?: (value: TValue | React.ChangeEvent<HTMLInputElement>) => any;
+    rest: { [key: string]: any };
+}
+
+const defaultProps: Partial<FieldModelContext<any>> = {
     validationErrors: [],
     validationScope: [],
     rest: {},
@@ -51,15 +79,15 @@ const defaultProps: Partial<IClassProps<any>> = {
     } as any,
 };
 
-export const { Provider, Consumer } = React.createContext<IClassProps<any>>(defaultProps);
+export const { Provider, Consumer } = React.createContext<FieldModelContext<any>>(defaultProps);
 
-export class FieldClass<T> extends React.Component<IClassProps<T>> {
+export class FieldClass<T> extends React.Component<ClassProps<T>> {
     static defaultProps = defaultProps;
     render() {
-        const { value, children } = this.props as IClassProps<T>;
+        const { value, children, ...rest } = this.props as ClassProps<T> as any;
 
         const context = {
-            ...this.props as any,
+            ...rest,
             value: value === undefined ? "" : value,
             onChange: this.handleChange,
             onClick: this.onClick,
@@ -80,7 +108,7 @@ export class FieldClass<T> extends React.Component<IClassProps<T>> {
         }
     }
 
-    componentDidUpdate(prevProps: IClassProps<T>) {
+    componentDidUpdate(prevProps: ClassProps<T>) {
         if (prevProps.value === undefined) {
             this.update({
                 value: "",
@@ -88,7 +116,7 @@ export class FieldClass<T> extends React.Component<IClassProps<T>> {
         }
     }
 
-    shouldComponentUpdate(nextProps: IClassProps<T>) {
+    shouldComponentUpdate(nextProps: ClassProps<T>) {
         const {
             name: nextName,
             value: nextValue,
@@ -98,12 +126,12 @@ export class FieldClass<T> extends React.Component<IClassProps<T>> {
 
             validationErrors: nextErrors, validationScope: nextScope,
             rest: nextRest,
-        } = nextProps as IClassProps<T>;
+        } = nextProps as ClassProps<T>;
         const {
             name, value, isVisited, isChanged, isValid,
             validationErrors, validationScope,
             rest,
-        } = this.props as IClassProps<T>;
+        } = this.props as ClassProps<T>;
 
         if (
             !isArrayEqual(
@@ -161,7 +189,7 @@ export class FieldClass<T> extends React.Component<IClassProps<T>> {
             isChanged,
             isVisited,
             onChange,
-        } = this.props as IClassProps<T>;
+        } = this.props as ClassProps<T>;
 
         const updValue = {
             value,
@@ -180,7 +208,7 @@ export class FieldClass<T> extends React.Component<IClassProps<T>> {
 
 export interface IFieldProps<TName extends keyof TModel, TValue extends TModel[TName], TModel> {
     name: TName;
-    children?: ((state: IClassProps<TModel>) => React.ReactNode) | React.ReactNode;
+    children?: ((context: FieldModelContext<TModel>) => React.ReactNode) | React.ReactNode;
     onClick?: () => any;
     onChange?: (field: string, value: IFieldState<TValue>) => any;
     [key: string]: any;

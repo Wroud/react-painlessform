@@ -28,6 +28,7 @@ describe("Field", () => {
             isSubmitting: false,
             handleChange: () => "handleChange",
             handleReset: () => "handleReset",
+            handleTransform: () => "handleTransform",
         };
         renderer.render(
             <Field

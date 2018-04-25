@@ -1,4 +1,4 @@
-import { Consumer as FieldContext, Field, IClassProps, IField } from "../components/Field";
+import { ClassProps, Consumer as FieldContext, Field, FieldModelContext, IField } from "../components/Field";
 import { Consumer as FormContext, Form, IForm, IFormState } from "../components/Form";
 import { Consumer as TransformContext, ITransform, ITransformContext, Transform } from "../components/Transform";
 import { Consumer as ValidationContext, IValidation, IValidationContext, Validation } from "../components/Validation";
@@ -15,7 +15,7 @@ export interface IFormFactory<T> {
     Transform: ITransform<T>;
     Validation: IValidation<T>;
     FormContext: Consumer<IFormState<T>>;
-    FieldContext: Consumer<IClassProps<T>>;
+    FieldContext: Consumer<FieldModelContext<T>>;
     TransformContext: Consumer<ITransformContext<T>>;
     ValidationContext: Consumer<IValidationContext<T>>;
 }

@@ -36,8 +36,8 @@ describe("Validation Yup", () => {
     });
 
     it("correct", () => {
-        const result = renderer.getRenderOutput<React.ReactElement<IValidationProps>>();
-        const resultInstance = renderer.getMountedInstance() as Validation;
+        const result = renderer.getRenderOutput<React.ReactElement<IValidationProps<any>>>();
+        const resultInstance = renderer.getMountedInstance() as Validation<any>;
 
         const resultSnapshot = {
             isValid: false,
@@ -66,6 +66,7 @@ describe("Validation Yup", () => {
             isSubmitting: false,
             handleChange: () => "handleChange",
             handleReset: () => "handleReset",
+            handleTransform: () => "handleTransform",
         };
         const validationResult = resultInstance.validate(formState);
         expect(validationResult.isValid).to.be.equal(resultSnapshot.isValid);
