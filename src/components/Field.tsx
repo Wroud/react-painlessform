@@ -2,10 +2,10 @@ import * as React from "react";
 import shallowequal = require("shallowequal");
 
 import { IErrorMessage } from "../FormValidator";
+import { createFormFactory } from "../helpers/formFactory";
 import { IFieldState } from "../interfaces/field";
 import { isArrayEqual } from "../tools";
-import { Consumer as FormContext, IFormState } from "./Form";
-import { Consumer as ValidationContext } from "./Validation";
+import { IFormState } from "./Form";
 
 export type Exclude<C, U extends keyof M, M> = C extends M[U] ? M[U] : never;
 
@@ -164,7 +164,7 @@ export class FieldClass<T> extends React.Component<IClassProps<T>> {
             ...(nextValue || {}),
         };
 
-        handleChange(name, updValue);
+        handleChange(name as any, updValue);
 
         if (onChange) {
             onChange(name, updValue);
@@ -197,46 +197,58 @@ export interface IField<T> extends Field<T> {
 
 export class Field<T> extends React.Component<FieldProps<T>> {
     render() {
+        const { FormContext, ValidationContext, TransformContext } = createFormFactory<T>();
         return (
             <FormContext>
-                {(formState: IFormState<T>) => (
+                {formState => (
                     <ValidationContext>
-                        {validation => {
-                            const {
-                                name,
-                                children,
-                                onClick,
-                                onChange,
-                                ...rest,
-                            } = this.props as FieldProps<T> as any;
-                            const modelValue = formState.model[name];
-                            const value = modelValue === undefined ? undefined : modelValue.value;
-                            const isChanged = modelValue === undefined ? false : modelValue.isChanged;
-                            const isVisited = modelValue === undefined ? false : modelValue.isVisited;
+                        {validation => (
+                            <TransformContext>
+                                {handleChange => {
+                                    const {
+                                        name,
+                                        children,
+                                        onClick,
+                                        onChange,
+                                        ...rest,
+                                    } = this.props as FieldProps<T> as any;
+                                    let formContext = formState;
+                                    if (handleChange !== undefined) {
+                                        formContext = {
+                                            ...formContext,
+                                            handleChange,
+                                        };
+                                    }
+                                    const modelValue = formState.model[name];
+                                    const value = modelValue === undefined ? undefined : modelValue.value;
+                                    const isChanged = modelValue === undefined ? false : modelValue.isChanged;
+                                    const isVisited = modelValue === undefined ? false : modelValue.isVisited;
 
-                            const isValid =
-                                (validation.errors[this.props.name] === undefined
-                                    || validation.errors[this.props.name].length === 0)
-                                && (validation.scope === undefined || validation.scope.length === 0);
+                                    const isValid =
+                                        (validation.errors[name] === undefined
+                                            || validation.errors[name].length === 0)
+                                        && (validation.scope === undefined || validation.scope.length === 0);
 
-                            const _Field = FieldClass as any as IFieldClass<any>;
-                            return (
-                                <_Field
-                                    name={name}
-                                    value={value}
-                                    validationErrors={validation.errors[this.props.name]}
-                                    validationScope={validation.scope}
-                                    formState={formState}
-                                    isChanged={isChanged}
-                                    isVisited={isVisited}
-                                    isValid={isValid}
-                                    onClick={onClick}
-                                    onChange={onChange}
-                                    children={children}
-                                    rest={rest}
-                                />
-                            );
-                        }}
+                                    const _Field = FieldClass as any as IFieldClass<any>;
+                                    return (
+                                        <_Field
+                                            name={name}
+                                            value={value}
+                                            validationErrors={validation.errors[name]}
+                                            validationScope={validation.scope}
+                                            formState={formContext}
+                                            isChanged={isChanged}
+                                            isVisited={isVisited}
+                                            isValid={isValid}
+                                            onClick={onClick}
+                                            onChange={onChange}
+                                            children={children}
+                                            rest={rest}
+                                        />
+                                    );
+                                }}
+                            </TransformContext>
+                        )}
                     </ValidationContext>
                 )}
             </FormContext>

@@ -8,18 +8,18 @@ import { getValuesFromModel } from "../helpers/form";
 import { IValidationConfiguration, IValidationMeta } from "../interfaces/validation";
 import { Consumer as FormContext, IFormState } from "./Form";
 
-export interface IValidationProps {
-    errors?: FormErrors<any>;
+export interface IValidationProps<T> {
+    errors?: FormErrors<T>;
     scope?: Array<IErrorMessage<any>>;
-    validator?: IValidator<any, FormErrors<any>, IValidationMeta> | Yup.Schema<any>;
-    scopeValidator?: IValidator<any, Array<IErrorMessage<any>>, IValidationMeta>;
+    validator?: IValidator<T, FormErrors<T>, IValidationMeta<T>> | Yup.Schema<T>;
+    scopeValidator?: IValidator<T, Array<IErrorMessage<any>>, IValidationMeta<T>>;
     configure?: IValidationConfiguration & Yup.ValidateOptions;
     isValid?: boolean;
     [rest: string]: any;
 }
 
-export interface IValidationContext {
-    errors: FormErrors<any>;
+export interface IValidationContext<T> {
+    errors: FormErrors<T>;
     scope: Array<IErrorMessage<any>>;
     isValid: boolean;
 }
@@ -28,23 +28,27 @@ export interface IValidationContext {
 const NoErrors = {} as FormErrors<any>;
 const NoScopeErrors: Array<IErrorMessage<any>> = [];
 
-export const { Provider, Consumer } = React.createContext<IValidationContext>({
+export const { Provider, Consumer } = React.createContext<IValidationContext<any>>({
     errors: NoErrors,
     scope: NoScopeErrors,
     isValid: true,
 });
 
-export class Validation extends React.Component<IValidationProps, any> {
-    static defaultProps: IValidationProps = {
+export interface IValidation<T = {}> extends Validation<T> {
+    new(props: IValidationProps<T>): Validation<T>;
+}
+
+export class Validation<T> extends React.Component<IValidationProps<T>, any> {
+    static defaultProps: IValidationProps<any> = {
         isValid: true,
         configure: {},
     };
     prevErrors = {
-        errors: NoErrors,
+        errors: NoErrors as FormErrors<T>,
         scope: NoScopeErrors,
         isValid: true,
     };
-    validate = (form: IFormState<any>): IValidationContext => {
+    validate = (form: IFormState<T>): IValidationContext<T> => {
         if (this.props.errors || this.props.scope) {
             return {
                 errors: this.props.errors,
@@ -55,7 +59,7 @@ export class Validation extends React.Component<IValidationProps, any> {
 
         const { validator, scopeValidator } = this.props;
 
-        let errors = NoErrors;
+        let errors = NoErrors as FormErrors<T>;
         let scope = NoScopeErrors;
         let isValid = true;
         const model = getValuesFromModel(form.model);
@@ -65,9 +69,9 @@ export class Validation extends React.Component<IValidationProps, any> {
         }
 
         if (validator) {
-            if ((validator as Yup.Schema<any>).validateSync) {
+            if ((validator as Yup.Schema<T>).validateSync) {
                 try {
-                    (validator as Yup.Schema<any>).validateSync(model, {
+                    (validator as Yup.Schema<T>).validateSync(model, {
                         abortEarly: false,
                         context: {
                             state: this.state,
@@ -80,7 +84,7 @@ export class Validation extends React.Component<IValidationProps, any> {
                     if (_errors.path === undefined) {
                         _errors.inner.forEach(error => {
                             errors = {
-                                ...errors,
+                                ...errors as any,
                                 [error.path]:
                                     [...(errors[error.path] || []),
                                     ...error.errors.map(message => ({ message }))],
@@ -92,7 +96,7 @@ export class Validation extends React.Component<IValidationProps, any> {
                     isValid = false;
                 }
             } else {
-                const preErrors = (validator as IValidator<any, FormErrors<any>, IValidationMeta>).validate(
+                const preErrors = (validator as IValidator<T, FormErrors<T>, IValidationMeta<T>>).validate(
                     model,
                     {
                         state: this.state,

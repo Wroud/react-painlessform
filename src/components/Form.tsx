@@ -23,7 +23,8 @@ export interface IFormState<T> {
     isChanged: boolean;
     isSubmitting: boolean;
     handleReset: () => any;
-    handleChange: (field: string, value: IFieldState<any>) => any;
+    handleChange: (field: keyof T, value: IFieldState<T[typeof field]>) => any;
+    handleTransform: (value: Partial<FormModel<T>>) => any;
 }
 
 export interface IForm<T = {}> extends Form<T> {
@@ -43,6 +44,7 @@ export const { Provider, Consumer } = React.createContext<IFormState<any>>({
     configure: defaultConfiguration,
     handleReset: () => ({}),
     handleChange: () => ({}),
+    handleTransform: () => ({}),
 });
 
 export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> {
@@ -69,6 +71,7 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             isSubmitting: false,
             handleReset: this.handleReset,
             handleChange: this.handleChange,
+            handleTransform: this.handleTransform,
         };
     }
     shouldComponentUpdate(nextProps: IFormProps<T>, nextState: IFormState<T>) {
@@ -136,6 +139,7 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
                 },
                 state.model,
             ),
+            isChanged: false,
         }));
         if (onSubmit) {
             onSubmit(event)(getValuesFromModel(this.state.model));
@@ -149,10 +153,12 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
         if (!this.props.values) {
             this.setState(({ model }) => ({
                 model: resetModel(model),
+                isChanged: false,
+                isSubmitting: false,
             }));
         }
     }
-    private handleChange = (field: string, value: IFieldState<T>) => {
+    private handleChange = (field: keyof T, value: IFieldState<T[typeof field]>) => {
         this.setState(prev => {
             if (prev.model[field] && shallowequal(prev.model[field], value)) {
                 return null;
@@ -163,6 +169,22 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
                     ...(prev.model as any),
                     [field]: { ...value },
                 },
+                isChanged: true,
+            };
+        });
+    }
+    private handleTransform = (value: Partial<FormModel<T>>) => {
+        this.setState(prev => {
+            if (shallowequal(getValuesFromModel(prev.model), getValuesFromModel(value as FormModel<T>))) {
+                return null;
+            }
+
+            return {
+                model: {
+                    ...prev.model as any,
+                    ...value as any,
+                },
+                isChanged: true,
             };
         });
     }

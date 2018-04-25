@@ -18,6 +18,12 @@ export {
     Consumer as FieldContext,
 } from "./components/Field";
 export {
+    ITranformProps,
+    Transform,
+    ITransformContext,
+    Consumer as TransformContext,
+} from "./components/Transform";
+export {
     IForm,
     Form,
     IFormProps,
