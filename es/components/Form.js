@@ -80,7 +80,7 @@ class Form extends React.Component {
             });
         };
         this.state = {
-            model: EmptyModel,
+            model: props.initValues ? form_1.updateModel(props.initValues, EmptyModel) : EmptyModel,
             isChanged: false,
             isSubmitting: false,
             handleReset: this.handleReset,
@@ -94,9 +94,7 @@ class Form extends React.Component {
         return {
             model: values
                 ? form_1.updateModel(values, model)
-                : initValues
-                    ? form_1.updateModel(initValues, model)
-                    : model,
+                : model,
             configure,
             isChanged: isChanged !== undefined ? isChanged : state.isChanged,
             isSubmitting: isSubmitting !== undefined ? isSubmitting : state.isSubmitting,
@@ -118,7 +116,7 @@ class Form extends React.Component {
         this.callModelChange(this.state.model, prevState.model);
     }
     render() {
-        const _a = this.props, { componentId, values, actions, children, configure, isReset, isChanged, isSubmitting, onModelReset, onModelChange, onSubmit } = _a, rest = __rest(_a, ["componentId", "values", "actions", "children", "configure", "isReset", "isChanged", "isSubmitting", "onModelReset", "onModelChange", "onSubmit"]);
+        const _a = this.props, { componentId, values, initValues, actions, children, configure, isReset, isChanged, isSubmitting, onModelReset, onModelChange, onSubmit } = _a, rest = __rest(_a, ["componentId", "values", "initValues", "actions", "children", "configure", "isReset", "isChanged", "isSubmitting", "onModelReset", "onModelChange", "onSubmit"]);
         return (React.createElement(exports.Provider, { value: this.state },
             React.createElement("form", Object.assign({ onSubmit: this.handleSubmit }, rest), children)));
     }
