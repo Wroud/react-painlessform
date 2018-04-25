@@ -4,6 +4,7 @@ import { IFieldState } from "../interfaces/field";
 import { FormModel, IFormConfiguration } from "../interfaces/form";
 export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement> {
     values?: Partial<T>;
+    initValues?: Partial<T>;
     configure?: IFormConfiguration;
     isReset?: boolean;
     isChanged?: boolean;

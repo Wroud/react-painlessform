@@ -89,10 +89,14 @@ class Form extends React.Component {
         };
     }
     static getDerivedStateFromProps(props, state) {
-        const { values, configure, isChanged, isSubmitting } = props;
+        const { values, initValues, configure, isChanged, isSubmitting } = props;
         const model = props.isReset ? form_1.resetModel(state.model) : state.model;
         return {
-            model: values ? form_1.updateModel(values, model) : model,
+            model: values
+                ? form_1.updateModel(values, model)
+                : initValues
+                    ? form_1.updateModel(initValues, model)
+                    : model,
             configure,
             isChanged: isChanged !== undefined ? isChanged : state.isChanged,
             isSubmitting: isSubmitting !== undefined ? isSubmitting : state.isSubmitting,

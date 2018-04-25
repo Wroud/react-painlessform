@@ -65,11 +65,15 @@ class FieldClass extends React.Component {
             : React.createElement(exports.Provider, { value: context }, children));
     }
     componentDidMount() {
-        this.update();
+        this.update({
+            value: "",
+        });
     }
     componentDidUpdate(prevProps) {
         if (prevProps.value === undefined) {
-            this.update();
+            this.update({
+                value: "",
+            });
         }
     }
     shouldComponentUpdate(nextProps) {
