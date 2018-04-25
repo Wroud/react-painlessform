@@ -19,7 +19,8 @@ export interface IFormState<T> {
     isChanged: boolean;
     isSubmitting: boolean;
     handleReset: () => any;
-    handleChange: (field: string, value: IFieldState<any>) => any;
+    handleChange: (field: keyof T, value: IFieldState<T[typeof field]>) => any;
+    handleTransform: (value: Partial<FormModel<T>>) => any;
 }
 export interface IForm<T = {}> extends Form<T> {
     new (props: IFormProps<T>): Form<T>;
@@ -46,4 +47,5 @@ export declare class Form<T = {}> extends React.Component<IFormProps<T>, IFormSt
     private handleSubmit;
     private handleReset;
     private handleChange;
+    private handleTransform;
 }

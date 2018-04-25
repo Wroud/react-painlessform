@@ -11,9 +11,8 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const React = require("react");
 const shallowequal = require("shallowequal");
+const formFactory_1 = require("../helpers/formFactory");
 const tools_1 = require("../tools");
-const Form_1 = require("./Form");
-const Validation_1 = require("./Validation");
 const defaultProps = {
     validationErrors: [],
     validationScope: [],
@@ -94,18 +93,23 @@ FieldClass.defaultProps = defaultProps;
 exports.FieldClass = FieldClass;
 class Field extends React.Component {
     render() {
-        return (React.createElement(Form_1.Consumer, null, (formState) => (React.createElement(Validation_1.Consumer, null, validation => {
+        const { FormContext, ValidationContext, TransformContext } = formFactory_1.createFormFactory();
+        return (React.createElement(FormContext, null, formState => (React.createElement(ValidationContext, null, validation => (React.createElement(TransformContext, null, handleChange => {
             const _a = this.props, { name, children, onClick, onChange } = _a, rest = __rest(_a, ["name", "children", "onClick", "onChange"]);
+            let formContext = formState;
+            if (handleChange !== undefined) {
+                formContext = Object.assign({}, formContext, { handleChange });
+            }
             const modelValue = formState.model[name];
             const value = modelValue === undefined ? undefined : modelValue.value;
             const isChanged = modelValue === undefined ? false : modelValue.isChanged;
             const isVisited = modelValue === undefined ? false : modelValue.isVisited;
-            const isValid = (validation.errors[this.props.name] === undefined
-                || validation.errors[this.props.name].length === 0)
+            const isValid = (validation.errors[name] === undefined
+                || validation.errors[name].length === 0)
                 && (validation.scope === undefined || validation.scope.length === 0);
             const _Field = FieldClass;
-            return (React.createElement(_Field, { name: name, value: value, validationErrors: validation.errors[this.props.name], validationScope: validation.scope, formState: formState, isChanged: isChanged, isVisited: isVisited, isValid: isValid, onClick: onClick, onChange: onChange, children: children, rest: rest }));
-        }))));
+            return (React.createElement(_Field, { name: name, value: value, validationErrors: validation.errors[name], validationScope: validation.scope, formState: formContext, isChanged: isChanged, isVisited: isVisited, isValid: isValid, onClick: onClick, onChange: onChange, children: children, rest: rest }));
+        }))))));
     }
 }
 exports.Field = Field;

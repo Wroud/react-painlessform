@@ -1,7 +1,7 @@
 import { IValidationProps } from "../components/Validation";
-export interface IValidationMeta {
+export interface IValidationMeta<T> {
     state: any;
-    props: IValidationProps;
+    props: IValidationProps<T>;
 }
 export interface IValidationConfiguration {
 }

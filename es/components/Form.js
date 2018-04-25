@@ -23,6 +23,7 @@ _a = React.createContext({
     configure: exports.defaultConfiguration,
     handleReset: () => ({}),
     handleChange: () => ({}),
+    handleTransform: () => ({}),
 }), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 class Form extends React.Component {
     constructor(props) {
@@ -37,6 +38,7 @@ class Form extends React.Component {
                     isChanged: false,
                     isVisited: true,
                 }, state.model),
+                isChanged: false,
             }));
             if (onSubmit) {
                 onSubmit(event)(form_1.getValuesFromModel(this.state.model));
@@ -50,6 +52,8 @@ class Form extends React.Component {
             if (!this.props.values) {
                 this.setState(({ model }) => ({
                     model: form_1.resetModel(model),
+                    isChanged: false,
+                    isSubmitting: false,
                 }));
             }
         };
@@ -60,6 +64,18 @@ class Form extends React.Component {
                 }
                 return {
                     model: Object.assign({}, prev.model, { [field]: Object.assign({}, value) }),
+                    isChanged: true,
+                };
+            });
+        };
+        this.handleTransform = (value) => {
+            this.setState(prev => {
+                if (shallowequal(form_1.getValuesFromModel(prev.model), form_1.getValuesFromModel(value))) {
+                    return null;
+                }
+                return {
+                    model: Object.assign({}, prev.model, value),
+                    isChanged: true,
                 };
             });
         };
@@ -69,6 +85,7 @@ class Form extends React.Component {
             isSubmitting: false,
             handleReset: this.handleReset,
             handleChange: this.handleChange,
+            handleTransform: this.handleTransform,
         };
     }
     static getDerivedStateFromProps(props, state) {
