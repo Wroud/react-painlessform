@@ -35,6 +35,8 @@ export declare class Form<T = {}> extends React.Component<IFormProps<T>, IFormSt
     static getDerivedStateFromProps(props: IFormProps<any>, state: IFormState<any>): {
         model: FormModel<any>;
         configure: IFormConfiguration;
+        isChanged: boolean;
+        isSubmitting: boolean;
     };
     constructor(props: IFormProps<T>);
     shouldComponentUpdate(nextProps: IFormProps<T>, nextState: IFormState<T>): boolean;
