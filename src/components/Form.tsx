@@ -155,8 +155,10 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             onReset();
         }
         if (!this.props.values) {
-            this.setState(({ model }) => ({
-                model: resetModel(model),
+            this.setState(({ model }, props) => ({
+                model: props.initValues
+                    ? updateModel(props.initValues as T, EmptyModel as FormModel<T>)
+                    : resetModel(model),
                 isChanged: false,
                 isSubmitting: false,
             }));
