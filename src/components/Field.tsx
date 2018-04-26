@@ -35,24 +35,58 @@ export interface IFieldClass<T> extends FieldClass<T> {
     new(props: ClassProps<T>): FieldClass<T>;
 }
 
+/**
+ * Describes props for [[FieldClass]]
+ */
 export interface IFieldClassProps<TName extends keyof TModel, TValue extends TModel[TName], TModel> {
     // Form controlled fields
+    /**
+     * Value of [[FieldClass]]
+     */
     value: TValue;
+    /**
+     * [[Form]] context
+     */
     formState: IFormState<TModel>;
+    /**
+     * Validation errors from [[Validation]] context
+     */
     validationErrors: Array<IErrorMessage<any>>;
+    /**
+     * Form scope Validation errors from [[Validation]] context
+     */
     validationScope: Array<IErrorMessage<any>>;
     isVisited: boolean;
     isChanged: boolean;
     isValid: boolean;
     //
 
+    /**
+     * Field name
+     */
     name: TName;
+    /**
+     * Accepts `(context: FieldModelContext<TModel>) => React.ReactNode` function or `React.ReactNode`
+     * if `children` is `React.ReactNode` then pass [[FieldModelContext]] via FieldContext
+     */
     children?: ((context: FieldModelContext<TModel>) => React.ReactNode) | React.ReactNode;
+    /**
+     * Click event handler
+     */
     onClick?: () => any;
+    /**
+     * Change [[Form]] event handler
+     */
     onChange?: (field: string, value: IFieldState<TValue>) => any;
+    /**
+     * Rest passed to [[Field]]
+     */
     rest: { [key: string]: any };
 }
 
+/**
+ * Describes FieldContext
+ */
 export interface IFieldContext<TName extends keyof TModel, TValue extends TModel[TName], TModel> {
     // Form controlled fields
     value: TValue;
@@ -66,10 +100,16 @@ export interface IFieldContext<TName extends keyof TModel, TValue extends TModel
 
     name: TName;
     onClick?: () => any;
+    /**
+     * Click event handler
+     */
     onChange?: (value: TValue | React.ChangeEvent<HTMLInputElement>) => any;
     rest: { [key: string]: any };
 }
 
+/**
+ * Default [[FieldClass]] props and FieldContext value
+ */
 const defaultProps: Partial<FieldModelContext<any>> = {
     validationErrors: [],
     validationScope: [],
@@ -81,6 +121,9 @@ const defaultProps: Partial<FieldModelContext<any>> = {
 
 export const { Provider, Consumer } = React.createContext<FieldModelContext<any>>(defaultProps);
 
+/**
+ * FieldClass React component accepts [[ClassProps]] as props
+ */
 export class FieldClass<T> extends React.Component<ClassProps<T>> {
     static defaultProps = defaultProps;
     render() {
@@ -100,6 +143,10 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
         );
     }
 
+    /**
+     * Mount field to form model if passed `value` is `undefined`
+     * with empty string `value`
+     */
     componentDidMount() {
         if (this.props.value === undefined) {
             this.update({
@@ -108,6 +155,10 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
         }
     }
 
+    /**
+     * Remount field to form model if passed `value` is `undefined`
+     * with empty string `value`
+     */
     componentDidUpdate(prevProps: ClassProps<T>) {
         if (prevProps.value === undefined) {
             this.update({
@@ -116,6 +167,12 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
         }
     }
 
+    /**
+     * Field updates only if
+     * `value` || `name` || `isVisited` || `isChanged`
+     * `isValid` || `validationErrors` || `validationScope`
+     * `rest` was changed
+     */
     shouldComponentUpdate(nextProps: ClassProps<T>) {
         const {
             name: nextName,
@@ -151,12 +208,18 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
         return false;
     }
 
+    /**
+     * Update field `isVisited` to `true`
+     */
     private setVisited() {
         if (!this.props.isVisited) {
             this.update({ isVisited: true });
         }
     }
 
+    /**
+     * Call [[setVisited]] and [[onClick]]
+     */
     private onClick = () => {
         this.setVisited();
         if (this.props.onClick) {
@@ -164,6 +227,10 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
         }
     }
 
+    /**
+     * Get `value` from `React.ChangeEvent<HTMLInputElement>` or pass as it is
+     * set `isVisited` & `isChanged` to `true`
+     */
     private handleChange = (value: T | React.ChangeEvent<HTMLInputElement>) => {
         let nextValue;
         if (isChangeEvent(value)) {
@@ -181,6 +248,10 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
         });
     }
 
+    /**
+     * Call [[Form]] `handleChange` with `name` & new `value`
+     * and call [[onChange]] from props
+     */
     private update = (nextValue?: Partial<IFieldState<any>>) => {
         const {
             formState: { handleChange },
@@ -206,6 +277,9 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
     }
 }
 
+/**
+ * Describes [[Field]] props
+ */
 export interface IFieldProps<TName extends keyof TModel, TValue extends TModel[TName], TModel> {
     name: TName;
     children?: ((context: FieldModelContext<TModel>) => React.ReactNode) | React.ReactNode;
@@ -229,6 +303,10 @@ export interface IField<T> extends Field<T> {
     new(props: FieldProps<T>): Field<T>;
 }
 
+/**
+ * HOC for [[FieldClass]] that connects [[FormContext]], [[ValidationContext]]
+ * and [[TransformContext]] and pass it to [[FieldClass]] as props
+ */
 export class Field<T> extends React.Component<FieldProps<T>> {
     render() {
         const { FormContext, ValidationContext, TransformContext } = createFormFactory<T>();

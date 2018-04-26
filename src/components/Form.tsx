@@ -5,26 +5,68 @@ import { getValuesFromModel, resetModel, updateModel, updateModelFields } from "
 import { IFieldState } from "../interfaces/field";
 import { FormModel, IFormConfiguration } from "../interfaces/form";
 
+/**
+ * Describes [[Form]] props
+ */
 export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement> {
+    /**
+     * Via this prop you can controll form via `Redux` as example
+     * if passed you need control `isSubmitting` `isChanged` by yourself
+     */
     values?: Partial<T>;
+    /**
+     * Sets inital form values on mount and when reset
+     */
     initValues?: Partial<T>;
+    /**
+     * That prop allows you configure form
+     */
     configure?: IFormConfiguration;
+    /**
+     * If `true` form will be reset and sets passed `values`
+     * example when you need set new values you want to reset all `isChanged`, `isVisited`
+     * [[Field]] props to `false`
+     */
     isReset?: boolean;
     isChanged?: boolean;
     isSubmitting?: boolean;
+    /**
+     * Fire when [[Form]] [[model]] changed
+     */
     onModelChange?: (nextModel: T, prevModel: T) => any;
     onReset?: () => any;
+    /**
+     * Fire when form submits
+     */
     onSubmit?: (event: React.FormEvent<HTMLFormElement>) => (values: T) => any;
     [rest: string]: any;
 }
 
+/**
+ * Describes [[Form]] state and [[FormContext]]
+ */
 export interface IFormState<T> {
+    /**
+     * Current form values and [[Field]] flags
+     */
     model: FormModel<T>;
+    /**
+     * Derived from props
+     */
     configure?: IFormConfiguration;
     isChanged: boolean;
     isSubmitting: boolean;
+    /**
+     * Reset form to `initValues` and call [[onReset]] from props
+     */
     handleReset: () => any;
+    /**
+     * Update [[model]] [[Field]] state and call [[onModelChange]] from props
+     */
     handleChange: (field: keyof T, value: IFieldState<T[typeof field]>) => any;
+    /**
+     * Used for updating multiple field values and call [[onModelChange]] from props
+     */
     handleTransform: (value: Partial<FormModel<T>>) => any;
 }
 
@@ -32,6 +74,9 @@ export interface IForm<T = {}> extends Form<T> {
     new(props: IFormProps<T>): Form<T>;
 }
 
+/**
+ * Default [[Form]] configuration
+ */
 export const defaultConfiguration: IFormConfiguration = {
     submitting: {
         preventDefault: true,
@@ -48,6 +93,9 @@ export const { Provider, Consumer } = React.createContext<IFormState<any>>({
     handleTransform: () => ({}),
 });
 
+/**
+ * Form component controlls [[Field]]s and passes [[FormContext]]
+ */
 export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> {
     static defaultProps: Partial<IFormProps<any>> = {
         configure: defaultConfiguration,
@@ -77,6 +125,9 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             handleTransform: this.handleTransform,
         };
     }
+    /**
+     * [[Form]] rerenders only if `model` or `props` changed
+     */
     shouldComponentUpdate(nextProps: IFormProps<T>, nextState: IFormState<T>) {
         const { model, ...rest } = this.state;
         const { model: nextModel, ...nextRest } = nextState;
@@ -92,6 +143,9 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
         }
         return false;
     }
+    /**
+     * After form did rerendered call [[onModelChange]] from props
+     */
     componentDidUpdate(prevProps: IFormProps<any>, prevState: IFormState<T>) {
         this.callModelChange(this.state.model, prevState.model);
     }
@@ -120,6 +174,9 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             </Provider>
         );
     }
+    /**
+     * Transform `model` to `values` and call `onModelChange`
+     */
     private callModelChange(model: FormModel<T>, prevModel: FormModel<T>) {
         if (!this.props.onModelChange) {
             return;
@@ -130,6 +187,12 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             this.props.onModelChange(values, prevValues);
         }
     }
+    /**
+     * Handles form submitting and `preventDefault` if
+     * `configure.submitting.preventDefault` === true
+     * sets all [[Field]]s `isChanged` to `false` and `isVisited` to `true`
+     * and fires [[onSubmit]] from props
+     */
     private handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         const { onSubmit, configure } = this.props;
         if (event && configure.submitting.preventDefault) {
@@ -149,6 +212,9 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             onSubmit(event)(getValuesFromModel(this.state.model));
         }
     }
+    /**
+     * Reset form to [[initValues]]
+     */
     private handleReset = () => {
         const { onReset, values } = this.props;
         if (onReset) {
@@ -164,6 +230,9 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             }));
         }
     }
+    /**
+     * Update [[Field]] state with new `value` and sets form `isChanged` to `true`
+     */
     private handleChange = (field: keyof T, value: IFieldState<T[typeof field]>) => {
         this.setState(prev => {
             if (prev.model[field] && shallowequal(prev.model[field], value)) {
@@ -179,6 +248,9 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             };
         });
     }
+    /**
+     * Update [[Field]]s state with new `values` and sets form `isChanged` to `true`
+     */
     private handleTransform = (value: Partial<FormModel<T>>) => {
         this.setState(prev => {
             if (shallowequal(getValuesFromModel(prev.model), getValuesFromModel(value as FormModel<T>))) {

@@ -21,6 +21,7 @@ export function isArrayEqual(array0: any[], array1: any[]) {
     }
     return true;
 }
+
 export function mergeFormErrors(one: FormErrors<any>, two: FormErrors<any>) {
     let merged = one || {};
     if (two) {

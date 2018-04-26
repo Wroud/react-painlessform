@@ -5,7 +5,14 @@ import { createFormFactory } from "../helpers/formFactory";
 import { IFieldState } from "../interfaces/field";
 import { FormModel } from "../interfaces/form";
 
+/**
+ * Describes [[Transform]] props
+ */
 export interface ITranformProps<T> {
+    /**
+     * Transformer function that accepts changed `field` and his `value` and form `model`
+     * and returns fields map to update values
+     */
     transformer: (field: keyof T, value: IFieldState<T[typeof field]>, model: T) => Partial<T>;
     [key: string]: any;
 }
@@ -18,6 +25,10 @@ export interface ITransform<T> extends Transform<T> {
     new(props: ITranformProps<T>): Transform<T>;
 }
 
+/**
+ * Transform is React Component that accpts [[ITranformProps]] as props
+ * and passes [[transformer]] function as [[TransformContext]]
+ */
 export class Transform<T> extends React.Component<ITranformProps<T>> {
     render() {
         const { FormContext } = createFormFactory<T>();

@@ -20,6 +20,10 @@ export interface IFormFactory<T> {
     ValidationContext: Consumer<IValidationContext<T>>;
 }
 
+/**
+ * Used for typings [[Form]], [[Field]], [[Transform]], [[Validation]]
+ * and their contexts with `model` type
+ */
 export function createFormFactory<T>(): IFormFactory<T> {
     return {
         Form: Form as any,
