@@ -23,7 +23,7 @@ npm install --save react-painlessform
 
 ## Documentation
 
-* [API Reference TypeScript](https://wroud.github.io/react-painlessform/docs/)
+* [API Reference TypeScript](https://wroud.github.io/react-painlessform/)
 
 ## Examples
 
