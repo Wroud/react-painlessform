@@ -30,3 +30,11 @@ function mergeFormErrors(one, two) {
     return merged;
 }
 exports.mergeFormErrors = mergeFormErrors;
+function isChangeEvent(object) {
+    return "target" in object;
+}
+exports.isChangeEvent = isChangeEvent;
+function isYup(object) {
+    return "validateSync" in object;
+}
+exports.isYup = isYup;

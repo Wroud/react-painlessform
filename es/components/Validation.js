@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const React = require("react");
 const shallowequal = require("shallowequal");
 const form_1 = require("../helpers/form");
+const tools_1 = require("../tools");
 const Form_1 = require("./Form");
 const NoErrors = {};
 const NoScopeErrors = [];
@@ -36,7 +37,7 @@ class Validation extends React.Component {
                 return { errors, scope, isValid };
             }
             if (validator) {
-                if (validator.validateSync) {
+                if (tools_1.isYup(validator)) {
                     try {
                         validator.validateSync(model, Object.assign({ abortEarly: false, context: {
                                 state: this.state,

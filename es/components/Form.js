@@ -29,10 +29,10 @@ class Form extends React.Component {
     constructor(props) {
         super(props);
         this.handleSubmit = (event) => {
-            if (event && this.props.configure.submitting.preventDefault) {
+            const { onSubmit, configure } = this.props;
+            if (event && configure.submitting.preventDefault) {
                 event.preventDefault();
             }
-            const { onSubmit } = this.props;
             this.setState(state => ({
                 model: form_1.updateModelFields({
                     isChanged: false,
@@ -45,13 +45,15 @@ class Form extends React.Component {
             }
         };
         this.handleReset = () => {
-            const { onReset } = this.props;
+            const { onReset, values } = this.props;
             if (onReset) {
                 onReset();
             }
-            if (!this.props.values) {
-                this.setState(({ model }) => ({
-                    model: form_1.resetModel(model),
+            if (!values) {
+                this.setState(({ model }, props) => ({
+                    model: props.initValues
+                        ? form_1.updateModel(props.initValues, EmptyModel)
+                        : form_1.resetModel(model),
                     isChanged: false,
                     isSubmitting: false,
                 }));

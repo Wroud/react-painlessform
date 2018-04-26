@@ -6,7 +6,7 @@ class FormValidator {
         this.validate = (data, meta) => {
             let errors = {};
             this.validators.forEach(validator => {
-                if (validator.validateSync) {
+                if (tools_1.isYup(validator)) {
                     try {
                         validator.validateSync(data, {
                             abortEarly: false,

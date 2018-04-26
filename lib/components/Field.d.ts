@@ -5,9 +5,11 @@ import { IFieldState } from "../interfaces/field";
 import { IFormState } from "./Form";
 export declare type Exclude<C, U extends keyof M, M> = C extends M[U] ? M[U] : never;
 export declare type ExtendFieldClass<TName extends keyof TModel, TValue extends TModel[TName], TModel> = TName extends keyof TModel ? IFieldClassProps<TName, Exclude<TValue, TName, TModel>, TModel> : never;
-export declare type IClassProps<T> = ExtendFieldClass<keyof T, T[keyof T], T>;
+export declare type ClassProps<T> = ExtendFieldClass<keyof T, T[keyof T], T>;
+export declare type ExtendFieldContext<TName extends keyof TModel, TValue extends TModel[TName], TModel> = TName extends keyof TModel ? IFieldContext<TName, Exclude<TValue, TName, TModel>, TModel> : never;
+export declare type FieldModelContext<T> = ExtendFieldContext<keyof T, T[keyof T], T>;
 export interface IFieldClass<T> extends FieldClass<T> {
-    new (props: IClassProps<T>): FieldClass<T>;
+    new (props: ClassProps<T>): FieldClass<T>;
 }
 export interface IFieldClassProps<TName extends keyof TModel, TValue extends TModel[TName], TModel> {
     value: TValue;
@@ -18,24 +20,39 @@ export interface IFieldClassProps<TName extends keyof TModel, TValue extends TMo
     isChanged: boolean;
     isValid: boolean;
     name: TName;
-    children?: ((state: IFieldClassProps<TName, TValue, TModel>) => React.ReactNode) | React.ReactNode;
+    children?: ((context: FieldModelContext<TModel>) => React.ReactNode) | React.ReactNode;
     onClick?: () => any;
     onChange?: (field: string, value: IFieldState<TValue>) => any;
     rest: {
         [key: string]: any;
     };
 }
+export interface IFieldContext<TName extends keyof TModel, TValue extends TModel[TName], TModel> {
+    value: TValue;
+    formState: IFormState<TModel>;
+    validationErrors: Array<IErrorMessage<any>>;
+    validationScope: Array<IErrorMessage<any>>;
+    isVisited: boolean;
+    isChanged: boolean;
+    isValid: boolean;
+    name: TName;
+    onClick?: () => any;
+    onChange?: (value: TValue | React.ChangeEvent<HTMLInputElement>) => any;
+    rest: {
+        [key: string]: any;
+    };
+}
 export declare const Provider: React.ComponentClass<{
-    value: IFieldClassProps<string, any, any>;
+    value: IFieldContext<string, any, any>;
 }>, Consumer: React.ComponentClass<{
-    children?: (context: IFieldClassProps<string, any, any>) => React.ReactNode;
+    children?: (context: IFieldContext<string, any, any>) => React.ReactNode;
 }>;
-export declare class FieldClass<T> extends React.Component<IClassProps<T>> {
-    static defaultProps: Partial<IFieldClassProps<string, any, any>>;
-    render(): {};
+export declare class FieldClass<T> extends React.Component<ClassProps<T>> {
+    static defaultProps: Partial<IFieldContext<string, any, any>>;
+    render(): any;
     componentDidMount(): void;
-    componentDidUpdate(prevProps: IClassProps<T>): void;
-    shouldComponentUpdate(nextProps: IClassProps<T>): boolean;
+    componentDidUpdate(prevProps: ClassProps<T>): void;
+    shouldComponentUpdate(nextProps: ClassProps<T>): boolean;
     private setVisited();
     private onClick;
     private handleChange;
@@ -43,7 +60,7 @@ export declare class FieldClass<T> extends React.Component<IClassProps<T>> {
 }
 export interface IFieldProps<TName extends keyof TModel, TValue extends TModel[TName], TModel> {
     name: TName;
-    children?: ((state: IClassProps<TModel>) => React.ReactNode) | React.ReactNode;
+    children?: ((context: FieldModelContext<TModel>) => React.ReactNode) | React.ReactNode;
     onClick?: () => any;
     onChange?: (field: string, value: IFieldState<TValue>) => any;
     [key: string]: any;

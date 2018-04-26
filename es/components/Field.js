@@ -33,7 +33,7 @@ class FieldClass extends React.Component {
         };
         this.handleChange = (value) => {
             let nextValue;
-            if (value.target !== undefined) {
+            if (tools_1.isChangeEvent(value)) {
                 const { type, checked, value: targetValue } = value.target;
                 nextValue = type === "checkbox" ? checked : targetValue;
             }
@@ -58,8 +58,8 @@ class FieldClass extends React.Component {
         };
     }
     render() {
-        const { value, children } = this.props;
-        const context = Object.assign({}, this.props, { value: value === undefined ? "" : value, onChange: this.handleChange, onClick: this.onClick });
+        const _a = this.props, { value, children } = _a, rest = __rest(_a, ["value", "children"]);
+        const context = Object.assign({}, rest, { value: value === undefined ? "" : value, onChange: this.handleChange, onClick: this.onClick });
         return (children && typeof children === "function"
             ? children(context)
             : React.createElement(exports.Provider, { value: context }, children));
