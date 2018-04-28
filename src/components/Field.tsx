@@ -282,6 +282,7 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
  */
 export interface IFieldProps<TName extends keyof TModel, TValue extends TModel[TName], TModel> {
     name: TName;
+    subscribe: (formState: IFormState<TModel>) => any;
     children?: ((context: FieldModelContext<TModel>) => React.ReactNode) | React.ReactNode;
     onClick?: () => any;
     onChange?: (field: string, value: IFieldState<TValue>) => any;
@@ -320,10 +321,19 @@ export class Field<T> extends React.Component<FieldProps<T>> {
                                     const {
                                         name,
                                         children,
+                                        subscribe,
                                         onClick,
                                         onChange,
                                         ...rest,
                                     } = this.props as FieldProps<T> as any;
+
+                                    let fullRest = rest;
+                                    if (subscribe !== undefined) {
+                                        fullRest = {
+                                            ...fullRest,
+                                            ...subscribe(formState),
+                                        };
+                                    }
                                     let formContext = formState;
                                     if (handleChange !== undefined) {
                                         formContext = {
@@ -355,7 +365,7 @@ export class Field<T> extends React.Component<FieldProps<T>> {
                                             onClick={onClick}
                                             onChange={onChange}
                                             children={children}
-                                            rest={rest}
+                                            rest={fullRest}
                                         />
                                     );
                                 }}
