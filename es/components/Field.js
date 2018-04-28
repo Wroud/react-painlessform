@@ -101,7 +101,11 @@ class Field extends React.Component {
     render() {
         const { FormContext, ValidationContext, TransformContext } = formFactory_1.createFormFactory();
         return (React.createElement(FormContext, null, formState => (React.createElement(ValidationContext, null, validation => (React.createElement(TransformContext, null, handleChange => {
-            const _a = this.props, { name, children, onClick, onChange } = _a, rest = __rest(_a, ["name", "children", "onClick", "onChange"]);
+            const _a = this.props, { name, children, subscribe, onClick, onChange } = _a, rest = __rest(_a, ["name", "children", "subscribe", "onClick", "onChange"]);
+            let fullRest = rest;
+            if (subscribe !== undefined) {
+                fullRest = Object.assign({}, fullRest, subscribe(formState));
+            }
             let formContext = formState;
             if (handleChange !== undefined) {
                 formContext = Object.assign({}, formContext, { handleChange });
@@ -114,7 +118,7 @@ class Field extends React.Component {
                 || validation.errors[name].length === 0)
                 && (validation.scope === undefined || validation.scope.length === 0);
             const _Field = FieldClass;
-            return (React.createElement(_Field, { name: name, value: value, validationErrors: validation.errors[name], validationScope: validation.scope, formState: formContext, isChanged: isChanged, isVisited: isVisited, isValid: isValid, onClick: onClick, onChange: onChange, children: children, rest: rest }));
+            return (React.createElement(_Field, { name: name, value: value, validationErrors: validation.errors[name], validationScope: validation.scope, formState: formContext, isChanged: isChanged, isVisited: isVisited, isValid: isValid, onClick: onClick, onChange: onChange, children: children, rest: fullRest }));
         }))))));
     }
 }

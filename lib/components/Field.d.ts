@@ -60,6 +60,7 @@ export declare class FieldClass<T> extends React.Component<ClassProps<T>> {
 }
 export interface IFieldProps<TName extends keyof TModel, TValue extends TModel[TName], TModel> {
     name: TName;
+    subscribe: (formState: IFormState<TModel>) => any;
     children?: ((context: FieldModelContext<TModel>) => React.ReactNode) | React.ReactNode;
     onClick?: () => any;
     onChange?: (field: string, value: IFieldState<TValue>) => any;
