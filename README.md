@@ -44,12 +44,12 @@ const MyForm = (props) => {
         <Form initValues={values} onModelChange={onModelChange}>
             <div>
                 <Field name={"field"}>
-                    {({ value, onClick, onChange, rest }) => (
+                    {({ name, value, onClick, onChange, rest }) => (
                         <input name={name} value={value} onClick={onClick} onChange={onChange} {...rest} />
                     )}
                 </Field>
                 <Field name={"field2"}>
-                    {({ value, onClick, onChange, rest }) => (
+                    {({ name, value, onClick, onChange, rest }) => (
                         <input name={name} value={value} onClick={onClick} onChange={onChange} {...rest} />
                     )}
                 </field>
