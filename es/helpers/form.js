@@ -30,6 +30,9 @@ function resetModel(model) {
 exports.resetModel = resetModel;
 function getValuesFromModel(model) {
     const values = {};
+    if (typeof model !== "object") {
+        return undefined;
+    }
     for (const key of Object.keys(model)) {
         values[key] = model[key].value;
     }

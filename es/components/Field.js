@@ -68,13 +68,17 @@ class FieldClass extends React.Component {
         if (this.props.value === undefined) {
             this.update({
                 value: "",
+                isVisited: false,
+                isChanged: false,
             });
         }
     }
     componentDidUpdate(prevProps) {
-        if (prevProps.value === undefined) {
+        if (this.props.value === undefined) {
             this.update({
                 value: "",
+                isVisited: false,
+                isChanged: false,
             });
         }
     }
@@ -84,7 +88,13 @@ class FieldClass extends React.Component {
         if (!tools_1.isArrayEqual(validationErrors.map(error => error.message), nextErrors.map(error => error.message))
             || !tools_1.isArrayEqual(validationScope.map(error => error.message), nextScope.map(error => error.message))
             || !shallowequal(nextRest, rest)
-            || !shallowequal({ nextName, nextValue, nextIsChanged, nextIsValid, nextIsVisited }, { name, value, isVisited, isChanged, isValid })) {
+            || !shallowequal({
+                name: nextName,
+                value: nextValue,
+                isVisited: nextIsChanged,
+                isChanged: nextIsValid,
+                isValid: nextIsVisited,
+            }, { name, value, isVisited, isChanged, isValid })) {
             return true;
         }
         return false;

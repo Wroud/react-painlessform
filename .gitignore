@@ -4,6 +4,8 @@
 /.git/
 /.vscode/
 /.vs/
+/.nyc_output/
+/coverage/
 yarn.lock
 tslint.json
 *.map

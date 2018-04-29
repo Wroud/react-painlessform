@@ -3,12 +3,10 @@ node_js:
   - "node"
 install:
   - npm i -g npm@5.8.0
+  - npm install codecov -g
   - npm ci
 script:
   - npm run test
-  - npm install codecov -g
-after_success:
-  - codecov
 branches:
   only:
     - master

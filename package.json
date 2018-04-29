@@ -1,6 +1,6 @@
 {
   "name": "react-painlessform",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "React Forms without pain",
   "main": "lib/index.js",
   "module": "lib/index.js",
@@ -19,7 +19,7 @@
     "build:es": "tsc -p tsconfig.es.json",
     "build": "npm run build:es && npm run build:commonjs",
     "test": "nyc mocha --opts mocha.opts",
-    "posttest2": "nyc report --reporter=json && codecov --disable=gcov -f coverage/coverage-final.json"
+    "posttest": "nyc report --reporter=json && codecov --disable=gcov -f coverage/coverage-final.json"
   },
   "nyc": {
     "extension": [
@@ -31,8 +31,8 @@
       "source-map-support/register"
     ],
     "include": [
-      "./src/**/*.ts",
-      "./src/**/*.tsx"
+      "src/**/*.ts",
+      "src/**/*.tsx"
     ],
     "exclude": [
       "**/*.d.ts"
@@ -40,8 +40,7 @@
     "reporter": [
       "text-summary",
       "json"
-    ],
-    "all": true
+    ]
   },
   "repository": {
     "type": "git",

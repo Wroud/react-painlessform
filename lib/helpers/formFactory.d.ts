@@ -17,4 +17,8 @@ export interface IFormFactory<T> {
     TransformContext: Consumer<ITransformContext<T>>;
     ValidationContext: Consumer<IValidationContext<T>>;
 }
+/**
+ * Used for typings [[Form]], [[Field]], [[Transform]], [[Validation]]
+ * and their contexts with `model` type
+ */
 export declare function createFormFactory<T>(): IFormFactory<T>;

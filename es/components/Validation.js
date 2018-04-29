@@ -53,7 +53,8 @@ class Validation extends React.Component {
                             });
                         }
                         else {
-                            this.context = _errors.errors;
+                            errors = Object.assign({}, errors, { [_errors.path]: [...(errors[_errors.path] || []),
+                                    ..._errors.errors.map(message => ({ message }))] });
                         }
                         isValid = false;
                     }
