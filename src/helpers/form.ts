@@ -55,6 +55,9 @@ export function resetModel<T>(model: FormModel<T>) {
  */
 export function getValuesFromModel<T>(model: FormModel<T>): T {
     const values: T = {} as any;
+    if (typeof model !== "object") {
+        return undefined;
+    }
     for (const key of Object.keys(model)) {
         values[key] = model[key].value;
     }

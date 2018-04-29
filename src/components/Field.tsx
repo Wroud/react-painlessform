@@ -151,6 +151,8 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
         if (this.props.value === undefined) {
             this.update({
                 value: "",
+                isVisited: false,
+                isChanged: false,
             }); // mount field to form model
         }
     }
@@ -160,9 +162,11 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
      * with empty string `value`
      */
     componentDidUpdate(prevProps: ClassProps<T>) {
-        if (prevProps.value === undefined) {
+        if (this.props.value === undefined) {
             this.update({
                 value: "",
+                isVisited: false,
+                isChanged: false,
             }); // remount field if it not exists in form model
         }
     }
@@ -199,7 +203,13 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
                 nextScope.map(error => error.message))
             || !shallowequal(nextRest, rest)
             || !shallowequal(
-                { nextName, nextValue, nextIsChanged, nextIsValid, nextIsVisited },
+                {
+                    name: nextName,
+                    value: nextValue,
+                    isVisited: nextIsChanged,
+                    isChanged: nextIsValid,
+                    isValid: nextIsVisited,
+                },
                 { name, value, isVisited, isChanged, isValid },
             )
         ) {

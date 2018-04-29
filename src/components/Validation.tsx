@@ -124,7 +124,11 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
                             };
                         });
                     } else {
-                        this.context = _errors.errors;
+                        errors = {
+                            ...errors as any,
+                            [_errors.path]: [...(errors[_errors.path] || []),
+                            ..._errors.errors.map(message => ({ message }))],
+                        };
                     }
                     isValid = false;
                 }
