@@ -1,9 +1,10 @@
 import * as React from "react";
 import shallowequal = require("shallowequal");
 
-import { getValuesFromModel, resetModel, updateModel, updateModelFields } from "../helpers/form";
+import { getValuesFromModel, mergeModels, resetModel, updateModel, updateModelFields } from "../helpers/form";
 import { IFieldState } from "../interfaces/field";
 import { FormModel, IFormConfiguration } from "../interfaces/form";
+import { Transform } from "./Transform";
 
 /**
  * Describes [[Form]] props
@@ -64,10 +65,8 @@ export interface IFormState<T> {
      * Update [[model]] [[Field]] state and call [[onModelChange]] from props
      */
     handleChange: (field: keyof T, value: IFieldState<T[typeof field]>) => any;
-    /**
-     * Used for updating multiple field values and call [[onModelChange]] from props
-     */
-    handleTransform: (value: Partial<FormModel<T>>) => any;
+    mountTransform: (transformer: Transform<T>) => any;
+    unMountTransform: (transformer: Transform<T>) => any;
 }
 
 export interface IForm<T = {}> extends Form<T> {
@@ -90,7 +89,8 @@ export const { Provider, Consumer } = React.createContext<IFormState<any>>({
     configure: defaultConfiguration,
     handleReset: () => ({}),
     handleChange: () => ({}),
-    handleTransform: () => ({}),
+    mountTransform: () => ({}),
+    unMountTransform: () => ({}),
 });
 
 /**
@@ -113,6 +113,9 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             isSubmitting: isSubmitting !== undefined ? isSubmitting : state.isSubmitting,
         };
     }
+
+    private transformers: Array<Transform<T>> = [];
+
     constructor(props: IFormProps<T>) {
         super(props);
 
@@ -122,7 +125,8 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             isSubmitting: false,
             handleReset: this.handleReset,
             handleChange: this.handleChange,
-            handleTransform: this.handleTransform,
+            mountTransform: this.mountTransform,
+            unMountTransform: this.unMountTransform,
         };
     }
     /**
@@ -173,6 +177,15 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
                 </form>
             </Provider>
         );
+    }
+    private mountTransform(value: Transform<T>) {
+        this.transformers.push(value);
+    }
+    private unMountTransform(value: Transform<T>) {
+        const id = this.transformers.indexOf(value);
+        if (id > -1) {
+            this.transformers.slice(id, 1);
+        }
     }
     /**
      * Transform `model` to `values` and call `onModelChange`
@@ -238,30 +251,17 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             if (prev.model[field] && shallowequal(prev.model[field], value)) {
                 return null;
             }
+            const prevModel = prev.model;
+            let model: Partial<FormModel<T>> = { [field]: value } as any;
+            this.transformers.forEach(transformer => {
+                model = {
+                    ...model as any,
+                    ...transformer.props.transformer(model, prevModel) as any,
+                };
+            });
 
             return {
-                model: {
-                    ...(prev.model as any),
-                    [field]: { ...value },
-                },
-                isChanged: true,
-            };
-        });
-    }
-    /**
-     * Update [[Field]]s state with new `values` and sets form `isChanged` to `true`
-     */
-    private handleTransform = (value: Partial<FormModel<T>>) => {
-        this.setState(prev => {
-            if (shallowequal(getValuesFromModel(prev.model), getValuesFromModel(value as FormModel<T>))) {
-                return null;
-            }
-
-            return {
-                model: {
-                    ...prev.model as any,
-                    ...value as any,
-                },
+                model: mergeModels(model, prev.model),
                 isChanged: true,
             };
         });

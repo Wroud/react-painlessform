@@ -1,6 +1,17 @@
 import { IFieldState } from "../interfaces/field";
 import { FormModel } from "../interfaces/form";
 
+export function mergeModels<T>(value: Partial<FormModel<T>>, model: FormModel<T>) {
+    const newModel: FormModel<T> = { ...(model as any) };
+    for (const key of Object.keys(value)) {
+        newModel[key] = {
+            ...(newModel[key] || {}),
+            ...value[key],
+        };
+    }
+    return newModel;
+}
+
 /**
  * Update `model` with [[Field]] `state`
  * @param value [[Field]]s state
@@ -22,10 +33,14 @@ export function updateModelFields<T>(value: Partial<IFieldState<any>>, model: Fo
  * @param values fields values
  * @param model [[Form]] `model`
  */
-export function updateModel<T>(values: T, model: FormModel<T>) {
+export function updateModel<T>(values: T, model: FormModel<T>, rest?: Partial<IFieldState<T>>) {
     const newModel: FormModel<T> = { ...(model as any) };
     for (const key of Object.keys(values)) {
-        newModel[key] = { ...(newModel[key] || {}), value: values[key] };
+        newModel[key] = {
+            ...(newModel[key] || {}),
+            value: values[key],
+            ...(rest || {}),
+        };
     }
     return newModel;
 }

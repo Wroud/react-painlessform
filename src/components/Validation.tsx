@@ -5,6 +5,7 @@ import * as Yup from "yup";
 import { IValidator } from "../ArrayValidator";
 import { FormErrors, IErrorMessage } from "../FormValidator";
 import { getValuesFromModel } from "../helpers/form";
+import { mergeValidations } from "../helpers/validation";
 import { IValidationConfiguration, IValidationMeta } from "../interfaces/validation";
 import { isYup } from "../tools";
 import { Consumer as FormContext, IFormState } from "./Form";
@@ -175,9 +176,13 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
 
     render() {
         return (
-            <FormContext>
-                {context => <Provider value={this.validate(context)}>{this.props.children}</Provider>}
-            </FormContext>
+            <Consumer>
+                {validation => (
+                    < FormContext>
+                        {context => <Provider value={mergeValidations(this.validate(context), validation)}>{this.props.children}</Provider>}
+                    </FormContext>
+                )}
+            </Consumer>
         );
     }
 }
