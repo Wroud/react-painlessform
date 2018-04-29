@@ -109,18 +109,14 @@ FieldClass.defaultProps = defaultProps;
 exports.FieldClass = FieldClass;
 class Field extends React.Component {
     render() {
-        const { FormContext, ValidationContext, TransformContext } = formFactory_1.createFormFactory();
-        return (React.createElement(FormContext, null, formState => (React.createElement(ValidationContext, null, validation => (React.createElement(TransformContext, null, handleChange => {
+        const { FormContext, ValidationContext } = formFactory_1.createFormFactory();
+        return (React.createElement(FormContext, null, formContext => (React.createElement(ValidationContext, null, validation => {
             const _a = this.props, { name, children, subscribe, onClick, onChange } = _a, rest = __rest(_a, ["name", "children", "subscribe", "onClick", "onChange"]);
             let fullRest = rest;
             if (subscribe !== undefined) {
-                fullRest = Object.assign({}, fullRest, subscribe(formState));
+                fullRest = Object.assign({}, fullRest, subscribe(formContext));
             }
-            let formContext = formState;
-            if (handleChange !== undefined) {
-                formContext = Object.assign({}, formContext, { handleChange });
-            }
-            const modelValue = formState.model[name];
+            const modelValue = formContext.model[name];
             const value = modelValue === undefined ? undefined : modelValue.value;
             const isChanged = modelValue === undefined ? false : modelValue.isChanged;
             const isVisited = modelValue === undefined ? false : modelValue.isVisited;
@@ -129,7 +125,7 @@ class Field extends React.Component {
                 && (validation.scope === undefined || validation.scope.length === 0);
             const _Field = FieldClass;
             return (React.createElement(_Field, { name: name, value: value, validationErrors: validation.errors[name], validationScope: validation.scope, formState: formContext, isChanged: isChanged, isVisited: isVisited, isValid: isValid, onClick: onClick, onChange: onChange, children: children, rest: fullRest }));
-        }))))));
+        }))));
     }
 }
 exports.Field = Field;

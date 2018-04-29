@@ -23,11 +23,22 @@ _a = React.createContext({
     configure: exports.defaultConfiguration,
     handleReset: () => ({}),
     handleChange: () => ({}),
-    handleTransform: () => ({}),
+    mountTransform: () => ({}),
+    unMountTransform: () => ({}),
 }), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 class Form extends React.Component {
     constructor(props) {
         super(props);
+        this.transformers = [];
+        this.mountTransform = (value) => {
+            this.transformers.push(value);
+        };
+        this.unMountTransform = (value) => {
+            const id = this.transformers.indexOf(value);
+            if (id > -1) {
+                this.transformers.slice(id, 1);
+            }
+        };
         this.handleSubmit = (event) => {
             const { onSubmit, configure } = this.props;
             if (event && configure.submitting.preventDefault) {
@@ -64,19 +75,13 @@ class Form extends React.Component {
                 if (prev.model[field] && shallowequal(prev.model[field], value)) {
                     return null;
                 }
+                const prevModel = prev.model;
+                let model = { [field]: value };
+                this.transformers.forEach(transformer => {
+                    model = Object.assign({}, model, transformer.transform(model, prevModel));
+                });
                 return {
-                    model: Object.assign({}, prev.model, { [field]: Object.assign({}, value) }),
-                    isChanged: true,
-                };
-            });
-        };
-        this.handleTransform = (value) => {
-            this.setState(prev => {
-                if (shallowequal(form_1.getValuesFromModel(prev.model), form_1.getValuesFromModel(value))) {
-                    return null;
-                }
-                return {
-                    model: Object.assign({}, prev.model, value),
+                    model: form_1.mergeModels(model, prev.model),
                     isChanged: true,
                 };
             });
@@ -87,7 +92,8 @@ class Form extends React.Component {
             isSubmitting: false,
             handleReset: this.handleReset,
             handleChange: this.handleChange,
-            handleTransform: this.handleTransform,
+            mountTransform: this.mountTransform,
+            unMountTransform: this.unMountTransform,
         };
     }
     static getDerivedStateFromProps(props, state) {

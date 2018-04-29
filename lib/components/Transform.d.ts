@@ -35,6 +35,6 @@ export declare class Transform<T> extends React.Component<ITranformProps<T>> {
     render(): JSX.Element;
     componentDidMount(): void;
     componentWillUnmount(): void;
-    private mountTransform(value);
-    private unMountTransform(value);
+    private mountTransform;
+    private unMountTransform;
 }

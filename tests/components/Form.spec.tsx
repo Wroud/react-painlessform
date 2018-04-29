@@ -8,6 +8,7 @@ import { mount, ReactWrapper, shallow } from "enzyme";
 import { createFormFactory, IFieldState } from "../../src";
 import { IForm, IFormProps, IFormState } from "../../src/components/Form";
 import { getValuesFromModel } from "../../src/helpers/form";
+import { FormModel } from "../../src/interfaces/form";
 
 use(assertArrays);
 
@@ -46,22 +47,22 @@ describe("Form", () => {
         </Field>
     );
 
-    const transformer = (field, { value }: IFieldState<number>, { min, max }: IModel) => {
-        switch (field) {
-            case "min":
-                // tslint:disable-next-line:radix
-                if (parseInt(value as any) > parseInt(max as any)) {
-                    return {
-                        max: value,
-                    };
-                }
-            case "max":
-                // tslint:disable-next-line:radix
-                if (parseInt(value as any) < parseInt(min as any)) {
-                    return {
-                        min: value,
-                    };
-                }
+    const transformer = (_values: Partial<FormModel<IModel>>, model: FormModel<IModel>): Partial<FormModel<IModel>> => {
+        if ("min" in _values && model.max) {
+            // tslint:disable-next-line:radix
+            if (parseInt(_values.min.value as any) > parseInt(model.max.value as any)) {
+                return {
+                    max: { value: _values.min.value },
+                } as any;
+            }
+        }
+        if ("max" in _values && model.min) {
+            // tslint:disable-next-line:radix
+            if (parseInt(_values.max.value as any) < parseInt(model.min.value as any)) {
+                return {
+                    min: { value: _values.max.value },
+                } as any;
+            }
         }
         return {};
     };

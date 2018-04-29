@@ -42,11 +42,6 @@ describe("Validation", () => {
         renderer.render(<Validation validator={validator} scopeValidator={validatorScope}><br /></Validation>);
     });
 
-    it("should render correctly", () => {
-        const result = renderer.getRenderOutput();
-        assert.strictEqual(result.type, FormContext);
-    });
-
     it("correct custom validator", () => {
         const result = renderer.getRenderOutput<React.ReactElement<IValidationProps<any>>>();
         const resultInstance = renderer.getMountedInstance() as Validation<any>;

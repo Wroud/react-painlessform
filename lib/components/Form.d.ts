@@ -98,8 +98,8 @@ export declare class Form<T = {}> extends React.Component<IFormProps<T>, IFormSt
      */
     componentDidUpdate(prevProps: IFormProps<any>, prevState: IFormState<T>): void;
     render(): JSX.Element;
-    private mountTransform(value);
-    private unMountTransform(value);
+    private mountTransform;
+    private unMountTransform;
     /**
      * Transform `model` to `values` and call `onModelChange`
      */

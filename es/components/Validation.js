@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const React = require("react");
 const shallowequal = require("shallowequal");
 const form_1 = require("../helpers/form");
+const validation_1 = require("../helpers/validation");
 const tools_1 = require("../tools");
 const Form_1 = require("./Form");
 const NoErrors = {};
@@ -94,7 +95,7 @@ class Validation extends React.Component {
         };
     }
     render() {
-        return (React.createElement(Form_1.Consumer, null, context => React.createElement(exports.Provider, { value: this.validate(context) }, this.props.children)));
+        return (React.createElement(exports.Consumer, null, validation => (React.createElement(Form_1.Consumer, null, context => React.createElement(exports.Provider, { value: validation_1.mergeValidations(this.validate(context), validation) }, this.props.children)))));
     }
 }
 Validation.defaultProps = {
