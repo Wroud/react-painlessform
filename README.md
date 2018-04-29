@@ -28,6 +28,7 @@ npm install --save react-painlessform
 ## Examples
 
 * [Usage example](https://codesandbox.io/s/1yl74031w3)
+* [Date range picker & selector with data from api](https://codesandbox.io/s/73nwk5ljxx)
 
 ```js
 import { createFormFactory } from "react-painlessform";
