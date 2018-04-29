@@ -2,6 +2,7 @@
 import * as React from "react";
 import { IFieldState } from "../interfaces/field";
 import { FormModel, IFormConfiguration } from "../interfaces/form";
+import { Transform } from "./Transform";
 /**
  * Describes [[Form]] props
  */
@@ -60,10 +61,8 @@ export interface IFormState<T> {
      * Update [[model]] [[Field]] state and call [[onModelChange]] from props
      */
     handleChange: (field: keyof T, value: IFieldState<T[typeof field]>) => any;
-    /**
-     * Used for updating multiple field values and call [[onModelChange]] from props
-     */
-    handleTransform: (value: Partial<FormModel<T>>) => any;
+    mountTransform: (transformer: Transform<T>) => any;
+    unMountTransform: (transformer: Transform<T>) => any;
 }
 export interface IForm<T = {}> extends Form<T> {
     new (props: IFormProps<T>): Form<T>;
@@ -88,6 +87,7 @@ export declare class Form<T = {}> extends React.Component<IFormProps<T>, IFormSt
         isChanged: boolean;
         isSubmitting: boolean;
     };
+    private transformers;
     constructor(props: IFormProps<T>);
     /**
      * [[Form]] rerenders only if `model` or `props` changed
@@ -98,6 +98,8 @@ export declare class Form<T = {}> extends React.Component<IFormProps<T>, IFormSt
      */
     componentDidUpdate(prevProps: IFormProps<any>, prevState: IFormState<T>): void;
     render(): JSX.Element;
+    private mountTransform(value);
+    private unMountTransform(value);
     /**
      * Transform `model` to `values` and call `onModelChange`
      */
@@ -117,8 +119,4 @@ export declare class Form<T = {}> extends React.Component<IFormProps<T>, IFormSt
      * Update [[Field]] state with new `value` and sets form `isChanged` to `true`
      */
     private handleChange;
-    /**
-     * Update [[Field]]s state with new `values` and sets form `isChanged` to `true`
-     */
-    private handleTransform;
 }

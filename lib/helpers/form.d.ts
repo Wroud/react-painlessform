@@ -1,5 +1,6 @@
 import { IFieldState } from "../interfaces/field";
 import { FormModel } from "../interfaces/form";
+export declare function mergeModels<T>(value: Partial<FormModel<T>>, model: FormModel<T>): FormModel<T>;
 /**
  * Update `model` with [[Field]] `state`
  * @param value [[Field]]s state
@@ -11,7 +12,7 @@ export declare function updateModelFields<T>(value: Partial<IFieldState<any>>, m
  * @param values fields values
  * @param model [[Form]] `model`
  */
-export declare function updateModel<T>(values: T, model: FormModel<T>): FormModel<T>;
+export declare function updateModel<T>(values: T, model: FormModel<T>, rest?: Partial<IFieldState<T>>): FormModel<T>;
 /**
  * Sets all fields `value` to empty string and `isChanged` & `isVisited` to `false`
  * @param model [[Form]] `model`
