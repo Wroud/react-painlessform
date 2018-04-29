@@ -178,10 +178,10 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             </Provider>
         );
     }
-    private mountTransform(value: Transform<T>) {
+    private mountTransform = (value: Transform<T>) => {
         this.transformers.push(value);
     }
-    private unMountTransform(value: Transform<T>) {
+    private unMountTransform = (value: Transform<T>) => {
         const id = this.transformers.indexOf(value);
         if (id > -1) {
             this.transformers.slice(id, 1);
@@ -256,7 +256,7 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             this.transformers.forEach(transformer => {
                 model = {
                     ...model as any,
-                    ...transformer.props.transformer(model, prevModel) as any,
+                    ...transformer.transform(model, prevModel) as any,
                 };
             });
 
