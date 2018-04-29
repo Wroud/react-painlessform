@@ -206,9 +206,9 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
                 {
                     name: nextName,
                     value: nextValue,
-                    isVisited: nextIsChanged,
-                    isChanged: nextIsValid,
-                    isValid: nextIsVisited,
+                    isVisited: nextIsVisited,
+                    isChanged: nextIsChanged,
+                    isValid: nextIsValid,
                 },
                 { name, value, isVisited, isChanged, isValid },
             )
