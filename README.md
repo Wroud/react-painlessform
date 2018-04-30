@@ -6,6 +6,7 @@ Painless Form is a bunch of React Components that helps you:
   or combined validator!
 * Calculate fields
 * Use typescript for type checking in fields!
+* Create reusable form parts with own Validation & Transform
 
 without any configs only declarative style.
 
