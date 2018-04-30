@@ -95,7 +95,7 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
         this.validators.forEach(validator => {
             validation = mergeValidations(validator.validator(values) as IValidationContext<T>, validation as IValidationContext<T>);
         });
-        return model;
+        return validation;
     }
 
     render() {
