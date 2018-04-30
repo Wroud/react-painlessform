@@ -61,7 +61,7 @@ export const { Provider, Consumer } = React.createContext<IValidationContext<any
     errors: NoErrors,
     scope: NoScopeErrors,
     isValid: true,
-});
+} as any);
 
 export interface IValidation<T = {}> extends Validation<T> {
     new(props: IValidationProps<T>): Validation<T>;
@@ -77,12 +77,12 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
         isValid: true,
         configure: {},
     };
-    prevErrors = {
+    cacheErrors: IValidationContext<T> = {
         errors: NoErrors as FormErrors<T>,
         scope: NoScopeErrors,
         isValid: true,
-    };
-    prevData = {
+    } as any;
+    cacheData = {
         model: {},
         props: {},
         state: {},
@@ -140,22 +140,32 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
      * Validation function that accepts [[FormContext]] and validate [[Form]] `model`
      */
     private validator = (model: T): IValidationContext<T> => {
-        if (this.props.errors || this.props.scope) {
-            return {
-                errors: this.props.errors,
-                scope: this.props.scope,
-                isValid: this.props.isValid,
-            } as any;
-        }
-
-        const { validator, scopeValidator } = this.props;
-
         let errors = NoErrors as FormErrors<T>;
         let scope = NoScopeErrors;
         let isValid = true;
 
-        if (!model) {
+        const props = getProps(this.props);
+        const { validator, scopeValidator } = props;
+
+        if (!model || (!validator && !scopeValidator)) {
             return { errors, scope, isValid } as any;
+        }
+
+        if (props.errors || props.scope) {
+            return {
+                errors: props.errors,
+                scope: props.scope,
+                isValid: props.isValid,
+            } as any;
+        }
+
+        const state = this.state;
+        const data = this.cacheData;
+
+        if (shallowequal(data.model, model)
+            && shallowequal(data.props, props)
+            && shallowequal(data.state, state)) {
+            return this.cacheErrors;
         }
 
         if (validator) {
@@ -163,11 +173,8 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
                 try {
                     validator.validateSync(model, {
                         abortEarly: false,
-                        context: {
-                            state: this.state,
-                            props: getProps(this.props),
-                        },
-                        ...this.props.configure,
+                        context: { state, props },
+                        ...props.configure,
                     });
                 } catch (validationErrors) {
                     const _errors: Yup.ValidationError = validationErrors;
@@ -192,10 +199,7 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
             } else {
                 const preErrors = validator.validate(
                     model,
-                    {
-                        state: this.state,
-                        props: getProps(this.props),
-                    },
+                    { state, props },
                 );
                 for (const key of Object.keys(preErrors)) {
                     if (preErrors[key].length > 0) {
@@ -209,10 +213,7 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
         if (scopeValidator) {
             const preScope = scopeValidator.validate(
                 model,
-                {
-                    state: this.state,
-                    props: getProps(this.props),
-                },
+                { state, props },
             );
             if (preScope.length > 0) {
                 isValid = false;
@@ -220,14 +221,12 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
             }
         }
 
-        const result = { errors, scope, isValid };
+        // tslint:disable-next-line:no-object-literal-type-assertion
+        const result = { errors, scope, isValid } as IValidationContext<T>;
 
-        if (!shallowequal(result, this.prevErrors)) {
-            this.prevErrors = result;
-            return result as any;
-        } else {
-            return this.prevErrors as any;
-        }
+        this.cacheData = { model, props, state };
+        this.cacheErrors = result;
+        return result;
     }
     private mountValidation = (value: Validation<T>) => {
         this.validators.push(value);

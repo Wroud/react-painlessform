@@ -1,10 +1,7 @@
 import * as React from "react";
 
-import { getValuesFromModel } from "../helpers/form";
 import { createFormFactory } from "../helpers/formFactory";
-import { IFieldState } from "../interfaces/field";
 import { FormModel } from "../interfaces/form";
-import { IForm, IFormState } from "./Form";
 
 /**
  * Describes [[Transform]] props
@@ -14,7 +11,7 @@ export interface ITranformProps<T> {
      * Transformer function that accepts changed `field` and his `value` and form `model`
      * and returns fields map to update values
      */
-    transformer: (values: Partial<FormModel<T>>, model: FormModel<T>) => Partial<FormModel<T>>;
+    transformer?: (values: Partial<FormModel<T>>, model: FormModel<T>) => Partial<FormModel<T>>;
     [key: string]: any;
 }
 
@@ -36,17 +33,19 @@ export interface ITransform<T> extends Transform<T> {
  */
 export class Transform<T> extends React.Component<ITranformProps<T>> {
     private transformers: Array<Transform<T>> = [];
-    private _context: IFormState<T> | ITransformContext<T>;
+    private _context: ITransformContext<T>;
     transform = (values: Partial<FormModel<T>>, prevModel: FormModel<T>) => {
+        const { transformer } = this.props;
         let model: Partial<FormModel<T>> = { ...values as any };
+        const transformed = transformer ? transformer(model, prevModel) : {};
         model = {
             ...model as any,
-            ...this.props.transformer(model, prevModel) as any,
+            ...transformed as any,
         };
-        this.transformers.forEach(transformer => {
+        this.transformers.forEach(({ transform }) => {
             model = {
                 ...model as any,
-                ...transformer.transform(model, prevModel) as any,
+                ...transform(model, prevModel) as any,
             };
         });
         return model;
@@ -55,24 +54,20 @@ export class Transform<T> extends React.Component<ITranformProps<T>> {
         const { FormContext } = createFormFactory<T>();
         return (
             <Consumer>
-                {trenasform => (
-                    <FormContext>
-                        {form => {
-                            const context = {
-                                mountTransform: this.mountTransform,
-                                unMountTransform: this.unMountTransform,
-                            };
+                {transform => {
+                    const context = {
+                        mountTransform: this.mountTransform,
+                        unMountTransform: this.unMountTransform,
+                    };
 
-                            this._context = trenasform || form;
+                    this._context = transform;
 
-                            return (
-                                <Provider value={context}>
-                                    {this.props.children}
-                                </Provider>
-                            );
-                        }}
-                    </FormContext>
-                )}
+                    return (
+                        <Provider value={context}>
+                            {this.props.children}
+                        </Provider>
+                    );
+                }}
             </Consumer>
         );
     }
