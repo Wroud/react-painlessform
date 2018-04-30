@@ -81,7 +81,7 @@ class Form extends React.Component {
                     model = Object.assign({}, model, transformer.transform(model, prevModel));
                 });
                 return {
-                    model: form_1.mergeModels(model, prev.model),
+                    model: form_1.mergeModels(model, prev.model, ({ value: _value }, { value: prevValue }) => ({ isChanged: _value !== prevValue })),
                     isChanged: true,
                 };
             });
@@ -113,8 +113,12 @@ class Form extends React.Component {
         const { model: nextModel } = nextState, nextRest = __rest(nextState, ["model"]);
         const _b = this.props, { children } = _b, props = __rest(_b, ["children"]);
         const { children: _ } = nextProps, nnextProps = __rest(nextProps, ["children"]);
+        const maps = form_1.getMapsFromModel(model);
+        const _maps = form_1.getMapsFromModel(nextModel);
         if (!shallowequal(props, nnextProps)
-            || !shallowequal(model, nextModel)
+            || !shallowequal(maps.values, _maps.values)
+            || !shallowequal(maps.isChanged, _maps.isChanged)
+            || !shallowequal(maps.isVisited, _maps.isVisited)
             || !shallowequal(rest, nextRest)) {
             return true;
         }

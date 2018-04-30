@@ -3,8 +3,8 @@ import * as React from "react";
 import * as Yup from "yup";
 import { IValidator } from "../ArrayValidator";
 import { FormErrors, IErrorMessage } from "../FormValidator";
+import { FormModel } from "../interfaces/form";
 import { IValidationConfiguration, IValidationMeta } from "../interfaces/validation";
-import { IFormState } from "./Form";
 /**
  * Describes [[Validation]] props
  */
@@ -42,6 +42,8 @@ export interface IValidationContext<T> {
      */
     scope: Array<IErrorMessage<any>>;
     isValid: boolean;
+    mountValidation: (validator: Validation<T>) => any;
+    unMountValidation: (validator: Validation<T>) => any;
 }
 export declare const Provider: React.ComponentClass<{
     value: IValidationContext<any>;
@@ -63,9 +65,16 @@ export declare class Validation<T> extends React.Component<IValidationProps<T>, 
         scope: IErrorMessage<any>[];
         isValid: boolean;
     };
+    private validators;
+    private _context;
+    validate: (model: FormModel<T>) => FormModel<T>;
+    render(): JSX.Element;
+    componentDidMount(): void;
+    componentWillUnmount(): void;
     /**
      * Validation function that accepts [[FormContext]] and validate [[Form]] `model`
      */
-    validate: (form: IFormState<T>) => IValidationContext<T>;
-    render(): JSX.Element;
+    private validator;
+    private mountValidation;
+    private unMountValidation;
 }

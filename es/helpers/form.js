@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-function mergeModels(value, model) {
+function mergeModels(value, model, rest) {
     const newModel = Object.assign({}, model);
     for (const key of Object.keys(value)) {
-        newModel[key] = Object.assign({}, (newModel[key] || {}), value[key]);
+        const preState = Object.assign({}, (newModel[key] || {}), value[key]);
+        newModel[key] = Object.assign({}, preState, (rest ? rest(preState, model[key]) : {}));
     }
     return newModel;
 }
@@ -47,3 +48,20 @@ function getValuesFromModel(model) {
     return values;
 }
 exports.getValuesFromModel = getValuesFromModel;
+function getMapsFromModel(model) {
+    const maps = {
+        values: {},
+        isChanged: {},
+        isVisited: {},
+    };
+    if (typeof model !== "object") {
+        return undefined;
+    }
+    for (const key of Object.keys(model)) {
+        maps.values[key] = model[key].value;
+        maps.isVisited[key] = model[key].isVisited;
+        maps.isChanged[key] = model[key].isChanged;
+    }
+    return maps;
+}
+exports.getMapsFromModel = getMapsFromModel;

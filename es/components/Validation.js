@@ -21,7 +21,21 @@ class Validation extends React.Component {
             scope: NoScopeErrors,
             isValid: true,
         };
-        this.validate = (form) => {
+        this.validators = [];
+        this.validate = (model) => {
+            let validation = {
+                errors: NoErrors,
+                scope: NoScopeErrors,
+                isValid: this.props.isValid,
+            };
+            const values = form_1.getValuesFromModel(model);
+            validation = validation_1.mergeValidations(this.validator(values), validation);
+            this.validators.forEach(validator => {
+                validation = validation_1.mergeValidations(validator.validator(values), validation);
+            });
+            return model;
+        };
+        this.validator = (model) => {
             if (this.props.errors || this.props.scope) {
                 return {
                     errors: this.props.errors,
@@ -33,7 +47,6 @@ class Validation extends React.Component {
             let errors = NoErrors;
             let scope = NoScopeErrors;
             let isValid = true;
-            const model = form_1.getValuesFromModel(form.model);
             if (!model) {
                 return { errors, scope, isValid };
             }
@@ -93,9 +106,34 @@ class Validation extends React.Component {
                 return this.prevErrors;
             }
         };
+        this.mountValidation = (value) => {
+            this.validators.push(value);
+        };
+        this.unMountValidation = (value) => {
+            const id = this.validators.indexOf(value);
+            if (id > -1) {
+                this.validators.slice(id, 1);
+            }
+        };
     }
     render() {
-        return (React.createElement(exports.Consumer, null, validation => (React.createElement(Form_1.Consumer, null, context => React.createElement(exports.Provider, { value: validation_1.mergeValidations(this.validate(context), validation) }, this.props.children)))));
+        return (React.createElement(exports.Consumer, null, validationContext => (React.createElement(Form_1.Consumer, null, formContext => {
+            this._context = validationContext.mountValidation
+                ? validationContext
+                : undefined;
+            const context = Object.assign({}, (this._context ? validationContext : this.validate(formContext.model)), { mountValidation: this.mountValidation, unMountValidation: this.unMountValidation });
+            return React.createElement(exports.Provider, { value: context }, this.props.children);
+        }))));
+    }
+    componentDidMount() {
+        if (this._context) {
+            this._context.mountValidation(this);
+        }
+    }
+    componentWillUnmount() {
+        if (this._context) {
+            this._context.unMountValidation(this);
+        }
     }
 }
 Validation.defaultProps = {
