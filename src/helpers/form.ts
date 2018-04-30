@@ -10,7 +10,7 @@ export function mergeModels<T>(value: Partial<FormModel<T>>, model: FormModel<T>
         };
         newModel[key] = {
             ...preState,
-            ...(rest ? rest(preState, model[key]) : {}),
+            ...(rest ? rest(preState, (model[key] || {})) : {}),
         };
     }
     return newModel;

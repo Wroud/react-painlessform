@@ -270,7 +270,7 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
                 model: mergeModels(
                     model, prev.model,
                     ({ value: _value }, { value: prevValue }) =>
-                        ({ isChanged: _value !== prevValue }),
+                        ({ isChanged: prevValue !== undefined && _value !== prevValue }),
                 ),
                 isChanged: true,
             };

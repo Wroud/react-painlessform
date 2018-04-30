@@ -66,7 +66,7 @@ describe("Validation", () => {
                 },
             },
         };
-        const validationResult = resultInstance.validate(formState as any);
+        const validationResult = resultInstance.validate(formState.model);
         expect(validationResult.isValid).to.be.equal(resultSnapshot.isValid);
         expect(validationResult.scope.map(error => error.message)).to.be.equalTo(resultSnapshot.scope.map(error => error.message));
         expect(validationResult.errors.field.map(error => error.message)).to.be.equalTo(resultSnapshot.errors.field.map(error => error.message));
@@ -119,7 +119,7 @@ describe("Validation Yup", () => {
             handleReset: () => "handleReset",
             handleTransform: () => "handleTransform",
         };
-        const validationResult = resultInstance.validate(formState);
+        const validationResult = resultInstance.validate(formState.model);
         expect(validationResult.isValid).to.be.equal(resultSnapshot.isValid);
         expect(validationResult.scope.map(error => error.message)).to.be.equalTo(resultSnapshot.scope);
         expect(validationResult.errors.field.map(error => error.message)).to.be.equalTo(resultSnapshot.errors.field.map(error => error.message));
@@ -138,7 +138,7 @@ describe("Validation Yup", () => {
             handleReset: () => "handleReset",
             handleTransform: () => "handleTransform",
         };
-        const validationResult = resultInstance.validate(formState);
+        const validationResult = resultInstance.validate(formState.model);
         expect(validationResult.isValid).to.be.equal(true);
         expect(validationResult.scope.map(error => error.message)).to.be.equalTo([]);
         expect(validationResult.errors).to.be.deep.equal({});
@@ -188,7 +188,7 @@ describe("Validation Yup with config", () => {
             handleReset: () => "handleReset",
             handleTransform: () => "handleTransform",
         };
-        const validationResult = resultInstance.validate(formState);
+        const validationResult = resultInstance.validate(formState.model);
         expect(validationResult.isValid).to.be.equal(resultSnapshot.isValid);
         expect(validationResult.scope.map(error => error.message)).to.be.equalTo(resultSnapshot.scope);
         expect(validationResult.errors.field.map(error => error.message)).to.be.equalTo(resultSnapshot.errors.field.map(error => error.message));
