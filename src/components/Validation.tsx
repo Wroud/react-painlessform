@@ -5,7 +5,7 @@ import * as Yup from "yup";
 import { IValidator } from "../ArrayValidator";
 import { FormErrors, IErrorMessage } from "../FormValidator";
 import { getValuesFromModel } from "../helpers/form";
-import { mergeValidations } from "../helpers/validation";
+import { getProps, mergeValidations } from "../helpers/validation";
 import { FormModel } from "../interfaces/form";
 import { IValidationConfiguration, IValidationMeta } from "../interfaces/validation";
 import { isYup } from "../tools";
@@ -81,6 +81,11 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
         errors: NoErrors as FormErrors<T>,
         scope: NoScopeErrors,
         isValid: true,
+    };
+    prevData = {
+        model: {},
+        props: {},
+        state: {},
     };
     private validators: Array<Validation<T>> = [];
     private _context: IValidationContext<T> | undefined;
@@ -160,7 +165,7 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
                         abortEarly: false,
                         context: {
                             state: this.state,
-                            props: this.props,
+                            props: getProps(this.props),
                         },
                         ...this.props.configure,
                     });
@@ -189,7 +194,7 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
                     model,
                     {
                         state: this.state,
-                        props: this.props,
+                        props: getProps(this.props),
                     },
                 );
                 for (const key of Object.keys(preErrors)) {
@@ -206,7 +211,7 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
                 model,
                 {
                     state: this.state,
-                    props: this.props,
+                    props: getProps(this.props),
                 },
             );
             if (preScope.length > 0) {
