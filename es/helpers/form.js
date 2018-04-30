@@ -4,7 +4,7 @@ function mergeModels(value, model, rest) {
     const newModel = Object.assign({}, model);
     for (const key of Object.keys(value)) {
         const preState = Object.assign({}, (newModel[key] || {}), value[key]);
-        newModel[key] = Object.assign({}, preState, (rest ? rest(preState, model[key]) : {}));
+        newModel[key] = Object.assign({}, preState, (rest ? rest(preState, (model[key] || {})) : {}));
     }
     return newModel;
 }

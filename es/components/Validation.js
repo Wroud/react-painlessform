@@ -33,7 +33,7 @@ class Validation extends React.Component {
             this.validators.forEach(validator => {
                 validation = validation_1.mergeValidations(validator.validator(values), validation);
             });
-            return model;
+            return validation;
         };
         this.validator = (model) => {
             if (this.props.errors || this.props.scope) {

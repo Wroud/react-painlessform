@@ -81,7 +81,7 @@ class Form extends React.Component {
                     model = Object.assign({}, model, transformer.transform(model, prevModel));
                 });
                 return {
-                    model: form_1.mergeModels(model, prev.model, ({ value: _value }, { value: prevValue }) => ({ isChanged: _value !== prevValue })),
+                    model: form_1.mergeModels(model, prev.model, ({ value: _value }, { value: prevValue }) => ({ isChanged: prevValue !== undefined && _value !== prevValue })),
                     isChanged: true,
                 };
             });
