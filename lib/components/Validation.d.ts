@@ -3,8 +3,8 @@ import * as React from "react";
 import * as Yup from "yup";
 import { IValidator } from "../ArrayValidator";
 import { FormErrors, IErrorMessage } from "../FormValidator";
+import { FormModel } from "../interfaces/form";
 import { IValidationConfiguration, IValidationMeta } from "../interfaces/validation";
-import { IFormState } from "./Form";
 /**
  * Describes [[Validation]] props
  */
@@ -42,12 +42,10 @@ export interface IValidationContext<T> {
      */
     scope: Array<IErrorMessage<any>>;
     isValid: boolean;
+    mountValidation: (validator: Validation<T>) => any;
+    unMountValidation: (validator: Validation<T>) => any;
 }
-export declare const Provider: React.ComponentClass<{
-    value: IValidationContext<any>;
-}>, Consumer: React.ComponentClass<{
-    children?: (context: IValidationContext<any>) => React.ReactNode;
-}>;
+export declare const Provider: React.ComponentType<React.ProviderProps<IValidationContext<any>>>, Consumer: React.ComponentType<React.ConsumerProps<IValidationContext<any>>>;
 export interface IValidation<T = {}> extends Validation<T> {
     new (props: IValidationProps<T>): Validation<T>;
 }
@@ -58,14 +56,22 @@ export interface IValidation<T = {}> extends Validation<T> {
  */
 export declare class Validation<T> extends React.Component<IValidationProps<T>, any> {
     static defaultProps: IValidationProps<any>;
-    prevErrors: {
-        errors: FormErrors<T>;
-        scope: IErrorMessage<any>[];
-        isValid: boolean;
+    cacheErrors: IValidationContext<T>;
+    cacheData: {
+        model: {};
+        props: {};
+        state: {};
     };
+    private validators;
+    private _context;
+    validate: (model: FormModel<T>) => Partial<IValidationContext<T>>;
+    render(): JSX.Element;
+    componentDidMount(): void;
+    componentWillUnmount(): void;
     /**
      * Validation function that accepts [[FormContext]] and validate [[Form]] `model`
      */
-    validate: (form: IFormState<T>) => IValidationContext<T>;
-    render(): JSX.Element;
+    private validator;
+    private mountValidation;
+    private unMountValidation;
 }

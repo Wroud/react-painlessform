@@ -1,6 +1,6 @@
 {
   "name": "react-painlessform",
-  "version": "1.0.3",
+  "version": "2.0.0-alpha8",
   "description": "React Forms without pain",
   "main": "lib/index.js",
   "module": "lib/index.js",
@@ -20,6 +20,12 @@
     "build": "npm run build:es && npm run build:commonjs",
     "test": "nyc mocha --opts mocha.opts",
     "posttest": "nyc report --reporter=json && codecov --disable=gcov -f coverage/coverage-final.json"
+  },
+  "release": {
+    "branch": "2.0.0"
+  },
+  "publishConfig": {
+    "tag": "2x"
   },
   "nyc": {
     "extension": [
@@ -68,7 +74,7 @@
     "@types/enzyme": "^3.1.10",
     "@types/jsdom": "^11.0.4",
     "@types/mocha": "^5.0.0",
-    "@types/react": "^16.3.5",
+    "@types/react": "^16.3.13",
     "@types/react-dom": "^16.0.5",
     "@types/react-test-renderer": "^16.0.1",
     "@types/shallowequal": "^0.2.1",

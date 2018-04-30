@@ -35,7 +35,7 @@ export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement>
     /**
      * Fire when form submits
      */
-    onSubmit?: (event: React.FormEvent<HTMLFormElement>) => (values: T) => any;
+    onSubmit?: (event: React.FormEvent<HTMLFormElement>) => (values: T, isValid: boolean) => any;
     [rest: string]: any;
 }
 /**
@@ -60,10 +60,6 @@ export interface IFormState<T> {
      * Update [[model]] [[Field]] state and call [[onModelChange]] from props
      */
     handleChange: (field: keyof T, value: IFieldState<T[typeof field]>) => any;
-    /**
-     * Used for updating multiple field values and call [[onModelChange]] from props
-     */
-    handleTransform: (value: Partial<FormModel<T>>) => any;
 }
 export interface IForm<T = {}> extends Form<T> {
     new (props: IFormProps<T>): Form<T>;
@@ -72,11 +68,7 @@ export interface IForm<T = {}> extends Form<T> {
  * Default [[Form]] configuration
  */
 export declare const defaultConfiguration: IFormConfiguration;
-export declare const Provider: React.ComponentClass<{
-    value: IFormState<any>;
-}>, Consumer: React.ComponentClass<{
-    children?: (context: IFormState<any>) => React.ReactNode;
-}>;
+export declare const Provider: React.ComponentType<React.ProviderProps<IFormState<any>>>, Consumer: React.ComponentType<React.ConsumerProps<IFormState<any>>>;
 /**
  * Form component controlls [[Field]]s and passes [[FormContext]]
  */
@@ -88,6 +80,8 @@ export declare class Form<T = {}> extends React.Component<IFormProps<T>, IFormSt
         isChanged: boolean;
         isSubmitting: boolean;
     };
+    private transformer;
+    private validation;
     constructor(props: IFormProps<T>);
     /**
      * [[Form]] rerenders only if `model` or `props` changed
@@ -117,8 +111,4 @@ export declare class Form<T = {}> extends React.Component<IFormProps<T>, IFormSt
      * Update [[Field]] state with new `value` and sets form `isChanged` to `true`
      */
     private handleChange;
-    /**
-     * Update [[Field]]s state with new `values` and sets form `isChanged` to `true`
-     */
-    private handleTransform;
 }

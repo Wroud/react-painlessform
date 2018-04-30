@@ -1,9 +1,11 @@
 import * as React from "react";
 import shallowequal = require("shallowequal");
 
-import { getValuesFromModel, resetModel, updateModel, updateModelFields } from "../helpers/form";
+import { getMapsFromModel, getValuesFromModel, mergeModels, resetModel, updateModel, updateModelFields } from "../helpers/form";
 import { IFieldState } from "../interfaces/field";
 import { FormModel, IFormConfiguration } from "../interfaces/form";
+import { Transform } from "./Transform";
+import { Validation } from "./Validation";
 
 /**
  * Describes [[Form]] props
@@ -38,7 +40,7 @@ export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement>
     /**
      * Fire when form submits
      */
-    onSubmit?: (event: React.FormEvent<HTMLFormElement>) => (values: T) => any;
+    onSubmit?: (event: React.FormEvent<HTMLFormElement>) => (values: T, isValid: boolean) => any;
     [rest: string]: any;
 }
 
@@ -64,10 +66,6 @@ export interface IFormState<T> {
      * Update [[model]] [[Field]] state and call [[onModelChange]] from props
      */
     handleChange: (field: keyof T, value: IFieldState<T[typeof field]>) => any;
-    /**
-     * Used for updating multiple field values and call [[onModelChange]] from props
-     */
-    handleTransform: (value: Partial<FormModel<T>>) => any;
 }
 
 export interface IForm<T = {}> extends Form<T> {
@@ -90,8 +88,7 @@ export const { Provider, Consumer } = React.createContext<IFormState<any>>({
     configure: defaultConfiguration,
     handleReset: () => ({}),
     handleChange: () => ({}),
-    handleTransform: () => ({}),
-});
+} as any);
 
 /**
  * Form component controlls [[Field]]s and passes [[FormContext]]
@@ -113,6 +110,10 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             isSubmitting: isSubmitting !== undefined ? isSubmitting : state.isSubmitting,
         };
     }
+
+    private transformer: React.RefObject<Transform<T>>;
+    private validation: React.RefObject<Validation<T>>;
+
     constructor(props: IFormProps<T>) {
         super(props);
 
@@ -122,8 +123,9 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             isSubmitting: false,
             handleReset: this.handleReset,
             handleChange: this.handleChange,
-            handleTransform: this.handleTransform,
         };
+        this.transformer = React.createRef<Transform<T>>();
+        this.validation = React.createRef<Validation<T>>();
     }
     /**
      * [[Form]] rerenders only if `model` or `props` changed
@@ -134,9 +136,14 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
         const { children, ...props } = this.props;
         const { children: _, ...nnextProps } = nextProps;
 
+        const maps = getMapsFromModel(model);
+        const _maps = getMapsFromModel(nextModel);
+
         if (
             !shallowequal(props, nnextProps)
-            || !shallowequal(model, nextModel)
+            || !shallowequal(maps.values, _maps.values)
+            || !shallowequal(maps.isChanged, _maps.isChanged)
+            || !shallowequal(maps.isVisited, _maps.isVisited)
             || !shallowequal(rest, nextRest)
         ) {
             return true;
@@ -169,7 +176,11 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
         return (
             <Provider value={this.state}>
                 <form onSubmit={this.handleSubmit} {...rest}>
-                    {children}
+                    <Transform ref={this.transformer}>
+                        <Validation ref={this.validation}>
+                            {children}
+                        </Validation>
+                    </Transform>
                 </form>
             </Provider>
         );
@@ -209,7 +220,7 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             isChanged: false,
         }));
         if (onSubmit) {
-            onSubmit(event)(getValuesFromModel(this.state.model));
+            onSubmit(event)(getValuesFromModel(this.state.model), this.validation.current.cacheErrors.isValid);
         }
     }
     /**
@@ -238,30 +249,14 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             if (prev.model[field] && shallowequal(prev.model[field], value)) {
                 return null;
             }
+            const model = this.transformer.current.transform({ [field]: value } as any, prev.model) as any;
 
             return {
-                model: {
-                    ...(prev.model as any),
-                    [field]: { ...value },
-                },
-                isChanged: true,
-            };
-        });
-    }
-    /**
-     * Update [[Field]]s state with new `values` and sets form `isChanged` to `true`
-     */
-    private handleTransform = (value: Partial<FormModel<T>>) => {
-        this.setState(prev => {
-            if (shallowequal(getValuesFromModel(prev.model), getValuesFromModel(value as FormModel<T>))) {
-                return null;
-            }
-
-            return {
-                model: {
-                    ...prev.model as any,
-                    ...value as any,
-                },
+                model: mergeModels(
+                    model, prev.model,
+                    ({ value: _value }, { value: prevValue }) =>
+                        ({ isChanged: prevValue !== undefined && _value !== prevValue }),
+                ),
                 isChanged: true,
             };
         });

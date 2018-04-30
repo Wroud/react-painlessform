@@ -119,7 +119,7 @@ const defaultProps: Partial<FieldModelContext<any>> = {
     } as any,
 };
 
-export const { Provider, Consumer } = React.createContext<FieldModelContext<any>>(defaultProps);
+export const { Provider, Consumer } = React.createContext<FieldModelContext<any>>(defaultProps as any);
 
 /**
  * FieldClass React component accepts [[ClassProps]] as props
@@ -320,67 +320,56 @@ export interface IField<T> extends Field<T> {
  */
 export class Field<T> extends React.Component<FieldProps<T>> {
     render() {
-        const { FormContext, ValidationContext, TransformContext } = createFormFactory<T>();
+        const { FormContext, ValidationContext } = createFormFactory<T>();
         return (
             <FormContext>
-                {formState => (
+                {formContext => (
                     <ValidationContext>
-                        {validation => (
-                            <TransformContext>
-                                {handleChange => {
-                                    const {
-                                        name,
-                                        children,
-                                        subscribe,
-                                        onClick,
-                                        onChange,
-                                        ...rest,
-                                    } = this.props as FieldProps<T> as any;
+                        {validation => {
+                            const {
+                                name,
+                                children,
+                                subscribe,
+                                onClick,
+                                onChange,
+                                ...rest,
+                            } = this.props as FieldProps<T> as any;
 
-                                    let fullRest = rest;
-                                    if (subscribe !== undefined) {
-                                        fullRest = {
-                                            ...fullRest,
-                                            ...subscribe(formState),
-                                        };
-                                    }
-                                    let formContext = formState;
-                                    if (handleChange !== undefined) {
-                                        formContext = {
-                                            ...formContext,
-                                            handleChange,
-                                        };
-                                    }
-                                    const modelValue = formState.model[name];
-                                    const value = modelValue === undefined ? undefined : modelValue.value;
-                                    const isChanged = modelValue === undefined ? false : modelValue.isChanged;
-                                    const isVisited = modelValue === undefined ? false : modelValue.isVisited;
+                            let fullRest = rest;
+                            if (subscribe !== undefined) {
+                                fullRest = {
+                                    ...fullRest,
+                                    ...subscribe(formContext),
+                                };
+                            }
+                            const modelValue = formContext.model[name];
+                            const value = modelValue === undefined ? undefined : modelValue.value;
+                            const isChanged = modelValue === undefined ? false : modelValue.isChanged;
+                            const isVisited = modelValue === undefined ? false : modelValue.isVisited;
 
-                                    const isValid =
-                                        (validation.errors[name] === undefined
-                                            || validation.errors[name].length === 0)
-                                        && (validation.scope === undefined || validation.scope.length === 0);
+                            const isValid =
+                                (validation.errors[name] === undefined
+                                    || validation.errors[name].length === 0)
+                                && (validation.scope === undefined || validation.scope.length === 0);
 
-                                    const _Field = FieldClass as any as IFieldClass<any>;
-                                    return (
-                                        <_Field
-                                            name={name}
-                                            value={value}
-                                            validationErrors={validation.errors[name]}
-                                            validationScope={validation.scope}
-                                            formState={formContext}
-                                            isChanged={isChanged}
-                                            isVisited={isVisited}
-                                            isValid={isValid}
-                                            onClick={onClick}
-                                            onChange={onChange}
-                                            children={children}
-                                            rest={fullRest}
-                                        />
-                                    );
-                                }}
-                            </TransformContext>
-                        )}
+                            const _Field = FieldClass as any as IFieldClass<any>;
+                            return (
+                                <_Field
+                                    name={name}
+                                    value={value}
+                                    validationErrors={validation.errors[name]}
+                                    validationScope={validation.scope}
+                                    formState={formContext}
+                                    isChanged={isChanged}
+                                    isVisited={isVisited}
+                                    isValid={isValid}
+                                    onClick={onClick}
+                                    onChange={onChange}
+                                    children={children}
+                                    rest={fullRest}
+                                />
+                            );
+                        }}
                     </ValidationContext>
                 )}
             </FormContext>

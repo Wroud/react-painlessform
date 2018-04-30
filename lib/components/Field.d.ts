@@ -79,11 +79,7 @@ export interface IFieldContext<TName extends keyof TModel, TValue extends TModel
         [key: string]: any;
     };
 }
-export declare const Provider: React.ComponentClass<{
-    value: IFieldContext<string, any, any>;
-}>, Consumer: React.ComponentClass<{
-    children?: (context: IFieldContext<string, any, any>) => React.ReactNode;
-}>;
+export declare const Provider: React.ComponentType<React.ProviderProps<IFieldContext<string, any, any>>>, Consumer: React.ComponentType<React.ConsumerProps<IFieldContext<string, any, any>>>;
 /**
  * FieldClass React component accepts [[ClassProps]] as props
  */
