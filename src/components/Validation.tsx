@@ -90,16 +90,17 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
     private validators: Array<Validation<T>> = [];
     private _context: IValidationContext<T> | undefined;
     validate = (model: FormModel<T>) => {
-        let validation: Partial<IValidationContext<T>> = {
+        let validation: IValidationContext<T> = {
             errors: NoErrors,
             scope: NoScopeErrors,
             isValid: this.props.isValid,
         } as any;
         const values = getValuesFromModel(model);
-        validation = mergeValidations(this.validator(values) as IValidationContext<T>, validation as IValidationContext<T>);
+        validation = mergeValidations(this.validator(values) as IValidationContext<T>, validation);
         this.validators.forEach(validator => {
-            validation = mergeValidations(validator.validator(values) as IValidationContext<T>, validation as IValidationContext<T>);
+            validation = mergeValidations(validator.validator(values) as IValidationContext<T>, validation);
         });
+        this.cacheErrors = validation;
         return validation;
     }
 
