@@ -45,11 +45,7 @@ export interface IValidationContext<T> {
     mountValidation: (validator: Validation<T>) => any;
     unMountValidation: (validator: Validation<T>) => any;
 }
-export declare const Provider: React.ComponentClass<{
-    value: IValidationContext<any>;
-}>, Consumer: React.ComponentClass<{
-    children?: (context: IValidationContext<any>) => React.ReactNode;
-}>;
+export declare const Provider: React.ComponentType<React.ProviderProps<IValidationContext<any>>>, Consumer: React.ComponentType<React.ConsumerProps<IValidationContext<any>>>;
 export interface IValidation<T = {}> extends Validation<T> {
     new (props: IValidationProps<T>): Validation<T>;
 }
@@ -60,10 +56,11 @@ export interface IValidation<T = {}> extends Validation<T> {
  */
 export declare class Validation<T> extends React.Component<IValidationProps<T>, any> {
     static defaultProps: IValidationProps<any>;
-    prevErrors: {
-        errors: FormErrors<T>;
-        scope: IErrorMessage<any>[];
-        isValid: boolean;
+    cacheErrors: IValidationContext<T>;
+    cacheData: {
+        model: {};
+        props: {};
+        state: {};
     };
     private validators;
     private _context;

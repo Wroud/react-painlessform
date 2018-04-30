@@ -9,18 +9,14 @@ export interface ITranformProps<T> {
      * Transformer function that accepts changed `field` and his `value` and form `model`
      * and returns fields map to update values
      */
-    transformer: (values: Partial<FormModel<T>>, model: FormModel<T>) => Partial<FormModel<T>>;
+    transformer?: (values: Partial<FormModel<T>>, model: FormModel<T>) => Partial<FormModel<T>>;
     [key: string]: any;
 }
 export interface ITransformContext<T> {
     mountTransform: (transformer: Transform<T>) => any;
     unMountTransform: (transformer: Transform<T>) => any;
 }
-export declare const Provider: React.ComponentClass<{
-    value: ITransformContext<any>;
-}>, Consumer: React.ComponentClass<{
-    children?: (context: ITransformContext<any>) => React.ReactNode;
-}>;
+export declare const Provider: React.ComponentType<React.ProviderProps<ITransformContext<any>>>, Consumer: React.ComponentType<React.ConsumerProps<ITransformContext<any>>>;
 export interface ITransform<T> extends Transform<T> {
     new (props: ITranformProps<T>): Transform<T>;
 }

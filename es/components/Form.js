@@ -12,6 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const React = require("react");
 const shallowequal = require("shallowequal");
 const form_1 = require("../helpers/form");
+const Transform_1 = require("./Transform");
+const Validation_1 = require("./Validation");
 exports.defaultConfiguration = {
     submitting: {
         preventDefault: true,
@@ -23,22 +25,10 @@ _a = React.createContext({
     configure: exports.defaultConfiguration,
     handleReset: () => ({}),
     handleChange: () => ({}),
-    mountTransform: () => ({}),
-    unMountTransform: () => ({}),
 }), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 class Form extends React.Component {
     constructor(props) {
         super(props);
-        this.transformers = [];
-        this.mountTransform = (value) => {
-            this.transformers.push(value);
-        };
-        this.unMountTransform = (value) => {
-            const id = this.transformers.indexOf(value);
-            if (id > -1) {
-                this.transformers.slice(id, 1);
-            }
-        };
         this.handleSubmit = (event) => {
             const { onSubmit, configure } = this.props;
             if (event && configure.submitting.preventDefault) {
@@ -52,7 +42,7 @@ class Form extends React.Component {
                 isChanged: false,
             }));
             if (onSubmit) {
-                onSubmit(event)(form_1.getValuesFromModel(this.state.model));
+                onSubmit(event)(form_1.getValuesFromModel(this.state.model), this.validation.current.cacheErrors.isValid);
             }
         };
         this.handleReset = () => {
@@ -75,11 +65,7 @@ class Form extends React.Component {
                 if (prev.model[field] && shallowequal(prev.model[field], value)) {
                     return null;
                 }
-                const prevModel = prev.model;
-                let model = { [field]: value };
-                this.transformers.forEach(transformer => {
-                    model = Object.assign({}, model, transformer.transform(model, prevModel));
-                });
+                const model = this.transformer.current.transform({ [field]: value }, prev.model);
                 return {
                     model: form_1.mergeModels(model, prev.model, ({ value: _value }, { value: prevValue }) => ({ isChanged: prevValue !== undefined && _value !== prevValue })),
                     isChanged: true,
@@ -92,9 +78,9 @@ class Form extends React.Component {
             isSubmitting: false,
             handleReset: this.handleReset,
             handleChange: this.handleChange,
-            mountTransform: this.mountTransform,
-            unMountTransform: this.unMountTransform,
         };
+        this.transformer = React.createRef();
+        this.validation = React.createRef();
     }
     static getDerivedStateFromProps(props, state) {
         const { values, initValues, configure, isChanged, isSubmitting } = props;
@@ -130,7 +116,9 @@ class Form extends React.Component {
     render() {
         const _a = this.props, { componentId, values, initValues, actions, children, configure, isReset, isChanged, isSubmitting, onModelReset, onModelChange, onSubmit } = _a, rest = __rest(_a, ["componentId", "values", "initValues", "actions", "children", "configure", "isReset", "isChanged", "isSubmitting", "onModelReset", "onModelChange", "onSubmit"]);
         return (React.createElement(exports.Provider, { value: this.state },
-            React.createElement("form", Object.assign({ onSubmit: this.handleSubmit }, rest), children)));
+            React.createElement("form", Object.assign({ onSubmit: this.handleSubmit }, rest),
+                React.createElement(Transform_1.Transform, { ref: this.transformer },
+                    React.createElement(Validation_1.Validation, { ref: this.validation }, children)))));
     }
     callModelChange(model, prevModel) {
         if (!this.props.onModelChange) {

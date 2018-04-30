@@ -9,3 +9,11 @@ function mergeValidations(validation, context) {
     };
 }
 exports.mergeValidations = mergeValidations;
+function getProps(getters) {
+    const props = {};
+    Object.keys(getters).forEach(key => {
+        props[key] = typeof getters[key] === "function" ? getters[key]() : getters[key];
+    });
+    return props;
+}
+exports.getProps = getProps;

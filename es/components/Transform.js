@@ -8,10 +8,12 @@ class Transform extends React.Component {
         super(...arguments);
         this.transformers = [];
         this.transform = (values, prevModel) => {
+            const { transformer } = this.props;
             let model = Object.assign({}, values);
-            model = Object.assign({}, model, this.props.transformer(model, prevModel));
-            this.transformers.forEach(transformer => {
-                model = Object.assign({}, model, transformer.transform(model, prevModel));
+            const transformed = transformer ? transformer(model, prevModel) : {};
+            model = Object.assign({}, model, transformed);
+            this.transformers.forEach(({ transform }) => {
+                model = Object.assign({}, model, transform(model, prevModel));
             });
             return model;
         };
@@ -27,14 +29,14 @@ class Transform extends React.Component {
     }
     render() {
         const { FormContext } = formFactory_1.createFormFactory();
-        return (React.createElement(exports.Consumer, null, trenasform => (React.createElement(FormContext, null, form => {
+        return (React.createElement(exports.Consumer, null, transform => {
             const context = {
                 mountTransform: this.mountTransform,
                 unMountTransform: this.unMountTransform,
             };
-            this._context = trenasform || form;
+            this._context = transform;
             return (React.createElement(exports.Provider, { value: context }, this.props.children));
-        }))));
+        }));
     }
     componentDidMount() {
         if (this._context) {

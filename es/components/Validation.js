@@ -16,10 +16,15 @@ _a = React.createContext({
 class Validation extends React.Component {
     constructor() {
         super(...arguments);
-        this.prevErrors = {
+        this.cacheErrors = {
             errors: NoErrors,
             scope: NoScopeErrors,
             isValid: true,
+        };
+        this.cacheData = {
+            model: {},
+            props: {},
+            state: {},
         };
         this.validators = [];
         this.validate = (model) => {
@@ -36,27 +41,32 @@ class Validation extends React.Component {
             return validation;
         };
         this.validator = (model) => {
-            if (this.props.errors || this.props.scope) {
-                return {
-                    errors: this.props.errors,
-                    scope: this.props.scope,
-                    isValid: this.props.isValid,
-                };
-            }
-            const { validator, scopeValidator } = this.props;
             let errors = NoErrors;
             let scope = NoScopeErrors;
             let isValid = true;
-            if (!model) {
+            const props = validation_1.getProps(this.props);
+            const { validator, scopeValidator } = props;
+            if (!model || (!validator && !scopeValidator)) {
                 return { errors, scope, isValid };
+            }
+            if (props.errors || props.scope) {
+                return {
+                    errors: props.errors,
+                    scope: props.scope,
+                    isValid: props.isValid,
+                };
+            }
+            const state = this.state;
+            const data = this.cacheData;
+            if (shallowequal(data.model, model)
+                && shallowequal(data.props, props)
+                && shallowequal(data.state, state)) {
+                return this.cacheErrors;
             }
             if (validator) {
                 if (tools_1.isYup(validator)) {
                     try {
-                        validator.validateSync(model, Object.assign({ abortEarly: false, context: {
-                                state: this.state,
-                                props: this.props,
-                            } }, this.props.configure));
+                        validator.validateSync(model, Object.assign({ abortEarly: false, context: { state, props } }, props.configure));
                     }
                     catch (validationErrors) {
                         const _errors = validationErrors;
@@ -74,10 +84,7 @@ class Validation extends React.Component {
                     }
                 }
                 else {
-                    const preErrors = validator.validate(model, {
-                        state: this.state,
-                        props: this.props,
-                    });
+                    const preErrors = validator.validate(model, { state, props });
                     for (const key of Object.keys(preErrors)) {
                         if (preErrors[key].length > 0) {
                             isValid = false;
@@ -88,23 +95,16 @@ class Validation extends React.Component {
                 }
             }
             if (scopeValidator) {
-                const preScope = scopeValidator.validate(model, {
-                    state: this.state,
-                    props: this.props,
-                });
+                const preScope = scopeValidator.validate(model, { state, props });
                 if (preScope.length > 0) {
                     isValid = false;
                     scope = preScope;
                 }
             }
             const result = { errors, scope, isValid };
-            if (!shallowequal(result, this.prevErrors)) {
-                this.prevErrors = result;
-                return result;
-            }
-            else {
-                return this.prevErrors;
-            }
+            this.cacheData = { model, props, state };
+            this.cacheErrors = result;
+            return result;
         };
         this.mountValidation = (value) => {
             this.validators.push(value);

@@ -2,7 +2,6 @@
 import * as React from "react";
 import { IFieldState } from "../interfaces/field";
 import { FormModel, IFormConfiguration } from "../interfaces/form";
-import { Transform } from "./Transform";
 /**
  * Describes [[Form]] props
  */
@@ -36,7 +35,7 @@ export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement>
     /**
      * Fire when form submits
      */
-    onSubmit?: (event: React.FormEvent<HTMLFormElement>) => (values: T) => any;
+    onSubmit?: (event: React.FormEvent<HTMLFormElement>) => (values: T, isValid: boolean) => any;
     [rest: string]: any;
 }
 /**
@@ -61,8 +60,6 @@ export interface IFormState<T> {
      * Update [[model]] [[Field]] state and call [[onModelChange]] from props
      */
     handleChange: (field: keyof T, value: IFieldState<T[typeof field]>) => any;
-    mountTransform: (transformer: Transform<T>) => any;
-    unMountTransform: (transformer: Transform<T>) => any;
 }
 export interface IForm<T = {}> extends Form<T> {
     new (props: IFormProps<T>): Form<T>;
@@ -71,11 +68,7 @@ export interface IForm<T = {}> extends Form<T> {
  * Default [[Form]] configuration
  */
 export declare const defaultConfiguration: IFormConfiguration;
-export declare const Provider: React.ComponentClass<{
-    value: IFormState<any>;
-}>, Consumer: React.ComponentClass<{
-    children?: (context: IFormState<any>) => React.ReactNode;
-}>;
+export declare const Provider: React.ComponentType<React.ProviderProps<IFormState<any>>>, Consumer: React.ComponentType<React.ConsumerProps<IFormState<any>>>;
 /**
  * Form component controlls [[Field]]s and passes [[FormContext]]
  */
@@ -87,7 +80,8 @@ export declare class Form<T = {}> extends React.Component<IFormProps<T>, IFormSt
         isChanged: boolean;
         isSubmitting: boolean;
     };
-    private transformers;
+    private transformer;
+    private validation;
     constructor(props: IFormProps<T>);
     /**
      * [[Form]] rerenders only if `model` or `props` changed
@@ -98,8 +92,6 @@ export declare class Form<T = {}> extends React.Component<IFormProps<T>, IFormSt
      */
     componentDidUpdate(prevProps: IFormProps<any>, prevState: IFormState<T>): void;
     render(): JSX.Element;
-    private mountTransform;
-    private unMountTransform;
     /**
      * Transform `model` to `values` and call `onModelChange`
      */

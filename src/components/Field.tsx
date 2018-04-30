@@ -119,7 +119,7 @@ const defaultProps: Partial<FieldModelContext<any>> = {
     } as any,
 };
 
-export const { Provider, Consumer } = React.createContext<FieldModelContext<any>>(defaultProps);
+export const { Provider, Consumer } = React.createContext<FieldModelContext<any>>(defaultProps as any);
 
 /**
  * FieldClass React component accepts [[ClassProps]] as props
