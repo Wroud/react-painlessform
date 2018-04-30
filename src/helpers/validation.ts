@@ -7,5 +7,5 @@ export function mergeValidations<T>(validation: IValidationContext<T>, context: 
         isValid: !(!context.isValid || !validation.isValid),
         errors: mergeFormErrors(context.errors, validation.errors) as FormErrors<T>,
         scope: [...context.scope, ...validation.scope],
-    };
+    } as any;
 }

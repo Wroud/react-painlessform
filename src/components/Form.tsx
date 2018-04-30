@@ -1,10 +1,11 @@
 import * as React from "react";
 import shallowequal = require("shallowequal");
 
-import { getValuesFromModel, mergeModels, resetModel, updateModel, updateModelFields } from "../helpers/form";
+import { getMapsFromModel, getValuesFromModel, mergeModels, resetModel, updateModel, updateModelFields } from "../helpers/form";
 import { IFieldState } from "../interfaces/field";
 import { FormModel, IFormConfiguration } from "../interfaces/form";
 import { Transform } from "./Transform";
+import { Validation } from "./Validation";
 
 /**
  * Describes [[Form]] props
@@ -138,9 +139,14 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
         const { children, ...props } = this.props;
         const { children: _, ...nnextProps } = nextProps;
 
+        const maps = getMapsFromModel(model);
+        const _maps = getMapsFromModel(nextModel);
+
         if (
             !shallowequal(props, nnextProps)
-            || !shallowequal(model, nextModel)
+            || !shallowequal(maps.values, _maps.values)
+            || !shallowequal(maps.isChanged, _maps.isChanged)
+            || !shallowequal(maps.isVisited, _maps.isVisited)
             || !shallowequal(rest, nextRest)
         ) {
             return true;
@@ -261,7 +267,11 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             });
 
             return {
-                model: mergeModels(model, prev.model),
+                model: mergeModels(
+                    model, prev.model,
+                    ({ value: _value }, { value: prevValue }) =>
+                        ({ isChanged: _value !== prevValue }),
+                ),
                 isChanged: true,
             };
         });

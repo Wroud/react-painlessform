@@ -1,12 +1,16 @@
 import { IFieldState } from "../interfaces/field";
-import { FormModel } from "../interfaces/form";
+import { BooleanMap, FormModel, IModelMap } from "../interfaces/form";
 
-export function mergeModels<T>(value: Partial<FormModel<T>>, model: FormModel<T>) {
+export function mergeModels<T>(value: Partial<FormModel<T>>, model: FormModel<T>, rest?: (value: IFieldState<T>, prev: IFieldState<T>) => Partial<IFieldState<T>>) {
     const newModel: FormModel<T> = { ...(model as any) };
     for (const key of Object.keys(value)) {
-        newModel[key] = {
+        const preState = {
             ...(newModel[key] || {}),
             ...value[key],
+        };
+        newModel[key] = {
+            ...preState,
+            ...(rest ? rest(preState, model[key]) : {}),
         };
     }
     return newModel;
@@ -77,4 +81,21 @@ export function getValuesFromModel<T>(model: FormModel<T>): T {
         values[key] = model[key].value;
     }
     return values;
+}
+
+export function getMapsFromModel<T>(model: FormModel<T>): IModelMap<T> {
+    const maps: IModelMap<T> = {
+        values: {},
+        isChanged: {},
+        isVisited: {},
+    } as any;
+    if (typeof model !== "object") {
+        return undefined;
+    }
+    for (const key of Object.keys(model)) {
+        maps.values[key] = model[key].value;
+        maps.isVisited[key] = model[key].isVisited;
+        maps.isChanged[key] = model[key].isChanged;
+    }
+    return maps;
 }
