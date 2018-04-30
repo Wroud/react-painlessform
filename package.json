@@ -1,6 +1,6 @@
 {
   "name": "react-painlessform",
-  "version": "2.0.0-alpha8",
+  "version": "2.0.0",
   "description": "React Forms without pain",
   "main": "lib/index.js",
   "module": "lib/index.js",
@@ -22,10 +22,10 @@
     "posttest": "nyc report --reporter=json && codecov --disable=gcov -f coverage/coverage-final.json"
   },
   "release": {
-    "branch": "2.0.0"
+    "branch": "master"
   },
   "publishConfig": {
-    "tag": "2x"
+    "tag": "latest"
   },
   "nyc": {
     "extension": [

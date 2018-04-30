@@ -64,7 +64,7 @@ export declare class Validation<T> extends React.Component<IValidationProps<T>, 
     };
     private validators;
     private _context;
-    validate: (model: FormModel<T>) => Partial<IValidationContext<T>>;
+    validate: (model: FormModel<T>) => IValidationContext<T>;
     render(): JSX.Element;
     componentDidMount(): void;
     componentWillUnmount(): void;
