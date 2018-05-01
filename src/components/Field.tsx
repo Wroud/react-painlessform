@@ -245,7 +245,13 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
         let nextValue;
         if (isChangeEvent(value)) {
             const { type, checked, value: targetValue } = value.target;
-            nextValue = type === "checkbox" ? checked : targetValue;
+            nextValue =
+                /number|range/.test(type)
+                    ? parseFloat(targetValue)
+                    : /checkbox/.test(type)
+                        ? checked
+                        : targetValue;
+            // nextValue = type === "checkbox" ? checked : targetValue;
             // const name = !target.name ? target.id : target.name;
         } else {
             nextValue = value;
