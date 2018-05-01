@@ -27,7 +27,7 @@ describe("Form", () => {
         field: 1,
         field2: "kek",
         min: 0,
-        max: 1,
+        max: 1
     };
     let newValues = {};
     let isReset = false;
@@ -40,7 +40,7 @@ describe("Form", () => {
                 value,
                 onClick,
                 onChange,
-                rest,
+                rest
             }) => (
                     <input name={name} value={value} onClick={onClick} onChange={onChange} {...rest} />
                 )}
@@ -52,7 +52,7 @@ describe("Form", () => {
             // tslint:disable-next-line:radix
             if (parseInt(_values.min.value as any) > parseInt(model.max.value as any)) {
                 return {
-                    max: { value: _values.min.value },
+                    max: { value: _values.min.value }
                 } as any;
             }
         }
@@ -60,7 +60,7 @@ describe("Form", () => {
             // tslint:disable-next-line:radix
             if (parseInt(_values.max.value as any) < parseInt(model.min.value as any)) {
                 return {
-                    min: { value: _values.max.value },
+                    min: { value: _values.max.value }
                 } as any;
             }
         }
@@ -95,14 +95,14 @@ describe("Form", () => {
                         );
                     }}
                 </FormContext>
-            </Form>,
+            </Form>
         );
     });
 
     it("does mount with init values to state model", () => {
         const {
             props: { values: v },
-            state: { model },
+            state: { model }
         } = wrapper.instance() as IForm<IModel>;
 
         assert.deepEqual(values, getValuesFromModel(model));
@@ -112,7 +112,7 @@ describe("Form", () => {
         wrapper.find("form").simulate("submit");
 
         const {
-            state: { model },
+            state: { model }
         } = wrapper.instance() as IForm<IModel>;
 
         Object.keys(model).forEach(key => {
@@ -127,13 +127,13 @@ describe("Form", () => {
         // wrapper.setProps({ values: undefined, isReset: true });
 
         const {
-            state: { model },
+            state: { model }
         } = wrapper.instance() as IForm<IModel>;
 
         const resetField = {
             value: "" as any,
             isChanged: false,
-            isVisited: false,
+            isVisited: false
         };
         assert.deepEqual(values, getValuesFromModel(model));
 
@@ -148,7 +148,7 @@ describe("Form", () => {
         wrapper.find("input[name='field2']").simulate("change", { target: { value: "TestValue" } });
 
         const {
-            state: { model },
+            state: { model }
         } = wrapper.instance() as IForm<IModel>;
 
         assert.strictEqual(wrapper.find("input[name='field2']").props().value, "TestValue");
@@ -162,7 +162,7 @@ describe("Form", () => {
         wrapper.find("input[name='min']").simulate("change", { target: { value: "60" } });
 
         const {
-            state: { model },
+            state: { model }
         } = wrapper.instance() as IForm<IModel>;
 
         assert.strictEqual(model.min.value, "60" as any);
@@ -171,7 +171,7 @@ describe("Form", () => {
         wrapper.find("input[name='max']").simulate("change", { target: { value: "12" } });
 
         const {
-            state: { model: model2 },
+            state: { model: model2 }
         } = wrapper.instance() as IForm<IModel>;
 
         assert.strictEqual(model2.min.value, "12" as any);
@@ -180,7 +180,7 @@ describe("Form", () => {
         wrapper.find("input[name='max']").simulate("change", { target: { value: "20" } });
 
         const {
-            state: { model: model3 },
+            state: { model: model3 }
         } = wrapper.instance() as IForm<IModel>;
 
         assert.strictEqual(model3.min.value, "12" as any);
@@ -189,11 +189,11 @@ describe("Form", () => {
 
     it("does field remounts correct", () => {
         wrapper.setState(({ model: { field2, ...newModel } }) => ({
-            model: newModel,
+            model: newModel
         }));
 
         const {
-            state: { model },
+            state: { model }
         } = wrapper.instance() as IForm<IModel>;
         assert.strictEqual(wrapper.find("input[name='field2']").props().value, "");
         assert.strictEqual(model.field2.value, "");
@@ -219,11 +219,11 @@ describe("Form", () => {
                         );
                     }}
                 </FormContext>
-            </Form>,
+            </Form>
         );
 
         const {
-            state: { model },
+            state: { model }
         } = wrapper.instance() as IForm<IModel>;
 
         Object.keys(values).forEach(key => {

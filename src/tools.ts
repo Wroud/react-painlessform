@@ -29,7 +29,7 @@ export function mergeFormErrors(one: FormErrors<any>, two: FormErrors<any>) {
             if (two[key].length > 0) {
                 merged = {
                     ...merged,
-                    [key]: [...(merged[key] || []), ...two[key]],
+                    [key]: [...(merged[key] || []), ...two[key]]
                 };
             }
         }

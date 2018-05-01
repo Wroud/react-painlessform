@@ -7,12 +7,12 @@ export function mergeValidations<T>(validation: IValidationContext<T>, context: 
     return {
         isValid: !(!context.isValid || !validation.isValid),
         errors: mergeFormErrors(context.errors, validation.errors) as FormErrors<T>,
-        scope: [...context.scope, ...validation.scope],
-    } as any;
+        scope: [...context.scope, ...validation.scope]
+    } as IValidationContext<T>;
 }
 
 export function getProps<T extends IValidationPropGetters>(getters: T): ValidationProps<T> {
-    const props: ValidationProps<T> = {} as any;
+    const props = {} as ValidationProps<T>;
     Object.keys(getters).forEach(key => {
         props[key] = typeof getters[key] === "function" ? getters[key]() : getters[key];
     });

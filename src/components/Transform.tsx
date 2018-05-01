@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { createFormFactory } from "../helpers/formFactory";
+import { mergeModels } from "../helpers/form";
 import { FormModel } from "../interfaces/form";
 
 /**
@@ -37,36 +37,25 @@ export class Transform<T> extends React.Component<ITranformProps<T>> {
     transform = (values: Partial<FormModel<T>>, prevModel: FormModel<T>) => {
         const { transformer } = this.props;
         let model: Partial<FormModel<T>> = { ...values as any };
-        const transformed = transformer ? transformer(model, prevModel) : {};
-        model = {
-            ...model as any,
-            ...transformed as any,
-        };
+        if (transformer) {
+            model = mergeModels(transformer(model, prevModel), model);
+        }
         this.transformers.forEach(({ transform }) => {
-            model = {
-                ...model as any,
-                ...transform(model, prevModel) as any,
-            };
+            model = mergeModels(transform(model, prevModel), model);
         });
         return model;
     }
     render() {
-        const { FormContext } = createFormFactory<T>();
+        const context = {
+            mountTransform: this.mountTransform,
+            unMountTransform: this.unMountTransform
+        };
         return (
             <Consumer>
                 {transform => {
-                    const context = {
-                        mountTransform: this.mountTransform,
-                        unMountTransform: this.unMountTransform,
-                    };
-
                     this._context = transform;
 
-                    return (
-                        <Provider value={context}>
-                            {this.props.children}
-                        </Provider>
-                    );
+                    return <Provider value={context}>{this.props.children}</Provider>;
                 }}
             </Consumer>
         );

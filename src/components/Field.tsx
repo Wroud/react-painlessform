@@ -5,9 +5,9 @@ import { IErrorMessage } from "../FormValidator";
 import { createFormFactory } from "../helpers/formFactory";
 import { IFieldState } from "../interfaces/field";
 import { isArrayEqual, isChangeEvent } from "../tools";
-import { IFormState } from "./Form";
+import { IFormContext, IFormState } from "./Form";
 
-export type Exclude<C, U extends keyof M, M> = C extends M[U] ? M[U] : never;
+export type MapExclude<C, U extends keyof M, M> = C extends M[U] ? M[U] : never;
 
 export type ExtendFieldClass<
     TName extends keyof TModel,
@@ -15,7 +15,7 @@ export type ExtendFieldClass<
     TModel,
     > =
     TName extends keyof TModel
-    ? IFieldClassProps<TName, Exclude<TValue, TName, TModel>, TModel>
+    ? IFieldClassProps<TName, MapExclude<TValue, TName, TModel>, TModel>
     : never;
 
 export type ClassProps<T> = ExtendFieldClass<keyof T, T[keyof T], T>;
@@ -26,7 +26,7 @@ export type ExtendFieldContext<
     TModel,
     > =
     TName extends keyof TModel
-    ? IFieldContext<TName, Exclude<TValue, TName, TModel>, TModel>
+    ? IFieldContext<TName, MapExclude<TValue, TName, TModel>, TModel>
     : never;
 
 export type FieldModelContext<T> = ExtendFieldContext<keyof T, T[keyof T], T>;
@@ -35,10 +35,7 @@ export interface IFieldClass<T> extends FieldClass<T> {
     new(props: ClassProps<T>): FieldClass<T>;
 }
 
-/**
- * Describes props for [[FieldClass]]
- */
-export interface IFieldClassProps<TName extends keyof TModel, TValue extends TModel[TName], TModel> {
+export interface IFieldBase<TName extends keyof TModel, TValue extends TModel[TName], TModel> {
     // Form controlled fields
     /**
      * Value of [[FieldClass]]
@@ -47,7 +44,7 @@ export interface IFieldClassProps<TName extends keyof TModel, TValue extends TMo
     /**
      * [[Form]] context
      */
-    formState: IFormState<TModel>;
+    form: IFormContext<TModel>;
     /**
      * Validation errors from [[Validation]] context
      */
@@ -66,6 +63,17 @@ export interface IFieldClassProps<TName extends keyof TModel, TValue extends TMo
      */
     name: TName;
     /**
+     * Rest passed to [[Field]]
+     */
+    rest: { [key: string]: any };
+}
+
+/**
+ * Describes props for [[FieldClass]]
+ */
+export interface IFieldClassProps<TName extends keyof TModel, TValue extends TModel[TName], TModel>
+    extends IFieldBase<TName, TValue, TModel> {
+    /**
      * Accepts `(context: FieldModelContext<TModel>) => React.ReactNode` function or `React.ReactNode`
      * if `children` is `React.ReactNode` then pass [[FieldModelContext]] via FieldContext
      */
@@ -78,33 +86,17 @@ export interface IFieldClassProps<TName extends keyof TModel, TValue extends TMo
      * Change [[Form]] event handler
      */
     onChange?: (field: string, value: IFieldState<TValue>) => any;
-    /**
-     * Rest passed to [[Field]]
-     */
-    rest: { [key: string]: any };
 }
-
 /**
  * Describes FieldContext
  */
-export interface IFieldContext<TName extends keyof TModel, TValue extends TModel[TName], TModel> {
-    // Form controlled fields
-    value: TValue;
-    formState: IFormState<TModel>;
-    validationErrors: Array<IErrorMessage<any>>;
-    validationScope: Array<IErrorMessage<any>>;
-    isVisited: boolean;
-    isChanged: boolean;
-    isValid: boolean;
-    //
-
-    name: TName;
-    onClick?: () => any;
+export interface IFieldContext<TName extends keyof TModel, TValue extends TModel[TName], TModel>
+    extends IFieldBase<TName, TValue, TModel> {
     /**
      * Click event handler
      */
+    onClick?: () => any;
     onChange?: (value: TValue | React.ChangeEvent<HTMLInputElement>) => any;
-    rest: { [key: string]: any };
 }
 
 /**
@@ -114,9 +106,9 @@ const defaultProps: Partial<FieldModelContext<any>> = {
     validationErrors: [],
     validationScope: [],
     rest: {},
-    formState: {
-        model: {},
-    } as any,
+    form: {
+        model: {}
+    } as any
 };
 
 export const { Provider, Consumer } = React.createContext<FieldModelContext<any>>(defaultProps as any);
@@ -133,14 +125,12 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
             ...rest,
             value: value === undefined ? "" : value,
             onChange: this.handleChange,
-            onClick: this.onClick,
+            onClick: this.onClick
         };
 
-        return (
-            children && typeof children === "function"
-                ? children(context)
-                : <Provider value={context}>{children}</Provider>
-        );
+        return children && typeof children === "function"
+            ? children(context)
+            : <Provider value={context}>{children}</Provider>;
     }
 
     /**
@@ -152,13 +142,13 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
             this.update({
                 value: "",
                 isVisited: false,
-                isChanged: false,
+                isChanged: false
             }); // mount field to form model
         }
     }
 
     /**
-     * Remount field to form model if passed `value` is `undefined`
+     * Remount field to form model (if passed `value` is `undefined`)
      * with empty string `value`
      */
     componentDidUpdate(prevProps: ClassProps<T>) {
@@ -166,7 +156,7 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
             this.update({
                 value: "",
                 isVisited: false,
-                isChanged: false,
+                isChanged: false
             }); // remount field if it not exists in form model
         }
     }
@@ -186,12 +176,12 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
             isValid: nextIsValid,
 
             validationErrors: nextErrors, validationScope: nextScope,
-            rest: nextRest,
+            rest: nextRest
         } = nextProps as ClassProps<T>;
         const {
             name, value, isVisited, isChanged, isValid,
             validationErrors, validationScope,
-            rest,
+            rest
         } = this.props as ClassProps<T>;
 
         if (
@@ -208,9 +198,9 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
                     value: nextValue,
                     isVisited: nextIsVisited,
                     isChanged: nextIsChanged,
-                    isValid: nextIsValid,
+                    isValid: nextIsValid
                 },
-                { name, value, isVisited, isChanged, isValid },
+                { name, value, isVisited, isChanged, isValid }
             )
         ) {
             return true;
@@ -251,8 +241,6 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
                     : /checkbox/.test(type)
                         ? checked
                         : targetValue;
-            // nextValue = type === "checkbox" ? checked : targetValue;
-            // const name = !target.name ? target.id : target.name;
         } else {
             nextValue = value;
         }
@@ -260,7 +248,7 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
         this.update({
             value: nextValue,
             isVisited: true,
-            isChanged: true,
+            isChanged: true
         });
     }
 
@@ -270,19 +258,19 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
      */
     private update = (nextValue?: Partial<IFieldState<any>>) => {
         const {
-            formState: { handleChange },
+            form: { handleChange },
             name,
             value,
             isChanged,
             isVisited,
-            onChange,
+            onChange
         } = this.props as ClassProps<T>;
 
         const updValue = {
             value,
             isChanged,
             isVisited,
-            ...(nextValue || {}),
+            ...(nextValue || {})
         };
 
         handleChange(name as any, updValue);
@@ -298,7 +286,7 @@ export class FieldClass<T> extends React.Component<ClassProps<T>> {
  */
 export interface IFieldProps<TName extends keyof TModel, TValue extends TModel[TName], TModel> {
     name: TName;
-    subscribe: (formState: IFormState<TModel>) => any;
+    subscribe?: (formState: IFormState<TModel>) => any;
     children?: ((context: FieldModelContext<TModel>) => React.ReactNode) | React.ReactNode;
     onClick?: () => any;
     onChange?: (field: string, value: IFieldState<TValue>) => any;
@@ -311,7 +299,7 @@ export type ExtendFieldProps<
     TModel,
     > =
     TName extends keyof TModel
-    ? IFieldProps<TName, Exclude<TValue, TName, TModel>, TModel>
+    ? IFieldProps<TName, MapExclude<TValue, TName, TModel>, TModel>
     : never;
 
 export type FieldProps<T> = ExtendFieldProps<keyof T, T[keyof T], T>;
@@ -338,14 +326,14 @@ export class Field<T> extends React.Component<FieldProps<T>> {
                                 subscribe,
                                 onClick,
                                 onChange,
-                                ...rest,
+                                ...rest
                             } = this.props as FieldProps<T> as any;
 
                             let fullRest = rest;
                             if (subscribe !== undefined) {
                                 fullRest = {
                                     ...fullRest,
-                                    ...subscribe(formContext),
+                                    ...subscribe(formContext)
                                 };
                             }
                             const modelValue = formContext.model[name];
@@ -365,7 +353,7 @@ export class Field<T> extends React.Component<FieldProps<T>> {
                                     value={value}
                                     validationErrors={validation.errors[name]}
                                     validationScope={validation.scope}
-                                    formState={formContext}
+                                    form={formContext}
                                     isChanged={isChanged}
                                     isVisited={isVisited}
                                     isValid={isValid}

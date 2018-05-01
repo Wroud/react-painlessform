@@ -31,13 +31,13 @@ describe("FormValidator", () => {
         const shape = Yup.object().shape({
             field2: Yup.string()
                 .min(2, "C'mon, your name is longer than that")
-                .required("First name is required."),
+                .required("First name is required.")
         });
 
         const raw = model => {
             if (model.field2 === "1") {
                 return {
-                    field2: [{ message: "Gr3" }],
+                    field2: [{ message: "Gr3" }]
                 };
             }
             return {};
@@ -52,7 +52,7 @@ describe("FormValidator", () => {
         const model0: IModel = {
             field0: "1234",
             field1: "1234",
-            field2: "1234",
+            field2: "1234"
         };
         const noErrors = formValidator.validate(model0);
         chai.expect(noErrors).to.not.have.property("field0");
@@ -64,7 +64,7 @@ describe("FormValidator", () => {
         const model1: IModel = {
             field0: "",
             field1: "1",
-            field2: "1",
+            field2: "1"
         };
         const withErrors = formValidator.validate(model1);
         chai.expect(withErrors).to.have.property("field0");
@@ -87,7 +87,7 @@ describe("FormValidator", () => {
         const formValidator = createFormValidator<IModel>(fieldValidator);
 
         const model: IModel = {
-            field: "",
+            field: ""
         };
         const noErrors = formValidator.validate(model, false);
         chai.expect(noErrors).to.not.have.property("field");

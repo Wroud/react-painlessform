@@ -25,14 +25,14 @@ export class FormValidator<TSource, TMeta = {}> implements IValidator<TSource, F
                 try {
                     validator.validateSync(data, {
                         abortEarly: false,
-                        context: meta || {},
+                        context: meta || {}
                     });
                 } catch (_errors) {
                     const __errors: Yup.ValidationError = _errors;
                     if (__errors.path === undefined) {
                         __errors.inner.forEach(error => {
                             errors = mergeFormErrors(errors, {
-                                [error.path]: error.errors.map(message => ({ message })),
+                                [error.path]: error.errors.map(message => ({ message }))
                             });
                         });
                     }
@@ -46,13 +46,13 @@ export class FormValidator<TSource, TMeta = {}> implements IValidator<TSource, F
 }
 
 export function createFormValidator<TSource, TMeta = {}>(
-    ...validators: Array<IValidator<TSource, FormErrors<TSource>, TMeta> | Yup.Schema<any>>,
+    ...validators: Array<IValidator<TSource, FormErrors<TSource>, TMeta> | Yup.Schema<any>>
 ): IValidator<TSource, FormErrors<TSource>, TMeta> {
     return new FormValidator(...validators);
 }
 
 export function createRawFormValidator<TSource, TMeta = {}>(
-    validator: Validator<TSource, FormErrors<TSource>, TMeta>,
+    validator: Validator<TSource, FormErrors<TSource>, TMeta>
 ): IValidator<TSource, FormErrors<TSource>, TMeta> {
     return { validate: validator };
 }

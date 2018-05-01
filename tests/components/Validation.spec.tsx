@@ -5,7 +5,7 @@ import * as React from "react";
 import { createRenderer, ShallowRenderer } from "react-test-renderer/shallow";
 import * as Yup from "yup";
 import { FormContext, IFormState, IValidationProps, Validation } from "../../src";
-import { defaultConfiguration } from "../../src/components/Form";
+import { defaultConfiguration, IFormContext } from "../../src/components/Form";
 
 use(assertArrays);
 describe("Validation", () => {
@@ -16,13 +16,13 @@ describe("Validation", () => {
             let errors = [];
             if (error) {
                 errors = [{
-                    message: error,
+                    message: error
                 }];
             }
             return {
-                field: errors,
+                field: errors
             };
-        },
+        }
     };
     const validatorScope = {
         validate: model => {
@@ -30,11 +30,11 @@ describe("Validation", () => {
             let errors = [];
             if (error) {
                 errors = [{
-                    message: error,
+                    message: error
                 }];
             }
             return [...errors];
-        },
+        }
     };
 
     beforeEach(() => {
@@ -51,20 +51,20 @@ describe("Validation", () => {
             errors: {
                 field: [
                     {
-                        message: "Required",
-                    },
-                ],
+                        message: "Required"
+                    }
+                ]
             },
-            scope: [{ message: "Required" }],
+            scope: [{ message: "Required" }]
         };
         const formState: Partial<IFormState<any>> = {
             model: {
                 field: {
                     value: "",
                     isChanged: false,
-                    isVisited: false,
-                },
-            },
+                    isVisited: false
+                }
+            }
         };
         const validationResult = resultInstance.validate(formState.model);
         expect(validationResult.isValid).to.be.equal(resultSnapshot.isValid);
@@ -81,7 +81,7 @@ describe("Validation Yup", () => {
         const shape = Yup.object().shape({
             field: Yup.string()
                 .min(2, "C'mon, your name is longer than that")
-                .required("First name is required."),
+                .required("First name is required.")
         });
         renderer.render(<Validation validator={shape}><br /></Validation>);
     });
@@ -95,29 +95,28 @@ describe("Validation Yup", () => {
             errors: {
                 field: [
                     {
-                        message: "C'mon, your name is longer than that",
+                        message: "C'mon, your name is longer than that"
                     },
                     {
-                        message: "First name is required.",
-                    },
-                ],
+                        message: "First name is required."
+                    }
+                ]
             },
-            scope: [],
+            scope: []
         };
-        const formState: IFormState<any> = {
+        const formState: IFormContext<any> = {
             model: {
                 field: {
                     value: "",
                     isChanged: false,
-                    isVisited: false,
-                },
+                    isVisited: false
+                }
             },
             isChanged: false,
             configure: defaultConfiguration,
             isSubmitting: false,
             handleChange: () => "handleChange",
-            handleReset: () => "handleReset",
-            handleTransform: () => "handleTransform",
+            handleReset: () => "handleReset"
         };
         const validationResult = resultInstance.validate(formState.model);
         expect(validationResult.isValid).to.be.equal(resultSnapshot.isValid);
@@ -129,14 +128,13 @@ describe("Validation Yup", () => {
         const result = renderer.getRenderOutput<React.ReactElement<IValidationProps<any>>>();
         const resultInstance = renderer.getMountedInstance() as Validation<any>;
 
-        const formState: IFormState<any> = {
+        const formState: IFormContext<any> = {
             model: undefined,
             isChanged: false,
             configure: defaultConfiguration,
             isSubmitting: false,
             handleChange: () => "handleChange",
-            handleReset: () => "handleReset",
-            handleTransform: () => "handleTransform",
+            handleReset: () => "handleReset"
         };
         const validationResult = resultInstance.validate(formState.model);
         expect(validationResult.isValid).to.be.equal(true);
@@ -153,7 +151,7 @@ describe("Validation Yup with config", () => {
         const shape = Yup.object().shape({
             field: Yup.string()
                 .min(2, "C'mon, your name is longer than that")
-                .required("First name is required."),
+                .required("First name is required.")
         });
         renderer.render(<Validation validator={shape} configure={{ abortEarly: true }}><br /></Validation>);
     });
@@ -167,26 +165,25 @@ describe("Validation Yup with config", () => {
             errors: {
                 field: [
                     {
-                        message: "C'mon, your name is longer than that",
-                    },
-                ],
+                        message: "C'mon, your name is longer than that"
+                    }
+                ]
             },
-            scope: [],
+            scope: []
         };
-        const formState: IFormState<any> = {
+        const formState: IFormContext<any> = {
             model: {
                 field: {
                     value: "",
                     isChanged: false,
-                    isVisited: false,
-                },
+                    isVisited: false
+                }
             },
             isChanged: false,
             configure: defaultConfiguration,
             isSubmitting: false,
             handleChange: () => "handleChange",
-            handleReset: () => "handleReset",
-            handleTransform: () => "handleTransform",
+            handleReset: () => "handleReset"
         };
         const validationResult = resultInstance.validate(formState.model);
         expect(validationResult.isValid).to.be.equal(resultSnapshot.isValid);

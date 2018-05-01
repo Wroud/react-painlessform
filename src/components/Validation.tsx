@@ -9,7 +9,7 @@ import { getProps, mergeValidations } from "../helpers/validation";
 import { FormModel } from "../interfaces/form";
 import { IValidationConfiguration, IValidationMeta } from "../interfaces/validation";
 import { isYup } from "../tools";
-import { Consumer as FormContext, IFormState } from "./Form";
+import { Consumer as FormContext } from "./Form";
 
 /**
  * Describes [[Validation]] props
@@ -53,14 +53,13 @@ export interface IValidationContext<T> {
     unMountValidation: (validator: Validation<T>) => any;
 }
 
-// tslint:disable-next-line:no-object-literal-type-assertion
-const NoErrors = {} as FormErrors<any>;
+const NoErrors: FormErrors<any> = {} as any;
 const NoScopeErrors: Array<IErrorMessage<any>> = [];
 
 export const { Provider, Consumer } = React.createContext<IValidationContext<any>>({
     errors: NoErrors,
     scope: NoScopeErrors,
-    isValid: true,
+    isValid: true
 } as any);
 
 export interface IValidation<T = {}> extends Validation<T> {
@@ -75,17 +74,17 @@ export interface IValidation<T = {}> extends Validation<T> {
 export class Validation<T> extends React.Component<IValidationProps<T>, any> {
     static defaultProps: IValidationProps<any> = {
         isValid: true,
-        configure: {},
+        configure: {}
     };
     cacheErrors: IValidationContext<T> = {
         errors: NoErrors as FormErrors<T>,
         scope: NoScopeErrors,
-        isValid: true,
+        isValid: true
     } as any;
     cacheData = {
         model: {},
         props: {},
-        state: {},
+        state: {}
     };
     private validators: Array<Validation<T>> = [];
     private _context: IValidationContext<T> | undefined;
@@ -93,12 +92,12 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
         let validation: IValidationContext<T> = {
             errors: NoErrors,
             scope: NoScopeErrors,
-            isValid: this.props.isValid,
+            isValid: this.props.isValid
         } as any;
         const values = getValuesFromModel(model);
-        validation = mergeValidations(this.validator(values) as IValidationContext<T>, validation);
+        validation = mergeValidations(this.validator(values), validation);
         this.validators.forEach(validator => {
-            validation = mergeValidations(validator.validator(values) as IValidationContext<T>, validation);
+            validation = mergeValidations(validator.validator(values), validation);
         });
         this.cacheErrors = validation;
         return validation;
@@ -117,7 +116,7 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
                             const context: IValidationContext<T> = {
                                 ...(this._context ? validationContext : this.validate(formContext.model as FormModel<T>) as any),
                                 mountValidation: this.mountValidation,
-                                unMountValidation: this.unMountValidation,
+                                unMountValidation: this.unMountValidation
                             };
 
                             return <Provider value={context}>{this.props.children}</Provider>;
@@ -149,15 +148,15 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
         const { validator, scopeValidator } = props;
 
         if (!model || (!validator && !scopeValidator)) {
-            return { errors, scope, isValid } as any;
+            return { errors, scope, isValid } as IValidationContext<T>;
         }
 
         if (props.errors || props.scope) {
             return {
                 errors: props.errors,
                 scope: props.scope,
-                isValid: props.isValid,
-            } as any;
+                isValid: props.isValid
+            } as IValidationContext<T>;
         }
 
         const state = this.state;
@@ -175,7 +174,7 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
                     validator.validateSync(model, {
                         abortEarly: false,
                         context: { state, props },
-                        ...props.configure,
+                        ...props.configure
                     });
                 } catch (validationErrors) {
                     const _errors: Yup.ValidationError = validationErrors;
@@ -185,14 +184,14 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
                                 ...errors as any,
                                 [error.path]:
                                     [...(errors[error.path] || []),
-                                    ...error.errors.map(message => ({ message }))],
+                                    ...error.errors.map(message => ({ message }))]
                             };
                         });
                     } else {
                         errors = {
                             ...errors as any,
                             [_errors.path]: [...(errors[_errors.path] || []),
-                            ..._errors.errors.map(message => ({ message }))],
+                            ..._errors.errors.map(message => ({ message }))]
                         };
                     }
                     isValid = false;
@@ -200,7 +199,7 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
             } else {
                 const preErrors = validator.validate(
                     model,
-                    { state, props },
+                    { state, props }
                 );
                 for (const key of Object.keys(preErrors)) {
                     if (preErrors[key].length > 0) {
@@ -214,7 +213,7 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
         if (scopeValidator) {
             const preScope = scopeValidator.validate(
                 model,
-                { state, props },
+                { state, props }
             );
             if (preScope.length > 0) {
                 isValid = false;
@@ -222,7 +221,6 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
             }
         }
 
-        // tslint:disable-next-line:no-object-literal-type-assertion
         const result = { errors, scope, isValid } as IValidationContext<T>;
 
         this.cacheData = { model, props, state };

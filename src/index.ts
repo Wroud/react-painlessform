@@ -28,6 +28,7 @@ export {
     Form,
     IFormProps,
     IFormState,
+    IFormContext,
     Consumer as FormContext,
 } from "./components/Form";
 export {

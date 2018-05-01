@@ -31,7 +31,7 @@ export class ArrayValidator<TValue, TError, TMeta = {}> implements IValidator<TV
 
 export function createValidator<TValue, TMeta = {}>(
     name: string,
-    ...validator: Array<Validator<TValue, string | string[], TMeta>>,
+    ...validator: Array<Validator<TValue, string | string[], TMeta>>
 ): IValidator<TValue, string[], TMeta> {
     return new ArrayValidator(name, validator);
 }

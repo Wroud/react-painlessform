@@ -9,7 +9,7 @@ export class FieldValidator<TSource, TValue, TMeta = {}> implements IValidator<T
     constructor(
         name: keyof TSource,
         validator: IValidator<TValue | TSource[keyof TSource], Array<IErrorMessage<any>>, TMeta>,
-        selectValue?: (source: TSource) => TValue | TSource[keyof TSource],
+        selectValue?: (source: TSource) => TValue | TSource[keyof TSource]
     ) {
         this.name = name;
         this.selectValue = selectValue || (data => data[name]);
@@ -19,12 +19,10 @@ export class FieldValidator<TSource, TValue, TMeta = {}> implements IValidator<T
 
     validate(data: TSource, meta: TMeta): FormErrors<TSource> {
         if (data === undefined || this.selectValue(data) === undefined) {
-            // tslint:disable-next-line:no-object-literal-type-assertion
             return {} as FormErrors<TSource>;
         }
-        // tslint:disable-next-line:no-object-literal-type-assertion
         return {
-            [this.name]: this.validator.validate(this.selectValue(data), meta),
+            [this.name]: this.validator.validate(this.selectValue(data), meta)
         } as FormErrors<TSource>;
     }
 }
@@ -32,7 +30,7 @@ export class FieldValidator<TSource, TValue, TMeta = {}> implements IValidator<T
 export function createFieldValidator<TSource, TValue, TMeta = {}>(
     name: keyof TSource,
     validator: IValidator<TValue | TSource[keyof TSource], Array<IErrorMessage<any>>, TMeta>,
-    seelctValue?: (source: TSource) => TValue | TSource[keyof TSource],
+    seelctValue?: (source: TSource) => TValue | TSource[keyof TSource]
 ): IValidator<TSource, FormErrors<TSource>, TMeta> {
     return new FieldValidator(name, validator, seelctValue);
 }

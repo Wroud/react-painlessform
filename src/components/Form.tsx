@@ -1,7 +1,7 @@
 import * as React from "react";
 import shallowequal = require("shallowequal");
 
-import { getMapsFromModel, getValuesFromModel, mergeModels, resetModel, updateModel, updateModelFields } from "../helpers/form";
+import { getMapsFromModel, getValuesFromModel, mergeModels, resetModel, setModelValues, updateModelFields } from "../helpers/form";
 import { IFieldState } from "../interfaces/field";
 import { FormModel, IFormConfiguration } from "../interfaces/form";
 import { Transform } from "./Transform";
@@ -25,7 +25,7 @@ export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement>
      */
     configure?: IFormConfiguration;
     /**
-     * If `true` form will be reset and sets passed `values`
+     * If `true` form will be first reset and after sets passed `values`
      * example when you need set new values you want to reset all `isChanged`, `isVisited`
      * [[Field]] props to `false`
      */
@@ -55,9 +55,11 @@ export interface IFormState<T> {
     /**
      * Derived from props
      */
-    configure?: IFormConfiguration;
     isChanged: boolean;
     isSubmitting: boolean;
+}
+export interface IFormContext<T> extends IFormState<T> {
+    configure?: IFormConfiguration;
     /**
      * Reset form to `initValues` and call [[onReset]] from props
      */
@@ -77,54 +79,60 @@ export interface IForm<T = {}> extends Form<T> {
  */
 export const defaultConfiguration: IFormConfiguration = {
     submitting: {
-        preventDefault: true,
-    },
+        preventDefault: true
+    }
 };
 
-const EmptyModel: FormModel<any> = {};
+const emptyModel: FormModel<any> = {};
 
-export const { Provider, Consumer } = React.createContext<IFormState<any>>({
-    model: EmptyModel,
+export const { Provider, Consumer } = React.createContext<IFormContext<any>>({
+    model: emptyModel,
     configure: defaultConfiguration,
+    isChanged: false,
+    isSubmitting: false,
     handleReset: () => ({}),
-    handleChange: () => ({}),
-} as any);
+    handleChange: () => ({})
+});
 
 /**
  * Form component controlls [[Field]]s and passes [[FormContext]]
  */
 export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> {
     static defaultProps: Partial<IFormProps<any>> = {
-        configure: defaultConfiguration,
+        configure: defaultConfiguration
     };
     static getDerivedStateFromProps(props: IFormProps<any>, state: IFormState<any>) {
-        const { values, initValues, configure, isChanged, isSubmitting } = props;
+        const { values, isChanged, isSubmitting } = props;
         const model = props.isReset ? resetModel(state.model) : state.model;
 
         return {
             model: values
-                ? updateModel(values, model)
+                ? setModelValues(values, model)
                 : model,
-            configure,
             isChanged: isChanged !== undefined ? isChanged : state.isChanged,
-            isSubmitting: isSubmitting !== undefined ? isSubmitting : state.isSubmitting,
+            isSubmitting: isSubmitting !== undefined ? isSubmitting : state.isSubmitting
         };
     }
 
-    private transformer: React.RefObject<Transform<T>>;
+    private transform: React.RefObject<Transform<T>>;
     private validation: React.RefObject<Validation<T>>;
 
     constructor(props: IFormProps<T>) {
         super(props);
 
+        const model = props.initValues
+            ? setModelValues(
+                props.initValues as T,
+                emptyModel as FormModel<T>,
+                { isChanged: false, isVisited: false }
+            )
+            : emptyModel as FormModel<T>;
         this.state = {
-            model: props.initValues ? updateModel(props.initValues, EmptyModel) : EmptyModel as any,
+            model,
             isChanged: false,
-            isSubmitting: false,
-            handleReset: this.handleReset,
-            handleChange: this.handleChange,
+            isSubmitting: false
         };
-        this.transformer = React.createRef<Transform<T>>();
+        this.transform = React.createRef<Transform<T>>();
         this.validation = React.createRef<Validation<T>>();
     }
     /**
@@ -170,13 +178,20 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             onModelReset,
             onModelChange,
             onSubmit,
-            ...rest,
+            ...rest
         } = this.props;
 
+        const context: IFormContext<T> = {
+            ...this.state,
+            configure,
+            handleReset: this.handleReset,
+            handleChange: this.handleChange
+        };
+
         return (
-            <Provider value={this.state}>
+            <Provider value={context}>
                 <form onSubmit={this.handleSubmit} {...rest}>
-                    <Transform ref={this.transformer}>
+                    <Transform ref={this.transform}>
                         <Validation ref={this.validation}>
                             {children}
                         </Validation>
@@ -209,15 +224,15 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
         if (event && configure.submitting.preventDefault) {
             event.preventDefault();
         }
-        this.setState(state => ({
+        this.setState(({ model }) => ({
             model: updateModelFields(
                 {
                     isChanged: false,
-                    isVisited: true,
+                    isVisited: true
                 },
-                state.model,
+                model
             ),
-            isChanged: false,
+            isChanged: false
         }));
         if (onSubmit) {
             onSubmit(event)(getValuesFromModel(this.state.model), this.validation.current.cacheErrors.isValid);
@@ -232,12 +247,12 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             onReset();
         }
         if (!values) {
-            this.setState(({ model }, props) => ({
-                model: props.initValues
-                    ? updateModel(props.initValues as T, EmptyModel as FormModel<T>)
+            this.setState(({ model }, { initValues }) => ({
+                model: initValues
+                    ? setModelValues(initValues as T, emptyModel as FormModel<T>)
                     : resetModel(model),
                 isChanged: false,
-                isSubmitting: false,
+                isSubmitting: false
             }));
         }
     }
@@ -245,19 +260,19 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
      * Update [[Field]] state with new `value` and sets form `isChanged` to `true`
      */
     private handleChange = (field: keyof T, value: IFieldState<T[typeof field]>) => {
-        this.setState(prev => {
-            if (prev.model[field] && shallowequal(prev.model[field], value)) {
+        this.setState(({ model: prevModel }) => {
+            if (prevModel[field] && shallowequal(prevModel[field], { ...prevModel[field] as any, ...value })) {
                 return null;
             }
-            const model = this.transformer.current.transform({ [field]: value } as any, prev.model) as any;
+            const model = this.transform.current.transform({ [field]: value } as any, prevModel);
 
             return {
                 model: mergeModels(
-                    model, prev.model,
-                    ({ value: _value }, { value: prevValue }) =>
-                        ({ isChanged: prevValue !== undefined && _value !== prevValue }),
+                    model, prevModel,
+                    ({ value: _value, isChanged: _isChanged }, { value: prevValue, isChanged }) =>
+                        ({ isChanged: (isChanged || _isChanged) || prevValue !== undefined && _value !== prevValue })
                 ),
-                isChanged: true,
+                isChanged: true
             };
         });
     }

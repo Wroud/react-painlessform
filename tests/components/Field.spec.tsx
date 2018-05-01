@@ -7,7 +7,8 @@ import * as ReactDOM from "react-dom";
 import { createRenderer, ShallowRenderer } from "react-test-renderer/shallow";
 import { FieldClass, IFieldProps, IFormState } from "../../src";
 import { IFieldClass } from "../../src/components/Field";
-import { updateModel } from "../../src/helpers/form";
+import { IFormContext } from "../../src/components/Form";
+import { setModelValues } from "../../src/helpers/form";
 
 use(assertArrays);
 describe("Field", () => {
@@ -16,25 +17,24 @@ describe("Field", () => {
     const onClick = () => "";
     const model = {
         field: 1,
-        field2: "123",
+        field2: "123"
     };
     const Field = FieldClass as any as IFieldClass<typeof model>;
 
     beforeEach(() => {
         renderer = createRenderer();
-        const formState: IFormState<typeof model> = {
-            model: updateModel(model, {} as any),
+        const formState: IFormContext<typeof model> = {
+            model: setModelValues(model, {} as any),
             isChanged: false,
             isSubmitting: false,
             handleChange: () => "handleChange",
-            handleReset: () => "handleReset",
-            handleTransform: () => "handleTransform",
+            handleReset: () => "handleReset"
         };
         renderer.render(
             <Field
                 name={"field2"}
                 value={model.field2}
-                formState={formState}
+                form={formState}
                 validationErrors={[{ message: "one" }]}
                 validationScope={[]}
                 isChanged={false}
@@ -45,7 +45,7 @@ describe("Field", () => {
                 rest={({})}
             >
                 {({ value }) => <div>{value}</div>}
-            </Field>,
+            </Field>
         );
     });
 
@@ -65,8 +65,8 @@ describe("Field", () => {
                 name,
                 validationErrors,
                 onChange: rOnChange,
-                onClick: rOnClick,
-            },
+                onClick: rOnClick
+            }
         } = resultInstance;
 
         assert.strictEqual(value, model.field2);
