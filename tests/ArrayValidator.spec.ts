@@ -39,4 +39,13 @@ describe("ArrayValidator", () => {
         chai.expect(withErrors).to.be.equalTo(["Requered"]);
     });
 
+    it("test empty model", () => {
+        const stringNotNull = (value: string, meta: boolean) => meta ? "Requered" : [];
+
+        const validator = createValidator<string, boolean>("not Null", stringNotNull);
+        const noErrors = validator.validate(undefined, false);
+
+        chai.expect(noErrors).to.length(0);
+    });
+
 });

@@ -48,4 +48,14 @@ describe("FieldValidator", () => {
         chai.expect(withErrors.field).to.be.equalTo(["Requered"]);
     });
 
+    it("test empty model", () => {
+        const stringNotNull = (value: string, meta: boolean) => meta ? "Requered" : [];
+
+        const validator = createValidator<string, boolean>("not Null", stringNotNull);
+        const fieldValidator = createFieldValidator<{ field: string }, string>("field", validator);
+
+        const noErrors = fieldValidator.validate(undefined, false);
+        chai.expect(noErrors).to.not.have.property("field");
+    });
+
 });

@@ -4,14 +4,10 @@ import * as Yup from "yup";
 import { FormErrors } from "./FormValidator";
 
 export function isArrayEqual(array0: any[], array1: any[]) {
-    if (array0 !== array1
-        && (array0 === undefined || array1 === undefined)
-    ) {
-        return false;
+    if (array0 === undefined || array1 === undefined) {
+        return array0 === array1;
     }
-    if (array0 !== undefined
-        && array1 !== undefined
-        && array0.length !== array1.length) {
+    if (array0.length !== array1.length) {
         return false;
     }
     for (const index in array0) {
