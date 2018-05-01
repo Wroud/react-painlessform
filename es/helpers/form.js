@@ -17,21 +17,21 @@ function updateModelFields(value, model) {
     return newModel;
 }
 exports.updateModelFields = updateModelFields;
-function updateModel(values, model, rest) {
+function setModelValues(values, model, rest) {
     const newModel = Object.assign({}, model);
     for (const key of Object.keys(values)) {
         newModel[key] = Object.assign({}, (newModel[key] || {}), { value: values[key] }, (rest || {}));
     }
     return newModel;
 }
-exports.updateModel = updateModel;
+exports.setModelValues = setModelValues;
 function resetModel(model) {
     let newModel = {};
     for (const key of Object.keys(model)) {
         newModel = Object.assign({}, newModel, { [key]: {
                 value: "",
                 isChanged: false,
-                isVisited: false,
+                isVisited: false
             } });
     }
     return newModel;
@@ -52,7 +52,7 @@ function getMapsFromModel(model) {
     const maps = {
         values: {},
         isChanged: {},
-        isVisited: {},
+        isVisited: {}
     };
     if (typeof model !== "object") {
         return undefined;

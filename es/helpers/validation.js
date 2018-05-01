@@ -5,7 +5,7 @@ function mergeValidations(validation, context) {
     return {
         isValid: !(!context.isValid || !validation.isValid),
         errors: tools_1.mergeFormErrors(context.errors, validation.errors),
-        scope: [...context.scope, ...validation.scope],
+        scope: [...context.scope, ...validation.scope]
     };
 }
 exports.mergeValidations = mergeValidations;

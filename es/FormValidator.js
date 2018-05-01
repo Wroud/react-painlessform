@@ -10,7 +10,7 @@ class FormValidator {
                     try {
                         validator.validateSync(data, {
                             abortEarly: false,
-                            context: meta || {},
+                            context: meta || {}
                         });
                     }
                     catch (_errors) {
@@ -18,7 +18,7 @@ class FormValidator {
                         if (__errors.path === undefined) {
                             __errors.inner.forEach(error => {
                                 errors = tools_1.mergeFormErrors(errors, {
-                                    [error.path]: error.errors.map(message => ({ message })),
+                                    [error.path]: error.errors.map(message => ({ message }))
                                 });
                             });
                         }

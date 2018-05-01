@@ -11,7 +11,7 @@ const NoScopeErrors = [];
 _a = React.createContext({
     errors: NoErrors,
     scope: NoScopeErrors,
-    isValid: true,
+    isValid: true
 }), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 class Validation extends React.Component {
     constructor() {
@@ -19,19 +19,19 @@ class Validation extends React.Component {
         this.cacheErrors = {
             errors: NoErrors,
             scope: NoScopeErrors,
-            isValid: true,
+            isValid: true
         };
         this.cacheData = {
             model: {},
             props: {},
-            state: {},
+            state: {}
         };
         this.validators = [];
         this.validate = (model) => {
             let validation = {
                 errors: NoErrors,
                 scope: NoScopeErrors,
-                isValid: this.props.isValid,
+                isValid: this.props.isValid
             };
             const values = form_1.getValuesFromModel(model);
             validation = validation_1.mergeValidations(this.validator(values), validation);
@@ -54,7 +54,7 @@ class Validation extends React.Component {
                 return {
                     errors: props.errors,
                     scope: props.scope,
-                    isValid: props.isValid,
+                    isValid: props.isValid
                 };
             }
             const state = this.state;
@@ -139,7 +139,7 @@ class Validation extends React.Component {
 }
 Validation.defaultProps = {
     isValid: true,
-    configure: {},
+    configure: {}
 };
 exports.Validation = Validation;
 var _a;

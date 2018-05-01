@@ -12,7 +12,7 @@ class FieldValidator {
             return {};
         }
         return {
-            [this.name]: this.validator.validate(this.selectValue(data), meta),
+            [this.name]: this.validator.validate(this.selectValue(data), meta)
         };
     }
 }

@@ -20,7 +20,7 @@ export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement>
      */
     configure?: IFormConfiguration;
     /**
-     * If `true` form will be reset and sets passed `values`
+     * If `true` form will be first reset and after sets passed `values`
      * example when you need set new values you want to reset all `isChanged`, `isVisited`
      * [[Field]] props to `false`
      */
@@ -49,9 +49,11 @@ export interface IFormState<T> {
     /**
      * Derived from props
      */
-    configure?: IFormConfiguration;
     isChanged: boolean;
     isSubmitting: boolean;
+}
+export interface IFormContext<T> extends IFormState<T> {
+    configure?: IFormConfiguration;
     /**
      * Reset form to `initValues` and call [[onReset]] from props
      */
@@ -68,7 +70,7 @@ export interface IForm<T = {}> extends Form<T> {
  * Default [[Form]] configuration
  */
 export declare const defaultConfiguration: IFormConfiguration;
-export declare const Provider: React.ComponentType<React.ProviderProps<IFormState<any>>>, Consumer: React.ComponentType<React.ConsumerProps<IFormState<any>>>;
+export declare const Provider: React.ComponentType<React.ProviderProps<IFormContext<any>>>, Consumer: React.ComponentType<React.ConsumerProps<IFormContext<any>>>;
 /**
  * Form component controlls [[Field]]s and passes [[FormContext]]
  */
@@ -76,11 +78,10 @@ export declare class Form<T = {}> extends React.Component<IFormProps<T>, IFormSt
     static defaultProps: Partial<IFormProps<any>>;
     static getDerivedStateFromProps(props: IFormProps<any>, state: IFormState<any>): {
         model: FormModel<any>;
-        configure: IFormConfiguration;
         isChanged: boolean;
         isSubmitting: boolean;
     };
-    private transformer;
+    private transform;
     private validation;
     constructor(props: IFormProps<T>);
     /**

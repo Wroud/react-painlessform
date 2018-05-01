@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const React = require("react");
-const formFactory_1 = require("../helpers/formFactory");
+const form_1 = require("../helpers/form");
 _a = React.createContext(undefined), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 class Transform extends React.Component {
     constructor() {
@@ -10,10 +10,11 @@ class Transform extends React.Component {
         this.transform = (values, prevModel) => {
             const { transformer } = this.props;
             let model = Object.assign({}, values);
-            const transformed = transformer ? transformer(model, prevModel) : {};
-            model = Object.assign({}, model, transformed);
+            if (transformer) {
+                model = form_1.mergeModels(transformer(model, prevModel), model);
+            }
             this.transformers.forEach(({ transform }) => {
-                model = Object.assign({}, model, transform(model, prevModel));
+                model = form_1.mergeModels(transform(model, prevModel), model);
             });
             return model;
         };
@@ -28,14 +29,13 @@ class Transform extends React.Component {
         };
     }
     render() {
-        const { FormContext } = formFactory_1.createFormFactory();
+        const context = {
+            mountTransform: this.mountTransform,
+            unMountTransform: this.unMountTransform
+        };
         return (React.createElement(exports.Consumer, null, transform => {
-            const context = {
-                mountTransform: this.mountTransform,
-                unMountTransform: this.unMountTransform,
-            };
             this._context = transform;
-            return (React.createElement(exports.Provider, { value: context }, this.props.children));
+            return React.createElement(exports.Provider, { value: context }, this.props.children);
         }));
     }
     componentDidMount() {

@@ -13,7 +13,7 @@ function createFormFactory() {
         FormContext: Form_1.Consumer,
         FieldContext: Field_1.Consumer,
         TransformContext: Transform_1.Consumer,
-        ValidationContext: Validation_1.Consumer,
+        ValidationContext: Validation_1.Consumer
     };
 }
 exports.createFormFactory = createFormFactory;

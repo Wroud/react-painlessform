@@ -16,15 +16,17 @@ const Transform_1 = require("./Transform");
 const Validation_1 = require("./Validation");
 exports.defaultConfiguration = {
     submitting: {
-        preventDefault: true,
-    },
+        preventDefault: true
+    }
 };
-const EmptyModel = {};
+const emptyModel = {};
 _a = React.createContext({
-    model: EmptyModel,
+    model: emptyModel,
     configure: exports.defaultConfiguration,
+    isChanged: false,
+    isSubmitting: false,
     handleReset: () => ({}),
-    handleChange: () => ({}),
+    handleChange: () => ({})
 }), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 class Form extends React.Component {
     constructor(props) {
@@ -34,12 +36,12 @@ class Form extends React.Component {
             if (event && configure.submitting.preventDefault) {
                 event.preventDefault();
             }
-            this.setState(state => ({
+            this.setState(({ model }) => ({
                 model: form_1.updateModelFields({
                     isChanged: false,
-                    isVisited: true,
-                }, state.model),
-                isChanged: false,
+                    isVisited: true
+                }, model),
+                isChanged: false
             }));
             if (onSubmit) {
                 onSubmit(event)(form_1.getValuesFromModel(this.state.model), this.validation.current.cacheErrors.isValid);
@@ -51,47 +53,47 @@ class Form extends React.Component {
                 onReset();
             }
             if (!values) {
-                this.setState(({ model }, props) => ({
-                    model: props.initValues
-                        ? form_1.updateModel(props.initValues, EmptyModel)
+                this.setState(({ model }, { initValues }) => ({
+                    model: initValues
+                        ? form_1.setModelValues(initValues, emptyModel)
                         : form_1.resetModel(model),
                     isChanged: false,
-                    isSubmitting: false,
+                    isSubmitting: false
                 }));
             }
         };
         this.handleChange = (field, value) => {
-            this.setState(prev => {
-                if (prev.model[field] && shallowequal(prev.model[field], value)) {
+            this.setState(({ model: prevModel }) => {
+                if (prevModel[field] && shallowequal(prevModel[field], Object.assign({}, prevModel[field], value))) {
                     return null;
                 }
-                const model = this.transformer.current.transform({ [field]: value }, prev.model);
+                const model = this.transform.current.transform({ [field]: value }, prevModel);
                 return {
-                    model: form_1.mergeModels(model, prev.model, ({ value: _value }, { value: prevValue }) => ({ isChanged: prevValue !== undefined && _value !== prevValue })),
-                    isChanged: true,
+                    model: form_1.mergeModels(model, prevModel, ({ value: _value, isChanged: _isChanged }, { value: prevValue, isChanged }) => ({ isChanged: (isChanged || _isChanged) || prevValue !== undefined && _value !== prevValue })),
+                    isChanged: true
                 };
             });
         };
+        const model = props.initValues
+            ? form_1.setModelValues(props.initValues, emptyModel, { isChanged: false, isVisited: false })
+            : emptyModel;
         this.state = {
-            model: props.initValues ? form_1.updateModel(props.initValues, EmptyModel) : EmptyModel,
+            model,
             isChanged: false,
-            isSubmitting: false,
-            handleReset: this.handleReset,
-            handleChange: this.handleChange,
+            isSubmitting: false
         };
-        this.transformer = React.createRef();
+        this.transform = React.createRef();
         this.validation = React.createRef();
     }
     static getDerivedStateFromProps(props, state) {
-        const { values, initValues, configure, isChanged, isSubmitting } = props;
+        const { values, isChanged, isSubmitting } = props;
         const model = props.isReset ? form_1.resetModel(state.model) : state.model;
         return {
             model: values
-                ? form_1.updateModel(values, model)
+                ? form_1.setModelValues(values, model)
                 : model,
-            configure,
             isChanged: isChanged !== undefined ? isChanged : state.isChanged,
-            isSubmitting: isSubmitting !== undefined ? isSubmitting : state.isSubmitting,
+            isSubmitting: isSubmitting !== undefined ? isSubmitting : state.isSubmitting
         };
     }
     shouldComponentUpdate(nextProps, nextState) {
@@ -115,9 +117,10 @@ class Form extends React.Component {
     }
     render() {
         const _a = this.props, { componentId, values, initValues, actions, children, configure, isReset, isChanged, isSubmitting, onModelReset, onModelChange, onSubmit } = _a, rest = __rest(_a, ["componentId", "values", "initValues", "actions", "children", "configure", "isReset", "isChanged", "isSubmitting", "onModelReset", "onModelChange", "onSubmit"]);
-        return (React.createElement(exports.Provider, { value: this.state },
+        const context = Object.assign({}, this.state, { configure, handleReset: this.handleReset, handleChange: this.handleChange });
+        return (React.createElement(exports.Provider, { value: context },
             React.createElement("form", Object.assign({ onSubmit: this.handleSubmit }, rest),
-                React.createElement(Transform_1.Transform, { ref: this.transformer },
+                React.createElement(Transform_1.Transform, { ref: this.transform },
                     React.createElement(Validation_1.Validation, { ref: this.validation }, children)))));
     }
     callModelChange(model, prevModel) {
@@ -132,7 +135,7 @@ class Form extends React.Component {
     }
 }
 Form.defaultProps = {
-    configure: exports.defaultConfiguration,
+    configure: exports.defaultConfiguration
 };
 exports.Form = Form;
 var _a;

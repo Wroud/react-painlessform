@@ -1,6 +1,6 @@
 /// <reference types="react" />
 import { FieldModelContext, IField } from "../components/Field";
-import { IForm, IFormState } from "../components/Form";
+import { IForm, IFormContext } from "../components/Form";
 import { ITransform, ITransformContext } from "../components/Transform";
 import { IValidation, IValidationContext } from "../components/Validation";
 export interface IConsumerProps<T> {
@@ -12,7 +12,7 @@ export interface IFormFactory<T> {
     Field: IField<T>;
     Transform: ITransform<T>;
     Validation: IValidation<T>;
-    FormContext: Consumer<IFormState<T>>;
+    FormContext: Consumer<IFormContext<T>>;
     FieldContext: Consumer<FieldModelContext<T>>;
     TransformContext: Consumer<ITransformContext<T>>;
     ValidationContext: Consumer<IValidationContext<T>>;

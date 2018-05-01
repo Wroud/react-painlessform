@@ -17,9 +17,9 @@ const defaultProps = {
     validationErrors: [],
     validationScope: [],
     rest: {},
-    formState: {
-        model: {},
-    },
+    form: {
+        model: {}
+    }
 };
 _a = React.createContext(defaultProps), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 class FieldClass extends React.Component {
@@ -35,7 +35,12 @@ class FieldClass extends React.Component {
             let nextValue;
             if (tools_1.isChangeEvent(value)) {
                 const { type, checked, value: targetValue } = value.target;
-                nextValue = type === "checkbox" ? checked : targetValue;
+                nextValue =
+                    /number|range/.test(type)
+                        ? parseFloat(targetValue)
+                        : /checkbox/.test(type)
+                            ? checked
+                            : targetValue;
             }
             else {
                 nextValue = value;
@@ -43,11 +48,11 @@ class FieldClass extends React.Component {
             this.update({
                 value: nextValue,
                 isVisited: true,
-                isChanged: true,
+                isChanged: true
             });
         };
         this.update = (nextValue) => {
-            const { formState: { handleChange }, name, value, isChanged, isVisited, onChange, } = this.props;
+            const { form: { handleChange }, name, value, isChanged, isVisited, onChange } = this.props;
             const updValue = Object.assign({ value,
                 isChanged,
                 isVisited }, (nextValue || {}));
@@ -60,16 +65,16 @@ class FieldClass extends React.Component {
     render() {
         const _a = this.props, { value, children } = _a, rest = __rest(_a, ["value", "children"]);
         const context = Object.assign({}, rest, { value: value === undefined ? "" : value, onChange: this.handleChange, onClick: this.onClick });
-        return (children && typeof children === "function"
+        return children && typeof children === "function"
             ? children(context)
-            : React.createElement(exports.Provider, { value: context }, children));
+            : React.createElement(exports.Provider, { value: context }, children);
     }
     componentDidMount() {
         if (this.props.value === undefined) {
             this.update({
                 value: "",
                 isVisited: false,
-                isChanged: false,
+                isChanged: false
             });
         }
     }
@@ -78,13 +83,13 @@ class FieldClass extends React.Component {
             this.update({
                 value: "",
                 isVisited: false,
-                isChanged: false,
+                isChanged: false
             });
         }
     }
     shouldComponentUpdate(nextProps) {
-        const { name: nextName, value: nextValue, isVisited: nextIsVisited, isChanged: nextIsChanged, isValid: nextIsValid, validationErrors: nextErrors, validationScope: nextScope, rest: nextRest, } = nextProps;
-        const { name, value, isVisited, isChanged, isValid, validationErrors, validationScope, rest, } = this.props;
+        const { name: nextName, value: nextValue, isVisited: nextIsVisited, isChanged: nextIsChanged, isValid: nextIsValid, validationErrors: nextErrors, validationScope: nextScope, rest: nextRest } = nextProps;
+        const { name, value, isVisited, isChanged, isValid, validationErrors, validationScope, rest } = this.props;
         if (!tools_1.isArrayEqual(validationErrors.map(error => error.message), nextErrors.map(error => error.message))
             || !tools_1.isArrayEqual(validationScope.map(error => error.message), nextScope.map(error => error.message))
             || !shallowequal(nextRest, rest)
@@ -93,7 +98,7 @@ class FieldClass extends React.Component {
                 value: nextValue,
                 isVisited: nextIsVisited,
                 isChanged: nextIsChanged,
-                isValid: nextIsValid,
+                isValid: nextIsValid
             }, { name, value, isVisited, isChanged, isValid })) {
             return true;
         }
@@ -124,7 +129,7 @@ class Field extends React.Component {
                 || validation.errors[name].length === 0)
                 && (validation.scope === undefined || validation.scope.length === 0);
             const _Field = FieldClass;
-            return (React.createElement(_Field, { name: name, value: value, validationErrors: validation.errors[name], validationScope: validation.scope, formState: formContext, isChanged: isChanged, isVisited: isVisited, isValid: isValid, onClick: onClick, onChange: onChange, children: children, rest: fullRest }));
+            return (React.createElement(_Field, { name: name, value: value, validationErrors: validation.errors[name], validationScope: validation.scope, form: formContext, isChanged: isChanged, isVisited: isVisited, isValid: isValid, onClick: onClick, onChange: onChange, children: children, rest: fullRest }));
         }))));
     }
 }
