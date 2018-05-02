@@ -1,9 +1,10 @@
 import * as React from "react";
 import shallowequal = require("shallowequal");
 
-import { getMapsFromModel, getValuesFromModel, mergeModels, resetModel, setModelValues, updateModelFields } from "../helpers/form";
+import { getMapsFromModel, getValuesFromModel, isValueEqual, mergeModels, resetModel, setModelValues, updateModelFields } from "../helpers/form";
 import { IFieldState } from "../interfaces/field";
-import { FormModel, IFormConfiguration } from "../interfaces/form";
+import { FormModel, IFormConfiguration, IFormFields } from "../interfaces/form";
+import { FieldClass, IField, IFieldClass } from "./Field";
 import { Transform } from "./Transform";
 import { Validation } from "./Validation";
 
@@ -36,7 +37,7 @@ export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement>
      * Fire when [[Form]] [[model]] changed
      */
     onModelChange?: (nextModel: T, prevModel: T) => any;
-    onReset?: () => any;
+    onReset?: (event: React.FormEvent<HTMLFormElement>) => any;
     /**
      * Fire when form submits
      */
@@ -124,7 +125,7 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             ? setModelValues(
                 props.initValues as T,
                 emptyModel as FormModel<T>,
-                { isChanged: false, isVisited: false }
+                { isChanged: false, isVisited: false, isFocus: false }
             )
             : emptyModel as FormModel<T>;
         this.state = {
@@ -178,6 +179,7 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             onModelReset,
             onModelChange,
             onSubmit,
+            onReset,
             ...rest
         } = this.props;
 
@@ -190,7 +192,7 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
 
         return (
             <Provider value={context}>
-                <form onSubmit={this.handleSubmit} {...rest}>
+                <form onSubmit={this.handleSubmit} onReset={this.handleReset} {...rest}>
                     <Transform ref={this.transform}>
                         <Validation ref={this.validation}>
                             {children}
@@ -228,6 +230,7 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
             model: updateModelFields(
                 {
                     isChanged: false,
+                    isFocus: false,
                     isVisited: true
                 },
                 model
@@ -241,10 +244,10 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
     /**
      * Reset form to [[initValues]]
      */
-    private handleReset = () => {
+    private handleReset = (event?: React.FormEvent<HTMLFormElement>) => {
         const { onReset, values } = this.props;
         if (onReset) {
-            onReset();
+            onReset(event);
         }
         if (!values) {
             this.setState(({ model }, { initValues }) => ({
@@ -252,7 +255,8 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
                     ? setModelValues(initValues as T, emptyModel as FormModel<T>)
                     : resetModel(model),
                 isChanged: false,
-                isSubmitting: false
+                isSubmitting: false,
+                isFocus: false
             }));
         }
     }
@@ -261,17 +265,35 @@ export class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> 
      */
     private handleChange = (field: keyof T, value: IFieldState<T[typeof field]>) => {
         this.setState(({ model: prevModel }) => {
-            if (prevModel[field] && shallowequal(prevModel[field], { ...prevModel[field] as any, ...value })) {
-                return null;
+            if (prevModel[field]) {
+                const { value: prevValue, ...flags } = prevModel[field] as any;
+                const { value: nextValue, ...nextFlags } = value as any;
+                if (shallowequal(flags, { ...flags, ...nextFlags })
+                    && isValueEqual(nextValue, prevValue)) {
+                    return null;
+                }
             }
-            const model = this.transform.current.transform({ [field]: value } as any, prevModel);
-
-            return {
-                model: mergeModels(
+            let model;
+            if ("unmount" in value) {
+                const { [field]: f, ...nextModel } = prevModel as any;
+                model = nextModel;
+            } else {
+                model = this.transform.current.transform({ [field]: value } as any, prevModel);
+                model = mergeModels(
                     model, prevModel,
                     ({ value: _value, isChanged: _isChanged }, { value: prevValue, isChanged }) =>
-                        ({ isChanged: (isChanged || _isChanged) || prevValue !== undefined && _value !== prevValue })
-                ),
+                        ({
+                            isChanged: _isChanged !== undefined
+                                ? _isChanged
+                                : (isChanged || _isChanged)
+                                || prevValue !== undefined
+                                && !isValueEqual(_value, prevValue)
+                        })
+
+                );
+            }
+            return {
+                model,
                 isChanged: true
             };
         });

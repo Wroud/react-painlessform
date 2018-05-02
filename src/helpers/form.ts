@@ -1,16 +1,14 @@
 import { IFieldState } from "../interfaces/field";
 import { FormModel, IModelMap } from "../interfaces/form";
+import { isArrayEqual, isFieldState } from "../tools";
 
 export function mergeModels<T>(value: Partial<FormModel<T>> | FormModel<T>, model: Partial<FormModel<T>> | FormModel<T>, rest?: (value: IFieldState<T>, prev: IFieldState<T>) => Partial<IFieldState<T>>) {
     const newModel: FormModel<T> = { ...(model as any) };
     for (const key of Object.keys(value)) {
-        const preState = {
-            ...(newModel[key] || {}),
-            ...value[key]
-        };
         newModel[key] = {
-            ...preState,
-            ...(rest ? rest(preState, (model[key] || {})) : {})
+            ...(newModel[key] || {}),
+            ...value[key],
+            ...(rest ? rest(value[key], (model[key] || {})) : {})
         };
     }
     return newModel;
@@ -49,6 +47,19 @@ export function setModelValues<T>(values: T, model: FormModel<T>, rest?: Partial
     return newModel;
 }
 
+export function isValueEqual<T>(one: IFieldState<T> | T, two: IFieldState<T> | T) {
+    if (isFieldState(one) && isFieldState(two)) {
+        if (Array.isArray(one.value) && Array.isArray(two.value)) {
+            return isArrayEqual(one.value, two.value);
+        }
+        return one.value === two.value;
+    } else {
+        if (Array.isArray(one) && Array.isArray(two)) {
+            return isArrayEqual(one, two);
+        }
+        return one === two;
+    }
+}
 /**
  * Sets all fields `value` to empty string and `isChanged` & `isVisited` to `false`
  * @param model [[Form]] `model`
@@ -61,7 +72,8 @@ export function resetModel<T>(model: FormModel<T>) {
             [key]: {
                 value: "",
                 isChanged: false,
-                isVisited: false
+                isVisited: false,
+                isFocus: false
             }
         };
     }
@@ -98,4 +110,76 @@ export function getMapsFromModel<T>(model: FormModel<T>): IModelMap<T> {
         maps.isChanged[key] = model[key].isChanged;
     }
     return maps;
+}
+
+export function getInputValue<T>(value: T, forwardedValue: T, type: string, multiple: boolean) {
+    if (/radio/.test(type)) {
+        return forwardedValue;
+    }
+    const defaultValue = multiple ? [] : "";
+    const castValue = type === "checkbox" && typeof value !== "boolean"
+        ? false
+        : /number|range/.test(type) && isNaN(value as any)
+            || value === undefined
+            ? defaultValue
+            : value;
+    return forwardedValue !== undefined
+        ? forwardedValue
+        : castValue;
+}
+
+export function getInputChecked<T>(value: T, forwardedValue: T, type: string) {
+    if (/checkbox/.test(type)) {
+        return value;
+    }
+    if (/radio/.test(type)) {
+        return value === forwardedValue;
+    }
+    return undefined;
+}
+
+export function getValue<T>(value: T, type: string, forwardedValue: T, index: number) {
+    if (index !== undefined && /checkbox/.test(type)) {
+        return Array.isArray(value) ? value.some(val => val === forwardedValue) : false;
+    }
+    const castValue = index === undefined
+        ? value
+        : Array.isArray(value)
+            ? value[index]
+            : undefined;
+
+    return type === "checkbox" && typeof castValue !== "boolean"
+        ? false
+        : castValue;
+}
+
+export function setValue<T>(
+    to: T[],
+    value: T,
+    forwardedValue: T,
+    type: string,
+    index: number,
+    unmounting: boolean,
+    multiple: boolean
+): T[] | T {
+    if (type === "checkbox") {
+        const castValue = typeof value !== "boolean" ? false : unmounting ? false : value;
+        if (index === undefined) {
+            return castValue as T;
+        }
+
+        const result = Array.isArray(to) ? to : [];
+        const currentIndex = result.indexOf(forwardedValue);
+        if (currentIndex > -1) {
+            return castValue ? result : result.slice(currentIndex, 1);
+        }
+        return castValue ? [...result, forwardedValue] : result;
+    }
+    const defaultValue = multiple ? [] : "";
+    if (index === undefined) {
+        return unmounting ? defaultValue : value as any;
+    }
+    const newValue = Array.isArray(to) ? [...to] : [];
+    newValue[index] = unmounting ? defaultValue : value as any;
+    return newValue;
 }

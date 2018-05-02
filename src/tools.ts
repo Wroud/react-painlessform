@@ -1,6 +1,7 @@
 import * as React from "react";
 import * as Yup from "yup";
 
+import { IFieldState } from "index";
 import { FormErrors } from "./FormValidator";
 
 export function isArrayEqual(array0: any[], array1: any[]) {
@@ -33,10 +34,18 @@ export function mergeFormErrors(one: FormErrors<any>, two: FormErrors<any>) {
     return merged;
 }
 
-export function isChangeEvent(object): object is React.ChangeEvent<HTMLInputElement> {
+export function isInputChangeEvent(object): object is React.ChangeEvent<HTMLInputElement> {
     return "target" in object;
+}
+
+export function isSelectChangeEvent(object): object is React.ChangeEvent<HTMLSelectElement> {
+    return "target" in object && "options" in object.target;
 }
 
 export function isYup(object): object is Yup.Schema<any> {
     return "validateSync" in object;
+}
+
+export function isFieldState(object): object is IFieldState<any> {
+    return typeof object === "object" && "value" in object;
 }
