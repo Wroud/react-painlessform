@@ -4,38 +4,34 @@ import "mocha";
 import * as React from "react";
 import { createRenderer, ShallowRenderer } from "react-test-renderer/shallow";
 import * as Yup from "yup";
-import { FormContext, IFormState, IValidationProps, Validation } from "../../src";
+
+import {
+    createFieldValidator,
+    createFormValidator,
+    createRawFormValidator,
+    createValidator,
+    FormContext,
+    IValidationProps,
+    Validation
+} from "../../src";
 import { defaultConfiguration, IFormContext } from "../../src/components/Form";
 
 use(assertArrays);
 describe("Validation", () => {
     let renderer: ShallowRenderer;
-    const validator = {
-        validate: model => {
-            const error = !model.field || model.field.length === 0 ? "Required" : undefined;
-            let errors = [];
-            if (error) {
-                errors = [{
-                    message: error
-                }];
-            }
-            return {
-                field: errors
-            };
-        }
-    };
-    const validatorScope = {
-        validate: model => {
-            const error = !model.field || model.field.length === 0 ? "Required" : undefined;
-            let errors = [];
-            if (error) {
-                errors = [{
-                    message: error
-                }];
-            }
-            return [...errors];
-        }
-    };
+    const fieldRequired = createValidator<string>("field", value => {
+        // console.log(">>>", value);
+        return !value || value.length === 0 ? ["Required"] : [];
+    });
+    const fieldValidator = createFieldValidator<any, string>(m => m.field, fieldRequired);
+    const validator = createFormValidator(fieldValidator);
+    const validatorScope = createRawFormValidator<any>(model => {
+        // return validator.validate(model);
+        return [{
+            selector: m => m.field,
+            scope: [{ message: "Required" }]
+        }];
+    });
 
     beforeEach(() => {
         renderer = createRenderer();
@@ -57,16 +53,11 @@ describe("Validation", () => {
             },
             scope: [{ message: "Required" }]
         };
-        const formState: Partial<IFormState<any>> = {
-            model: {
-                field: {
-                    value: "",
-                    isChanged: false,
-                    isVisited: false
-                }
-            }
+        const model = {
+            field: ""
         };
-        const validationResult = resultInstance.validate(formState.model);
+        const validationResult = resultInstance.validate(model);
+        // console.log(validationResult);
         expect(validationResult.isValid).to.be.equal(resultSnapshot.isValid);
         expect(validationResult.scope.map(error => error.message)).to.be.equalTo(resultSnapshot.scope.map(error => error.message));
         expect(validationResult.errors.field.map(error => error.message)).to.be.equalTo(resultSnapshot.errors.field.map(error => error.message));
@@ -104,21 +95,10 @@ describe("Validation Yup", () => {
             },
             scope: []
         };
-        const formState: IFormContext<any> = {
-            model: {
-                field: {
-                    value: "",
-                    isChanged: false,
-                    isVisited: false
-                }
-            },
-            isChanged: false,
-            configure: defaultConfiguration,
-            isSubmitting: false,
-            handleChange: () => "handleChange",
-            handleReset: () => "handleReset"
+        const values = {
+            field: ""
         };
-        const validationResult = resultInstance.validate(formState.model);
+        const validationResult = resultInstance.validate(values);
         expect(validationResult.isValid).to.be.equal(resultSnapshot.isValid);
         expect(validationResult.scope.map(error => error.message)).to.be.equalTo(resultSnapshot.scope);
         expect(validationResult.errors.field.map(error => error.message)).to.be.equalTo(resultSnapshot.errors.field.map(error => error.message));
@@ -128,15 +108,8 @@ describe("Validation Yup", () => {
         const result = renderer.getRenderOutput<React.ReactElement<IValidationProps<any>>>();
         const resultInstance = renderer.getMountedInstance() as Validation<any>;
 
-        const formState: IFormContext<any> = {
-            model: undefined,
-            isChanged: false,
-            configure: defaultConfiguration,
-            isSubmitting: false,
-            handleChange: () => "handleChange",
-            handleReset: () => "handleReset"
-        };
-        const validationResult = resultInstance.validate(formState.model);
+        const values = undefined;
+        const validationResult = resultInstance.validate(values);
         expect(validationResult.isValid).to.be.equal(true);
         expect(validationResult.scope.map(error => error.message)).to.be.equalTo([]);
         expect(validationResult.errors).to.be.deep.equal({});
@@ -171,21 +144,10 @@ describe("Validation Yup with config", () => {
             },
             scope: []
         };
-        const formState: IFormContext<any> = {
-            model: {
-                field: {
-                    value: "",
-                    isChanged: false,
-                    isVisited: false
-                }
-            },
-            isChanged: false,
-            configure: defaultConfiguration,
-            isSubmitting: false,
-            handleChange: () => "handleChange",
-            handleReset: () => "handleReset"
+        const values = {
+            field: ""
         };
-        const validationResult = resultInstance.validate(formState.model);
+        const validationResult = resultInstance.validate(values);
         expect(validationResult.isValid).to.be.equal(resultSnapshot.isValid);
         expect(validationResult.scope.map(error => error.message)).to.be.equalTo(resultSnapshot.scope);
         expect(validationResult.errors.field.map(error => error.message)).to.be.equalTo(resultSnapshot.errors.field.map(error => error.message));

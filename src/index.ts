@@ -1,7 +1,4 @@
 export {
-    IFieldState,
-} from "./interfaces/field";
-export {
     IFormConfiguration,
 } from "./interfaces/form";
 export {
@@ -24,10 +21,8 @@ export {
     Consumer as TransformContext,
 } from "./components/Transform";
 export {
-    IForm,
     Form,
     IFormProps,
-    IFormState,
     IFormContext,
     Consumer as FormContext,
 } from "./components/Form";
@@ -42,7 +37,6 @@ export {
 } from "./FieldValidator";
 export {
     createFormValidator,
-    FormErrors,
     FormValidator,
     createRawFormValidator,
 } from "./FormValidator";

@@ -1,32 +1,20 @@
-import { IFieldState } from "../interfaces/field";
-import { FormModel, IModelMap } from "../interfaces/form";
-import { isArrayEqual, isFieldState } from "../tools";
-
-export function mergeModels<T>(value: Partial<FormModel<T>> | FormModel<T>, model: Partial<FormModel<T>> | FormModel<T>, rest?: (value: IFieldState<T>, prev: IFieldState<T>) => Partial<IFieldState<T>>) {
-    const newModel: FormModel<T> = { ...(model as any) };
-    for (const key of Object.keys(value)) {
-        newModel[key] = {
-            ...(newModel[key] || {}),
-            ...value[key],
-            ...(rest ? rest(value[key], (model[key] || {})) : {})
-        };
-    }
-    return newModel;
-}
+import deepEqual = require("deep-equal");
+import { isArray } from "util";
+import { FieldSelector, FieldStateSelect, IFieldState, IUpdateEvent } from "../interfaces/field";
+import { FieldsState } from "../interfaces/form";
+import { autoCreateProxy, deepExtend, fromProxy, getPath, setPathValue } from "../tools";
 
 /**
  * Update `model` with [[Field]] `state`
  * @param value [[Field]]s state
  * @param model [[Form]] `model`
  */
-export function updateModelFields<T>(value: Partial<IFieldState<any>>, model: FormModel<T>) {
-    const newModel: FormModel<T> = { ...(model as any) };
-    for (const key of Object.keys(model)) {
-        newModel[key] = {
-            ...newModel[key],
-            ...value
-        };
-    }
+export function updateModelFields<T>(value: Partial<IFieldState>, model: FieldsState<T>, fields: Array<(model) => any>) {
+    const newModel: FieldsState<T> = { ...(model as any) };
+    fields.forEach(selector => {
+        const prevValue = fromProxy<FieldsState<T>, IFieldState>(autoCreateProxy(newModel), selector, {});
+        setPathValue(selector, newModel, { ...prevValue, ...value });
+    });
     return newModel;
 }
 
@@ -35,94 +23,68 @@ export function updateModelFields<T>(value: Partial<IFieldState<any>>, model: Fo
  * @param values fields values
  * @param model [[Form]] `model`
  */
-export function setModelValues<T>(values: T, model: FormModel<T>, rest?: Partial<IFieldState<T>>) {
-    const newModel: FormModel<T> = { ...(model as any) };
-    for (const key of Object.keys(values)) {
-        newModel[key] = {
-            ...(newModel[key] || {}),
-            value: values[key],
-            ...(rest || {})
-        };
-    }
-    return newModel;
+export function setModelValues<T extends object>(value: T, model: T, rest?: Partial<IFieldState>) {
+    const newValue: T = { ...model as any };
+    deepExtend(newValue, value);
+    return { model: newValue, isChanged: deepEqual(model, newValue) };
 }
 
-export function isValueEqual<T>(one: IFieldState<T> | T, two: IFieldState<T> | T) {
-    if (isFieldState(one) && isFieldState(two)) {
-        if (Array.isArray(one.value) && Array.isArray(two.value)) {
-            return isArrayEqual(one.value, two.value);
-        }
-        return one.value === two.value;
-    } else {
-        if (Array.isArray(one) && Array.isArray(two)) {
-            return isArrayEqual(one, two);
-        }
-        return one === two;
-    }
-}
-/**
- * Sets all fields `value` to empty string and `isChanged` & `isVisited` to `false`
- * @param model [[Form]] `model`
- */
-export function resetModel<T>(model: FormModel<T>) {
-    let newModel: FormModel<T> = {} as any;
-    for (const key of Object.keys(model)) {
-        newModel = {
-            ...newModel as any,
-            [key]: {
-                value: "",
-                isChanged: false,
-                isVisited: false,
-                isFocus: false
-            }
-        };
-    }
-    return newModel;
+export function updateField<T, M>(field: FieldStateSelect<M>, index: number, value: T, state: IFieldState) {
+    return { field, index, value, state };
 }
 
-/**
- * Selects `values` from [[Form]] `model`
- * @param model [[Form]] `model`
- */
-export function getValuesFromModel<T>(model: FormModel<T>): T {
-    const values: T = {} as any;
-    if (typeof model !== "object") {
-        return undefined;
-    }
-    for (const key of Object.keys(model)) {
-        values[key] = model[key].value;
-    }
-    return values;
-}
+export const isField = <TModel>(state: TModel, from: IUpdateEvent) => {
+    const path = getPath(from.selector, state);
+    return (field: FieldSelector<TModel>) => {
+        return path.includes(getPath(field, state));
+    };
+};
 
-export function getMapsFromModel<T>(model: FormModel<T>): IModelMap<T> {
-    const maps = {
-        values: {},
-        isChanged: {},
-        isVisited: {}
-    } as IModelMap<T>;
-    if (typeof model !== "object") {
-        return undefined;
-    }
-    for (const key of Object.keys(model)) {
-        maps.values[key] = model[key].value;
-        maps.isVisited[key] = model[key].isVisited;
-        maps.isChanged[key] = model[key].isChanged;
-    }
-    return maps;
-}
+// export function isDiffEqual<T>(diff: IFieldState<T> | Array<IFieldState<T>>, value: IFieldState<T> | Array<IFieldState<T>>) {
+//     if (!diff || !value) {
+//         return diff === value;
+//     }
+//     if (Array.isArray(diff)) {
+//         for (const index of diff) {
+//             if (Array.isArray(diff[index].value) && Array.isArray(value.value)) {
+//                 return isArrayEqual(diff.value, value.value);
+//             }
+//         }
+//     }
+//     if (Array.isArray(diff.value) && Array.isArray(value.value)) {
+//         return isArrayEqual(diff.value, value.value);
+//     }
+//     return diff.value === value.value;
+// }
+
+// export function isValueEqual<T>(one: IFieldState<T> | T, two: IFieldState<T> | T) {
+//     if (!one || !two) {
+//         return one === two;
+//     }
+//     if (isFieldState(one) && isFieldState(two)) {
+//         if (Array.isArray) {
+//             if (Array.isArray(one.value) && Array.isArray(two.value)) {
+//                 return isArrayEqual(one.value, two.value);
+//             }
+//         }
+//         return one.value === two.value;
+//     } else {
+//         if (Array.isArray(one) && Array.isArray(two)) {
+//             return isArrayEqual(one, two);
+//         }
+//         return one === two;
+//     }
+// }
 
 export function getInputValue<T>(value: T, forwardedValue: T, type: string, multiple: boolean) {
-    if (/radio/.test(type)) {
+    if (/radio/.test(type) || /checkbox/.test(type)) {
         return forwardedValue;
     }
     const defaultValue = multiple ? [] : "";
-    const castValue = type === "checkbox" && typeof value !== "boolean"
-        ? false
-        : /number|range/.test(type) && isNaN(value as any)
-            || value === undefined
-            ? defaultValue
-            : value;
+    const castValue = /number|range/.test(type) && isNaN(value as any)
+        || value === undefined
+        ? defaultValue
+        : value;
     return forwardedValue !== undefined
         ? forwardedValue
         : castValue;
@@ -130,7 +92,8 @@ export function getInputValue<T>(value: T, forwardedValue: T, type: string, mult
 
 export function getInputChecked<T>(value: T, forwardedValue: T, type: string) {
     if (/checkbox/.test(type)) {
-        return value;
+        // console.log(">>>", value, forwardedValue);
+        return forwardedValue !== undefined && isArray(value) ? value.indexOf(forwardedValue) !== -1 : value;
     }
     if (/radio/.test(type)) {
         return value === forwardedValue;
@@ -138,48 +101,16 @@ export function getInputChecked<T>(value: T, forwardedValue: T, type: string) {
     return undefined;
 }
 
-export function getValue<T>(value: T, type: string, forwardedValue: T, index: number) {
-    if (index !== undefined && /checkbox/.test(type)) {
-        return Array.isArray(value) ? value.some(val => val === forwardedValue) : false;
+export function getValue<T>(value: T, type: string, forwardedValue: T, multiple: boolean) {
+    if (/checkbox/.test(type)) {
+        return value || false;
+        return typeof value === "boolean"
+            ? value
+            : value === forwardedValue;
     }
-    const castValue = index === undefined
-        ? value
-        : Array.isArray(value)
-            ? value[index]
-            : undefined;
-
-    return type === "checkbox" && typeof castValue !== "boolean"
-        ? false
-        : castValue;
-}
-
-export function setValue<T>(
-    to: T[],
-    value: T,
-    forwardedValue: T,
-    type: string,
-    index: number,
-    unmounting: boolean,
-    multiple: boolean
-): T[] | T {
-    if (type === "checkbox") {
-        const castValue = typeof value !== "boolean" ? false : unmounting ? false : value;
-        if (index === undefined) {
-            return castValue as T;
-        }
-
-        const result = Array.isArray(to) ? to : [];
-        const currentIndex = result.indexOf(forwardedValue);
-        if (currentIndex > -1) {
-            return castValue ? result : result.slice(currentIndex, 1);
-        }
-        return castValue ? [...result, forwardedValue] : result;
+    if (/number/.test(type)) {
+        return value === undefined ? 0 : value;
     }
-    const defaultValue = multiple ? [] : "";
-    if (index === undefined) {
-        return unmounting ? defaultValue : value as any;
-    }
-    const newValue = Array.isArray(to) ? [...to] : [];
-    newValue[index] = unmounting ? defaultValue : value as any;
-    return newValue;
+
+    return value === undefined ? multiple ? [] : "" : value;
 }

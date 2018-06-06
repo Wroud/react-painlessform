@@ -4,7 +4,7 @@
     "baseUrl": "./src",
     "module": "commonjs",
     "moduleResolution": "node",
-    "target": "es5",
+    "target": "esnext",
     "declaration": true,
     "jsx": "react",
     "noImplicitAny": false,

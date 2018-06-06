@@ -1,36 +1,47 @@
 import { IValidator } from "./ArrayValidator";
-import { FormErrors, IErrorMessage } from "./FormValidator";
+import { IErrorMessage } from "./FormValidator";
+import { FieldSelector, ModelFieldSelector } from "./interfaces/field";
+import { ErrorsSelector, IValidationErrors } from "./interfaces/validation";
 
-export class FieldValidator<TSource, TValue, TMeta = {}> implements IValidator<TSource, FormErrors<TSource>, TMeta> {
-    private name: keyof TSource;
-    private validator: IValidator<TValue | TSource[keyof TSource], Array<IErrorMessage<any>>, TMeta>;
-    private selectValue: (source: TSource) => TValue | TSource[keyof TSource];
+export class FieldValidator<TModel, TValue, TMeta = {}>
+    implements IValidator<TModel, IValidationErrors, TMeta> {
+
+    private field: ModelFieldSelector<TModel, TValue>;
+    private validator: IValidator<TValue, string, TMeta>;
 
     constructor(
-        name: keyof TSource,
-        validator: IValidator<TValue | TSource[keyof TSource], Array<IErrorMessage<any>>, TMeta>,
-        selectValue?: (source: TSource) => TValue | TSource[keyof TSource]
+        field: ModelFieldSelector<TModel, TValue>,
+        validator: IValidator<TValue, string, TMeta>
     ) {
-        this.name = name;
-        this.selectValue = selectValue || (data => data[name]);
+        this.field = field;
         this.validator = validator;
         this.validate = this.validate.bind(this);
     }
 
-    validate(data: TSource, meta: TMeta): FormErrors<TSource> {
-        if (data === undefined || this.selectValue(data) === undefined) {
-            return {} as FormErrors<TSource>;
+    *validate(data: TModel, meta?: TMeta) {
+        if (data === undefined || this.field(data) === undefined) {
+            return;
         }
-        return {
-            [this.name]: this.validator.validate(this.selectValue(data), meta)
-        } as FormErrors<TSource>;
+        const iterator = this.validator.validate(this.field(data), meta);
+        const errors: Array<IErrorMessage<TMeta>> = [];
+        let result: IteratorResult<string>;
+        do {
+            result = iterator.next();
+            if (result.value === undefined) {
+                break;
+            }
+            errors.push({ message: result.value });
+        } while (!result.done);
+        yield {
+            selector: this.field as any,
+            errors
+        } as IValidationErrors;
     }
 }
 
-export function createFieldValidator<TSource, TValue, TMeta = {}>(
-    name: keyof TSource,
-    validator: IValidator<TValue | TSource[keyof TSource], Array<IErrorMessage<any>>, TMeta>,
-    seelctValue?: (source: TSource) => TValue | TSource[keyof TSource]
-): IValidator<TSource, FormErrors<TSource>, TMeta> {
-    return new FieldValidator(name, validator, seelctValue);
+export function createFieldValidator<TModel, TValue, TMeta = {}>(
+    field: ModelFieldSelector<TModel, TValue>,
+    validator: IValidator<TValue, string, TMeta>
+) {
+    return new FieldValidator(field, validator);
 }

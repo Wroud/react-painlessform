@@ -1,21 +1,22 @@
 import * as React from "react";
 
-import { mergeModels } from "../helpers/form";
-import { FormModel } from "../interfaces/form";
+import { isField } from "../helpers/form";
+import { FieldSelector, IUpdateEvent } from "../interfaces/field";
+import { IFormStorage } from "../interfaces/form";
 
 /**
  * Describes [[Transform]] props
  */
-export interface ITranformProps<T> {
+export interface ITranformProps<T extends object> {
     /**
      * Transformer function that accepts changed `field` and his `value` and form `model`
      * and returns fields map to update values
      */
-    transformer?: (values: Partial<FormModel<T>>, model: FormModel<T>) => Partial<FormModel<T>>;
+    transformer?: (value: IUpdateEvent, is: (field: FieldSelector<T>) => boolean, state: IFormStorage<T>) => IterableIterator<IUpdateEvent>;
     [key: string]: any;
 }
 
-export interface ITransformContext<T> {
+export interface ITransformContext<T extends object> {
     mountTransform: (transformer: Transform<T>) => any;
     unMountTransform: (transformer: Transform<T>) => any;
     // transform: (field: keyof T, value: IFieldState<T[typeof field]>) => any;
@@ -23,7 +24,7 @@ export interface ITransformContext<T> {
 
 export const { Provider, Consumer } = React.createContext<ITransformContext<any>>(undefined);
 
-export interface ITransform<T> extends Transform<T> {
+export interface ITransform<T extends object> extends Transform<T> {
     new(props: ITranformProps<T>): Transform<T>;
 }
 
@@ -31,19 +32,22 @@ export interface ITransform<T> extends Transform<T> {
  * Transform is React Component that accpts [[ITranformProps]] as props
  * and passes [[transformer]] function as [[TransformContext]]
  */
-export class Transform<T> extends React.Component<ITranformProps<T>> {
+export class Transform<T extends object> extends React.Component<ITranformProps<T>> {
     private transformers: Array<Transform<T>> = [];
     private _context: ITransformContext<T>;
-    transform = (values: Partial<FormModel<T>>, prevModel: FormModel<T>) => {
+    transform = (events: IterableIterator<IUpdateEvent>, state: IFormStorage<T>) => {
         const { transformer } = this.props;
-        let model: Partial<FormModel<T>> = { ...values as any };
+
+        let next = events;
+
         if (transformer) {
-            model = mergeModels(transformer(model, prevModel), model);
+            next = this.generator(next, transformer, state);
         }
+
         this.transformers.forEach(({ transform }) => {
-            model = mergeModels(transform(model, prevModel), model);
+            next = transform(next, state);
         });
-        return model;
+        return next;
     }
     render() {
         const context = {
@@ -76,7 +80,25 @@ export class Transform<T> extends React.Component<ITranformProps<T>> {
     private unMountTransform = (value: Transform<T>) => {
         const id = this.transformers.indexOf(value);
         if (id > -1) {
-            this.transformers.slice(id, 1);
+            this.transformers.splice(id, 1);
         }
+    }
+    private *generator(
+        iterator: IterableIterator<IUpdateEvent>,
+        transformer: (value: IUpdateEvent, is: (field: FieldSelector<T>) => boolean, state: IFormStorage<T>) => IterableIterator<IUpdateEvent>,
+        state: IFormStorage<T>
+    ) {
+        let result: IteratorResult<IUpdateEvent>;
+        do {
+            result = iterator.next();
+            if (!result.value) {
+                break;
+            }
+            yield* transformer(
+                result.value,
+                isField(state.values, result.value),
+                state
+            );
+        } while (!result.done);
     }
 }

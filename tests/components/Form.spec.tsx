@@ -5,19 +5,18 @@ import * as React from "react";
 
 import { mount, ReactWrapper, shallow } from "enzyme";
 
-import { createFormFactory, IFieldState } from "../../src";
-import { IForm, IFormProps, IFormState } from "../../src/components/Form";
-import { getValuesFromModel } from "../../src/helpers/form";
-import { FormModel } from "../../src/interfaces/form";
+import { createFormFactory } from "../../src";
+import { IForm, IFormProps } from "../../src/components/Form";
+import { FieldSelector, IUpdateEvent } from "../../src/interfaces/field";
+import { IFormStorage } from "../../src/interfaces/form";
 
 use(assertArrays);
 
 describe("Form", () => {
     interface IProps {
-        name: any;
+        name: (model: IModel) => any;
         type: string;
         multiple?: boolean;
-        index?: number;
         value?: any;
     }
     interface IModel {
@@ -29,8 +28,10 @@ describe("Form", () => {
         field6: string;
         min: number;
         max: number;
-        select: string;
-        select2: string[];
+        selectors: {
+            select: string;
+            select2: string[];
+        };
     }
 
     const { Form, Field, Validation, Transform, FieldContext, FormContext } = createFormFactory<IModel>();
@@ -45,8 +46,38 @@ describe("Form", () => {
         field6: "hhm1",
         min: 0,
         max: 1,
-        select: "2",
-        select2: ["1", "2"]
+        selectors: {
+            select: "2",
+            select2: ["1", "2"]
+        }
+    };
+    const expectedValues: IModel = {
+        field: 1,
+        field2: "kek",
+        field3: false,
+        field4: ["gologo", "shui", ""],
+        field5: ["hm1"],
+        field6: "hhm1",
+        min: 0,
+        max: 1,
+        selectors: {
+            select: "2",
+            select2: ["1", "2"]
+        }
+    };
+    const expectedDefault: IModel = {
+        field: 0,
+        field2: "",
+        field3: false,
+        field4: ["", "", ""],
+        field5: [],
+        field6: "",
+        min: 0,
+        max: 0,
+        selectors: {
+            select: "",
+            select2: []
+        }
     };
     const transformTestValue = -2232;
     let newValues = {};
@@ -56,17 +87,17 @@ describe("Form", () => {
 
     let rand = -1;
 
-    const MountField = ({ name, type, value, index }: IProps) => {
+    const MountField = ({ name, type, value, multiple }: IProps) => {
         rand++;
         if (rand % 2 === 0) {
             return (
-                <Field name={name} type={type} value={value} index={index}>
+                <Field name={name} type={type} value={value} multiple={multiple}>
                     {({ inputHook }) => <input {...inputHook} />}
                 </Field>
             );
         } else {
             return (
-                <Field name={name} type={type} value={value} index={index}>
+                <Field name={name} type={type} value={value} multiple={multiple}>
                     <FieldContext>{({ inputHook }) => <input {...inputHook} />}</FieldContext>
                 </Field>
             );
@@ -84,34 +115,35 @@ describe("Form", () => {
         </Field>
     );
 
-    const transformer = (_values: Partial<FormModel<IModel>>, model: FormModel<IModel>): Partial<FormModel<IModel>> => {
-        if ("min" in _values && model.max) {
-            if (_values.min.value > model.max.value) {
-                return {
-                    max: { value: _values.min.value }
-                } as any;
-            }
+    function* transformer(_values: IUpdateEvent, is: (field: FieldSelector<IModel>) => boolean, state: IFormStorage<IModel>): IterableIterator<IUpdateEvent> {
+        if (is(f => f.min) && _values.value > state.values.max) {
+            yield {
+                selector: f => f.max,
+                value: _values.value,
+                state: {} as any
+            };
         }
-        if ("max" in _values && model.min) {
-            if (_values.max.value < model.min.value) {
-                return {
-                    min: { value: _values.max.value }
-                } as any;
-            }
+        if (is(f => f.max) && _values.value < state.values.min) {
+            yield {
+                selector: f => f.min,
+                value: _values.value,
+                state: {} as any
+            };
         }
-        return {};
-    };
+        yield _values;
+    }
 
-    const transformer2 = (_values: Partial<FormModel<IModel>>, model: FormModel<IModel>): Partial<FormModel<IModel>> => {
-        if ("field" in _values) {
-            if (model.field && model.max && _values.field.value !== model.field.value) {
-                return {
-                    max: { value: transformTestValue }
-                } as any;
-            }
+    function* transformer2(_values: IUpdateEvent, is: (field: FieldSelector<IModel>) => boolean, state: IFormStorage<IModel>): IterableIterator<IUpdateEvent> {
+        if (is(f => f.field)
+            && _values.value !== state.values.field && _values.value === 15) {
+            yield {
+                selector: f => f.max,
+                value: transformTestValue,
+                state: {} as any
+            };
         }
-        return {};
-    };
+        yield _values;
+    }
     const onModelChange = model => {
         newValues = model;
     };
@@ -129,32 +161,63 @@ describe("Form", () => {
             <FormContext>
                 {context => (
                     <React.Fragment>
-                        <MountSelect type={"select"} name={"select"} multiple={false} />
-                        <MountSelect type={"select"} name={"select2"} multiple={true} />
-                        {!context.unmount ? <MountField type={"number"} name={"field"} /> : null}
-                        <MountField type={"checkbox"} value={"hm0"} name={"field5"} index={0} />
-                        {!context.unmount ? <MountField type={"checkbox"} value={"hm1"} name={"field5"} index={1} /> : null}
-                        <MountField type={"checkbox"} value={"hm2"} name={"field5"} index={2} />
-                        <MountField type={"radio"} value={"hhm0"} name={"field6"} />
-                        {!context.unmount ? <MountField type={"radio"} value={"hhm1"} name={"field6"} /> : null}
-                        <MountField type={"radio"} value={"hhm2"} name={"field6"} />
-                        <MountField type={"text"} name={"field4"} index={0} />
-                        {!context.unmount ? <MountField type={"text"} name={"field4"} index={1} /> : null}
-                        <MountField type={"text"} name={"field4"} index={2} />
+                        {!context.storage.unmount ? <MountField name={f => f.field} type={"number"} /> : null}
                         <Transform transformer={transformer2}>
-                            <MountField type={"text"} name={"field2"} />
-                            <MountField type={"checkbox"} value={"hm"} name={"field3"} />
-                            <Transform transformer={transformer}>
-                                <MountField type={"number"} name={"min"} />
-                                <MountField type={"number"} name={"max"} />
-                            </Transform>
+                            <MountField name={f => f.field2} type={"text"} />
+                            <MountField name={f => f.field3} type={"checkbox"} value={"hm"} />
+                            {!context.storage.unmount ? (<Transform transformer={transformer}>
+                                <MountField type={"number"} name={f => f.min} />
+                                <MountField type={"number"} name={f => f.max} />
+                            </Transform>) : null}
                         </Transform>
+                        <MountField name={f => f.field4[0]} type={"text"} />
+                        {!context.storage.unmount ? <MountField name={f => f.field4[1]} type={"text"} /> : null}
+                        <MountField name={f => f.field4[2]} type={"text"} />
+                        <MountField name={f => f.field5} type={"checkbox"} value={"hm0"} multiple={true} />
+                        {!context.storage.unmount ? <MountField name={f => f.field5} type={"checkbox"} value={"hm1"} multiple={true} /> : null}
+                        <MountField name={f => f.field5} type={"checkbox"} value={"hm2"} multiple={true} />
+                        <MountField name={f => f.field6} type={"radio"} value={"hhm0"} />
+                        {!context.storage.unmount ? <MountField name={f => f.field6} type={"radio"} value={"hhm1"} /> : null}
+                        <MountField name={f => f.field6} type={"radio"} value={"hhm2"} />
+                        <MountSelect name={f => f.selectors.select} type={"select"} multiple={false} />
+                        <MountSelect name={f => f.selectors.select2} type={"select"} multiple={true} />
                         <button type="reset" id="reset" />
                     </React.Fragment>
                 )}
             </FormContext>
         </Form>
     );
+
+    const testValues = (model: IModel) => {
+        expect(wrapper.find(`input[name='field']`).props().value)
+            .to.be.equal(model.field);
+        expect(wrapper.find(`input[name='field2']`).props().value)
+            .to.be.equal(model.field2);
+        expect(wrapper.find(`input[name='field3']`).props().checked)
+            .to.be.equal(model.field3);
+        expect(wrapper.find(`input[name='min']`).props().value)
+            .to.be.equal(model.min);
+        expect(wrapper.find(`input[name='max']`).props().value)
+            .to.be.equal(model.max);
+        expect(wrapper.find(`input[name='field4[0]']`).props().value)
+            .to.be.equal(model.field4[0]);
+        expect(wrapper.find(`input[name='field4[1]']`).props().value)
+            .to.be.equal(model.field4[1]);
+        expect(wrapper.find(`input[name='field4[2]']`).props().value)
+            .to.be.equal(model.field4[2]);
+        wrapper.find(`input[name='field5']`).forEach(input => {
+            expect(input.props().checked)
+                .to.be.equal(model.field5.indexOf(input.props().value as string) !== -1);
+        });
+        wrapper.find(`input[name='field6']`).forEach(input => {
+            expect(input.props().checked)
+                .to.be.equal(model.field6 === input.props().value);
+        });
+        expect(wrapper.find(`select[name='selectors.select']`).props().value)
+            .to.be.equal(model.selectors.select);
+        expect(wrapper.find(`select[name='selectors.select2']`).props().value)
+            .to.be.equalTo(model.selectors.select2);
+    };
 
     beforeEach(() => {
         wrapper = mount(ExForm({ initValues: values, onSubmit, onReset, onModelChange }));
@@ -163,175 +226,94 @@ describe("Form", () => {
     it("does mount with init values to state model", () => {
         const {
             props: { values: v },
-            state: { model }
-        } = wrapper.instance() as IForm<IModel>;
+            getStorage
+        } = wrapper.instance() as any as IForm<IModel>;
 
-        assert.deepEqual(values, getValuesFromModel(model));
+        // console.log(getStorage.values);
+        assert.deepEqual(expectedValues, getStorage.values);
 
-        Object.keys(values).forEach(key => {
-            const inputs = wrapper.find(`input[name='${key}']`);
-            inputs.forEach((input, index) => {
-                const type = input.props().type;
-                if (/checkbox/.test(type)) {
-                    if (inputs.length === 1) {
-                        expect(input.props().checked).to.be.equal(values[key] || false);
-                    } else {
-                        expect(input.props().checked).to.be.equal(values[key].some(val => val === input.props().value));
-                    }
-                } else if (/radio/.test(type)) {
-                    expect(input.props().checked).to.be.equal(input.props().value === values[key]);
-                } else {
-                    const value = inputs.length > 1 ? values[key][index] : values[key];
-                    expect(input.props().value).to.be.equal(value === undefined ? "" : value);
-                }
-            });
-        });
+        testValues(expectedValues);
     });
 
     it("does field mounts correct without init values", () => {
         wrapper = mount(ExForm({ onModelChange }));
 
         const {
-            state: { model }
+            getStorage
         } = wrapper.instance() as IForm<IModel>;
 
-        Object.keys(values).forEach(key => {
-            const inputs = wrapper.find(`input[name='${key}']`);
-            inputs.forEach((input, index) => {
-                const type = input.props().type;
-                if (/checkbox/.test(type)) {
-                    if (inputs.length === 1) {
-                        expect(input.props().checked).to.be.equal(false);
-                    } else {
-                        expect(input.props().checked).to.be.equal(false);
-                    }
-                } else if (/radio/.test(type)) {
-                    expect(input.props().checked).to.be.equal(false);
-                } else {
-                    expect(input.props().value).to.be.equal("");
-                }
-            });
-            assert.strictEqual(model[key].isChanged, false);
-            assert.strictEqual(model[key].isVisited, false);
-            assert.strictEqual(model[key].isFocus, false);
-        });
+        // console.log(getStorage.values);
+        assert.deepEqual(getStorage.values, expectedDefault);
+
+        testValues(expectedDefault);
     });
 
     it("does values correct & reset", () => {
         wrapper = mount(ExForm({ values }));
 
         const {
-            state: { model }
+            getStorage: storage
         } = wrapper.instance() as IForm<IModel>;
 
-        assert.deepEqual(values, getValuesFromModel(model));
+        // console.log(storage.values);
+        assert.deepEqual(storage.values, expectedValues);
 
-        Object.keys(values).forEach(key => {
-            const inputs = wrapper.find(`input[name='${key}']`);
-            inputs.forEach((input, index) => {
-                const type = input.props().type;
-                if (/checkbox/.test(type)) {
-                    if (inputs.length === 1) {
-                        expect(input.props().checked).to.be.equal(values[key] || false);
-                    } else {
-                        expect(input.props().checked).to.be.equal(values[key].some(val => val === input.props().value));
-                    }
-                } else if (/radio/.test(type)) {
-                    expect(input.props().checked).to.be.equal(input.props().value === values[key]);
-                } else {
-                    const value = inputs.length > 1 ? values[key][index] : values[key];
-                    expect(input.props().value).to.be.equal(value === undefined ? "" : value);
-                }
-            });
-        });
+        testValues(storage.values);
 
         wrapper.setProps({ values: {}, isReset: true });
-        const {
-            state: { model: model2 }
-        } = wrapper.instance() as IForm<IModel>;
+        const { getStorage } = wrapper.instance() as IForm<IModel>;
 
-        Object.keys(values).forEach(key => {
-            const inputs = wrapper.find(`input[name='${key}']`);
-            inputs.forEach((input, index) => {
-                const type = input.props().type;
-                if (/checkbox/.test(type)) {
-                    if (inputs.length === 1) {
-                        expect(input.props().checked).to.be.equal(false);
-                    } else {
-                        expect(input.props().checked).to.be.equal(false);
-                    }
-                } else if (/radio/.test(type)) {
-                    expect(input.props().checked).to.be.equal(false);
-                } else {
-                    expect(input.props().value).to.be.equal("");
-                }
-            });
-            assert.strictEqual(model[key].isChanged || false, false);
-            assert.strictEqual(model[key].isVisited || false, false);
-            assert.strictEqual(model[key].isFocus || false, false);
-        });
+        // console.log(getStorage.values);
+        testValues(expectedDefault);
     });
 
     it("does clean reset", () => {
-        wrapper = mount(ExForm({}));
+        wrapper = mount(ExForm({ initValues: values }));
         wrapper.find("#reset").simulate("click");
 
         const {
-            state: { model: model2 }
+            getStorage: storage
         } = wrapper.instance() as IForm<IModel>;
 
-        Object.keys(values).forEach(key => {
-            const inputs = wrapper.find(`input[name='${key}']`);
-            inputs.forEach((input, index) => {
-                const type = input.props().type;
-                if (/checkbox/.test(type)) {
-                    if (inputs.length === 1) {
-                        expect(input.props().checked).to.be.equal(false);
-                    } else {
-                        expect(input.props().checked).to.be.equal(false);
-                    }
-                } else if (/radio/.test(type)) {
-                    expect(input.props().checked).to.be.equal(false);
-                } else {
-                    expect(input.props().value).to.be.equal("");
-                }
-            });
-            assert.strictEqual(model2[key].isChanged, false);
-            assert.strictEqual(model2[key].isVisited, false);
-            assert.strictEqual(model2[key].isFocus, false);
-        });
+        // console.log(storage.values);
+        assert.deepEqual(storage.values, expectedValues);
+
+        testValues(expectedValues);
     });
 
     it("does set fields visited after submit", () => {
         wrapper.find("form").simulate("submit");
 
         const {
-            state: { model }
+            getStorage: { state },
+            getFields
         } = wrapper.instance() as IForm<IModel>;
 
-        Object.keys(model).forEach(key => {
-            assert.strictEqual(model[key].isVisited, true);
+        getFields.forEach(({ props: { name } }) => {
+            assert.strictEqual(name(state as any).isVisited, true);
         });
-        assert.deepEqual(values, submittedValues);
+        assert.deepEqual(expectedValues, submittedValues);
         assert.strictEqual(isSubmitted, true);
     });
 
     it("does set initValues to model after reset and isChanged & isVisited to false", () => {
-        wrapper.find("#reset").simulate("click");
+        wrapper.find("form").simulate("reset");
+        // wrapper.find("#reset").simulate("click");
         // wrapper.setProps({ values: undefined, isReset: true });
 
         const {
-            state: { model }
+            getStorage: { state, values: v },
+            getFields
         } = wrapper.instance() as IForm<IModel>;
 
-        assert.deepEqual(values, getValuesFromModel(model));
+        assert.deepEqual(v, values);
+        // console.log(state);
 
-        Object.keys(model).forEach(key => {
-            assert.strictEqual(model[key].isVisited || false, false);
-            assert.strictEqual(model[key].isChanged || false, false);
-            assert.strictEqual(model[key].isFocus || false, false);
+        getFields.forEach(({ props: { name } }) => {
+            assert.strictEqual(name(state as any).isVisited || false, false);
+            assert.strictEqual(name(state as any).isChanged || false, false);
+            assert.strictEqual(name(state as any).isFocus || false, false);
         });
-        assert.strictEqual(isSubmitted, true);
     });
 
     it("does update model after input clicked / focused", () => {
@@ -339,7 +321,7 @@ describe("Form", () => {
         wrapper.find("input[name='field2']").simulate("focus");
 
         const {
-            state: { model }
+            getStorage: { state: model }
         } = wrapper.instance() as IForm<IModel>;
 
         assert.strictEqual(model.field2.isFocus, true);
@@ -348,7 +330,7 @@ describe("Form", () => {
         wrapper.find("input[name='field2']").simulate("blur");
 
         const {
-            state: { model: model2 }
+            getStorage: { state: model2 }
         } = wrapper.instance() as IForm<IModel>;
 
         assert.strictEqual(model2.field2.isFocus, false);
@@ -360,11 +342,11 @@ describe("Form", () => {
         wrapper.find("input[name='field3']").simulate("change", { target: { type: "checkbox", checked: true } });
 
         const {
-            state: { model }
+            getStorage: { state: model, values: v }
         } = wrapper.instance() as IForm<IModel>;
 
         assert.strictEqual(wrapper.find("input[name='field2']").props().value, "TestValue");
-        assert.strictEqual(model.field2.value, "TestValue");
+        assert.strictEqual(v.field2, "TestValue");
         assert.strictEqual(model.field2.isChanged, true);
         assert.strictEqual(model.field2.isVisited, true);
 
@@ -380,8 +362,8 @@ describe("Form", () => {
 
         // tslint:disable-next-line:forin
         for (const index in values.field4) {
-            wrapper.find("Field[index=" + index + "]").find("input[name='field4']").simulate("change", { target: { value: "TestValue" + index } });
-            assert.strictEqual(wrapper.find("Field[index=" + index + "]").find("input[name='field4']").props().value, "TestValue" + index);
+            wrapper.find(`input[name='field4[${index}]']`).simulate("change", { target: { value: "TestValue" + index } });
+            assert.strictEqual(wrapper.find(`input[name='field4[${index}]']`).props().value, "TestValue" + index);
         }
     });
 
@@ -430,35 +412,40 @@ describe("Form", () => {
         //     field4: ["gologo", "shui"], // shui unmounted
         //     field5: ["hm1"], // hm1 unmounted
         //     field6: "hhm1", // unmounted
-        //     min: 0,
-        //     max: 1
+        //     min: 0, //
+        //     max: 1 //
         // };
-        wrapper.setState({ unmount: true });
+        ((wrapper.instance() as IForm<IModel>).getStorage as any).unmount = true;
+        wrapper.setProps({});
         const {
-            state: { model }
+            getStorage: { values: model }
         } = wrapper.instance() as IForm<IModel>;
+        // console.log(model);
         expect(model.field).to.be.equal(undefined);
-        expect(model.field4.value).to.be.equalTo(["gologo", "", ""]);
-        expect(model.field5.value).to.be.equalTo([]);
-        expect(model.field6.value).to.be.equal("");
+        expect(model.field4).to.be.equalTo(["gologo", "", ""]);
+        expect(model.field5).to.be.equalTo([]);
+        expect(model.field6).to.be.equal("");
+        ((wrapper.instance() as IForm<IModel>).getStorage as any).unmount = false;
     });
 
     it("does transform correct", () => {
         wrapper.find("input[name='field']").simulate("change", { target: { value: 15 } });
 
         const {
-            state: { model }
+            getStorage: { values: model, state }
         } = wrapper.instance() as IForm<IModel>;
 
-        assert.strictEqual(wrapper.find("input[name='field']").props().value, 15);
-        assert.strictEqual(model.field.value, 15);
-        assert.strictEqual(model.field.isChanged, true);
-        assert.strictEqual(model.field.isVisited, true);
+        // console.log(model);
 
-        assert.strictEqual(model.max.value, transformTestValue);
-        assert.strictEqual(model.max.isChanged, true);
-        assert.strictEqual(model.min.value, transformTestValue);
-        assert.strictEqual(model.min.isChanged, true);
+        assert.strictEqual(wrapper.find("input[name='field']").props().value, 15);
+        assert.strictEqual(model.field, 15);
+        assert.strictEqual(state.field.isChanged, true);
+        assert.strictEqual(state.field.isVisited, true);
+
+        assert.strictEqual(model.max, transformTestValue);
+        assert.strictEqual(state.max.isChanged, true);
+        assert.strictEqual(model.min, transformTestValue);
+        assert.strictEqual(state.min.isChanged, true);
     });
 
     it("does transform correctly", () => {
@@ -466,43 +453,45 @@ describe("Form", () => {
         wrapper.find("input[name='min']").simulate("change", { target: { value: "60" } });
 
         const {
-            state: { model }
+            getStorage: { values: model }
         } = wrapper.instance() as IForm<IModel>;
 
-        assert.strictEqual(model.min.value, 60);
-        assert.strictEqual(model.max.value, 60);
+        assert.strictEqual(model.min, 60);
+        assert.strictEqual(model.max, 60);
 
         wrapper.find("input[name='max']").simulate("change", { target: { value: "12" } });
 
         const {
-            state: { model: model2 }
+            getStorage: { values: model2 }
         } = wrapper.instance() as IForm<IModel>;
 
-        assert.strictEqual(model2.min.value, 12);
-        assert.strictEqual(model2.max.value, 12);
+        assert.strictEqual(model2.min, 12);
+        assert.strictEqual(model2.max, 12);
 
         wrapper.find("input[name='max']").simulate("change", { target: { value: "20" } });
 
         const {
-            state: { model: model3 }
+            getStorage: { values: model3 }
         } = wrapper.instance() as IForm<IModel>;
 
-        assert.strictEqual(model3.min.value, 12);
-        assert.strictEqual(model3.max.value, 20);
+        assert.strictEqual(model3.min, 12);
+        assert.strictEqual(model3.max, 20);
     });
 
     it("does field remounts correct", () => {
-        wrapper.setState(({ model: { field2, ...newModel } }) => ({
-            model: newModel
-        }));
+        const storage = (wrapper.instance() as IForm<IModel>).getStorage;
+
+        delete storage.values.field2;
+        delete storage.state.field2;
+        wrapper.setProps({});
 
         const {
-            state: { model }
+            getStorage: { values: model, state }
         } = wrapper.instance() as IForm<IModel>;
         assert.strictEqual(wrapper.find("input[name='field2']").props().value, "");
-        assert.strictEqual(model.field2.value, "");
-        assert.strictEqual(model.field2.isChanged, false);
-        assert.strictEqual(model.field2.isVisited, false);
-        assert.strictEqual(model.field2.isFocus, false);
+        assert.strictEqual(model.field2, "");
+        assert.strictEqual(state.field2.isChanged, false);
+        assert.strictEqual(state.field2.isVisited, false);
+        assert.strictEqual(state.field2.isFocus, false);
     });
 });

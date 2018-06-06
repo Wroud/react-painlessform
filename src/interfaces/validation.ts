@@ -1,4 +1,6 @@
 import { IValidationProps } from "../components/Validation";
+import { IErrorMessage } from "../FormValidator";
+import { FieldSelector, FieldStateSelect } from "./field";
 
 export type GetType<T> = T extends (...args: any[]) => infer P ? P : T;
 
@@ -15,3 +17,21 @@ export interface IValidationMeta<T> {
 
 // tslint:disable-next-line:no-empty-interface
 export interface IValidationConfiguration { }
+
+export interface IValidationState<T> {
+    errors: ValidationModel<T>;
+    scope: Array<IErrorMessage<any>>;
+    isValid: boolean;
+}
+
+export type ErrorsSelector = (model: ValidationModel<any>) => Array<IErrorMessage<any>>;
+
+export interface IValidationErrors {
+    selector: ErrorsSelector;
+    errors?: Array<IErrorMessage<any>>;
+    scope?: Array<IErrorMessage<any>>;
+}
+
+export type ValidationModel<T> = {
+    [P in keyof T]: T[P] extends Array<infer S> ? S extends object ? Array<ValidationModel<S>> : Array<Array<IErrorMessage<any>>> : T[P] extends object ? ValidationModel<T[P]> : Array<IErrorMessage<any>>;
+};

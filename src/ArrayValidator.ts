@@ -1,37 +1,32 @@
 export type Validator<TValue, TError, TMeta = {}> = (data: TValue, meta?: TMeta) => TError;
 
 export interface IValidator<TValue, TError, TMeta = {}> {
-    validate(data: TValue, meta?: TMeta): TError;
+    validate: Validator<TValue, IterableIterator<TError>, TMeta>;
 }
 
-export class ArrayValidator<TValue, TError, TMeta = {}> implements IValidator<TValue, TError[] | TError, TMeta> {
+export class ArrayValidator<TValue, TError, TMeta = {}> implements IValidator<TValue, TError, TMeta> {
     private name: string;
-    private validators: Array<Validator<TValue, TError[] | TError, TMeta>>;
+    private validators: Array<Validator<TValue, TError[], TMeta>>;
 
-    constructor(name: string, validators: Array<Validator<TValue, TError[] | TError, TMeta>>) {
+    constructor(name: string, validators: Array<Validator<TValue, TError[], TMeta>>) {
         this.name = name;
         this.validators = validators;
         this.validate = this.validate.bind(this);
     }
 
-    validate(data, meta) {
-        let errors = [];
+    *validate(data, meta?) {
         if (data === undefined) {
-            return errors;
+            return;
         }
-        this.validators.forEach(validator => {
-            const validatorErrors = validator(data, meta);
-            errors = Array.isArray(validatorErrors)
-                ? [...errors, ...validatorErrors]
-                : [...errors, validatorErrors];
-        });
-        return errors;
+        for (const validator of this.validators) {
+            yield* validator(data, meta);
+        }
     }
 }
 
 export function createValidator<TValue, TMeta = {}>(
     name: string,
-    ...validator: Array<Validator<TValue, string | string[], TMeta>>
-): IValidator<TValue, string[], TMeta> {
+    ...validator: Array<Validator<TValue, string[], TMeta>>
+) {
     return new ArrayValidator(name, validator);
 }
