@@ -21,10 +21,9 @@ exports.defaultConfiguration = {
         preventDefault: true
     }
 };
-const emptyModel = {};
 const defaultStorage = {
-    values: emptyModel,
-    state: emptyModel,
+    values: {},
+    state: {},
     config: exports.defaultConfiguration,
     validation: {
         errors: {},
@@ -120,8 +119,8 @@ class Form extends React.Component {
             this.callModelChange(prevValues);
         };
         this.storage = defaultStorage;
-        this.storage.state = props.state || props.initState || emptyModel;
-        this.storage.values = props.values || props.initValues || emptyModel;
+        this.storage.state = props.state || props.initState || {};
+        this.storage.values = props.values || props.initValues || {};
         this.storage.isChanged = props.isChanged || false;
         this.storage.isSubmitting = props.isSubmitting || false;
         this.transform = React.createRef();
@@ -176,7 +175,7 @@ class Form extends React.Component {
     }
     resetToInital(initalValues) {
         const { storage, fields, props: { initValues } } = this;
-        storage.values = initalValues || initValues || emptyModel;
+        storage.values = initalValues || initValues || {};
         this.updateState({
             isChanged: false,
             isFocus: false,
