@@ -2,41 +2,35 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const React = require("react");
 const util_1 = require("util");
+const __1 = require("..");
 const validation_1 = require("../helpers/validation");
 const tools_1 = require("../tools");
-const Form_1 = require("./Form");
 const NoErrors = {};
-const NoScopeErrors = [];
+const NoScope = [];
 _a = React.createContext({
-    validation: {
-        errors: NoErrors,
-        scope: NoScopeErrors,
-        isValid: true
-    }
+    scope: NoScope,
+    isValid: true
 }), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 class Validation extends React.Component {
     constructor(props) {
         super(props);
         this.validators = [];
-        this.validate = (values) => {
-            this.validationState = {
-                errors: {},
-                scope: [],
-                isValid: this.props.isValid
-            };
+        this.validate = ({ values, validation }) => {
+            this.validationContext.scope = [];
+            this.validationContext.isValid = true;
             const errorsCollection = this.validator(values);
             tools_1.forEachElement(errorsCollection, ({ selector, scope, errors }) => {
-                if (scope) {
-                    this.validationState.scope.push(...scope);
-                    this.validationState.isValid = scope.length === 0 && this.validationState.isValid;
+                if (util_1.isArray(scope) && scope.length > 0) {
+                    this.validationContext.scope.push(...scope);
+                    this.validationContext.isValid = false;
                 }
-                if (util_1.isArray(errors) && selector) {
-                    const validationError = tools_1.fromProxy(tools_1.autoCreateProxy(this.validationState.errors), selector, []);
-                    tools_1.setPathValue([...validationError, ...errors], selector, this.validationState.errors);
-                    this.validationState.isValid = false;
+                if (util_1.isArray(errors) && errors.length > 0 && selector) {
+                    const validationError = tools_1.fromProxy(tools_1.autoCreateProxy(validation.errors), selector, []);
+                    tools_1.setPathValue([...validationError, ...errors], selector, validation.errors);
+                    this.validationContext.isValid = false;
                 }
             });
-            return this.validationState;
+            validation.isValid = validation.isValid && this.validationContext.isValid;
         };
         this.mountValidation = (value) => {
             this.validators.push(value);
@@ -48,20 +42,27 @@ class Validation extends React.Component {
             }
         };
         this.validator = this.validator.bind(this);
+        this.validationContext = {
+            scope: NoScope,
+            isValid: true,
+            mountValidation: this.mountValidation,
+            unMountValidation: this.unMountValidation
+        };
+    }
+    smartValidate(storage) {
+        this.validate(storage);
+        for (const _validator of this.validators) {
+            _validator.smartValidate(storage);
+        }
     }
     render() {
-        return (React.createElement(exports.Consumer, null, validationContext => (React.createElement(Form_1.Consumer, null, formContext => {
+        const { FormContext, ValidationContext } = __1.createFormFactory();
+        return (React.createElement(ValidationContext, null, validationContext => (React.createElement(FormContext, null, formContext => {
             this._context = validationContext.mountValidation
                 ? validationContext
                 : undefined;
-            const context = {
-                validation: this._context
-                    ? validationContext.validation
-                    : this.validate(formContext.storage.values),
-                mountValidation: this.mountValidation,
-                unMountValidation: this.unMountValidation
-            };
-            return React.createElement(exports.Provider, { value: context }, this.props.children);
+            this.validate(formContext.storage);
+            return React.createElement(exports.Provider, { value: this.validationContext }, this.props.children);
         }))));
     }
     componentDidMount() {
@@ -76,31 +77,24 @@ class Validation extends React.Component {
     }
     *validator(model) {
         const props = validation_1.getProps(this.props);
-        const { validator, scopeValidator } = props;
+        const state = this.state;
+        const { errors, validator, scopeValidator, configure: config } = props;
         if (!model || (!validator && !scopeValidator)) {
             return;
         }
-        if (this.props.errors) {
-            yield* this.props.errors.values();
+        if (errors) {
+            yield* errors;
         }
-        else {
-            yield* this.generator(validator, scopeValidator, model, props, this.state);
-        }
-        for (const _validator of this.validators) {
-            yield* _validator.validator(model);
-        }
-    }
-    *generator(validator, scopeValidator, model, props, state) {
         if (validator) {
             if (tools_1.isYup(validator)) {
-                yield* validation_1.yupValidator(validator, model, { state, props }, props.configure);
+                yield* validation_1.yupValidator(validator, model, { state, props }, config);
             }
             else {
-                yield* validator.validate(model, { state, props });
+                yield* validator.validate(model, { state, props, config });
             }
         }
         if (scopeValidator) {
-            yield* scopeValidator.validate(model, { state, props });
+            yield* scopeValidator.validate(model, { state, props, config });
         }
     }
 }

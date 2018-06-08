@@ -10,12 +10,12 @@ export declare type ValidationProps<T extends IValidationPropGetters> = {
 export interface IValidationMeta<T> {
     state: any;
     props: ValidationProps<IValidationProps<T>>;
+    config: any;
 }
 export interface IValidationConfiguration {
 }
 export interface IValidationState<T> {
     errors: ValidationModel<T>;
-    scope: Array<IErrorMessage<any>>;
     isValid: boolean;
 }
 export declare type ErrorsSelector = (model: ValidationModel<any>) => Array<IErrorMessage<any>>;

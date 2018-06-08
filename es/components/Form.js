@@ -28,7 +28,6 @@ const defaultStorage = {
     config: exports.defaultConfiguration,
     validation: {
         errors: {},
-        scope: [],
         isValid: true
     },
     isChanged: false,
@@ -103,7 +102,11 @@ class Form extends React.Component {
             }
             this.storage.isChanged = true;
             if (this.validation.current) {
-                this.storage.validation = this.validation.current.validate(this.storage.values);
+                this.storage.validation = {
+                    errors: {},
+                    isValid: true
+                };
+                this.validation.current.smartValidate(this.storage);
             }
             updatedFields.forEach(selector => {
                 this.fields.forEach(field => {
