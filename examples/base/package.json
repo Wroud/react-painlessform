@@ -6,7 +6,7 @@
     "yup": "0.23.0",
     "react-dom": "16.4.0",
     "react": "16.4.0",
-    "react-painlessform": "3.0.0-alpha2",
+    "react-painlessform": "3.0.0-alpha3",
     "classnames": "2.2.5"
   },
   "devDependencies": {
