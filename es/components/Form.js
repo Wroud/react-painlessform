@@ -74,6 +74,7 @@ class Form extends React.Component {
             }
             if (!values) {
                 this.resetToInital();
+                this.invokeFieldsUpdate();
             }
         };
         this.handleChange = (event) => {
