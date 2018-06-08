@@ -70,7 +70,7 @@ const Label = ({ className, children, ...props }) => (
 
 const TextInput = ({ label, name, type, placeholder }) => {
   return (
-    <Field name={name} subscribe={({ isSubmitting }) => ({ isSubmitting })}>
+    <Field name={name} type={type} subscribe={({ isSubmitting }) => ({ isSubmitting })}>
       {({
         value,
         isVisited,
@@ -111,7 +111,7 @@ const TextInput = ({ label, name, type, placeholder }) => {
 function* transformer(event, is, { values }) {
   const { value } = event;
   if (is(f => f.min)) {
-    if (parseInt(value) > parseInt(values.max)) {
+    if (value > values.max) {
       yield {
         selector: f => f.max,
         value,
@@ -120,7 +120,7 @@ function* transformer(event, is, { values }) {
     }
   }
   if (is(f => f.max)) {
-    if (parseInt(value) < parseInt(values.min)) {
+    if (value < values.min) {
       yield {
         selector: f => f.min,
         value,
@@ -156,6 +156,11 @@ class MyForm extends React.Component {
       submitErrors: {},
       submitting: false
     };
+    this.initValues = {
+      firstName: "",
+      min: 0,
+      max: 0
+    };
   }
   handleReset = () => {
     this.setState({
@@ -189,11 +194,7 @@ class MyForm extends React.Component {
         onReset={this.handleReset}
         onSubmit={this.handleSubmit}
         isSubmitting={this.state.submitting}
-        initValues={{
-          firstName: "",
-          min: 0,
-          max: 0
-        }}
+        initValues={this.initValues}
       >
         <FormContext>
           {({ isSubmitting }) => (
