@@ -82,7 +82,6 @@ const defaultStorage: IFormStorage<{}> = {
     config: defaultConfiguration,
     validation: {
         errors: {},
-        scope: [],
         isValid: true
     },
     isChanged: false,
@@ -154,7 +153,6 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
         }
         this.storage.isChanged = isChanged !== undefined ? isChanged : this.storage.isChanged;
         this.storage.isSubmitting = isSubmitting !== undefined ? isSubmitting : this.storage.isSubmitting;
-
         return true;
     }
 
@@ -317,7 +315,11 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
         }
         this.storage.isChanged = true;
         if (this.validation.current) {
-            this.storage.validation = this.validation.current.validate(this.storage.values);
+            this.storage.validation = {
+                errors: {} as any,
+                isValid: true
+            };
+            this.validation.current.smartValidate(this.storage);
         }
 
         updatedFields.forEach(selector => {

@@ -13,6 +13,7 @@ export type ValidationProps<T extends IValidationPropGetters> = { [P in keyof T]
 export interface IValidationMeta<T> {
     state: any;
     props: ValidationProps<IValidationProps<T>>;
+    config: any;
 }
 
 // tslint:disable-next-line:no-empty-interface
@@ -20,7 +21,6 @@ export interface IValidationConfiguration { }
 
 export interface IValidationState<T> {
     errors: ValidationModel<T>;
-    scope: Array<IErrorMessage<any>>;
     isValid: boolean;
 }
 

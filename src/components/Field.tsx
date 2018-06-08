@@ -385,7 +385,7 @@ export class Field<TValue, TModel extends object> extends React.Component<IField
             <FormContext>
                 {formContext => (
                     <ValidationContext>
-                        {({ validation }) => {
+                        {({ scope }) => {
                             this.formContext = formContext;
                             let fullRest = rest;
                             if (subscribe !== undefined) {
@@ -401,7 +401,7 @@ export class Field<TValue, TModel extends object> extends React.Component<IField
                                 {}
                             );
                             const errors = fromProxy(
-                                autoCreateProxy(validation.errors),
+                                autoCreateProxy(formContext.storage.validation.errors),
                                 name as any as ErrorsSelector,
                                 []
                             );
@@ -421,7 +421,7 @@ export class Field<TValue, TModel extends object> extends React.Component<IField
                                     value={value}
                                     forwardedValue={forwardedValue}
                                     validationErrors={errors}
-                                    validationScope={validation.scope}
+                                    validationScope={scope}
                                     form={formContext}
                                     isChanged={isChanged}
                                     isVisited={isVisited}
