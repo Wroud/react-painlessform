@@ -144,6 +144,10 @@ class Form extends React.Component {
             this.storage.values = newValues;
             this.storage.isChanged = this.storage.isChanged || isValuesChanged;
         }
+        this.storage.validation = {
+            errors: {},
+            isValid: true
+        };
         this.storage.isChanged = isChanged !== undefined ? isChanged : this.storage.isChanged;
         this.storage.isSubmitting = isSubmitting !== undefined ? isSubmitting : this.storage.isSubmitting;
         return true;
@@ -178,6 +182,10 @@ class Form extends React.Component {
             isFocus: false,
             isVisited: false
         });
+        this.storage.validation = {
+            errors: {},
+            isValid: true
+        };
         storage.isChanged = false;
         storage.isSubmitting = false;
     }

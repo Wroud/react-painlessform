@@ -78,23 +78,18 @@ class Validation extends React.Component {
     *validator(model) {
         const props = validation_1.getProps(this.props);
         const state = this.state;
-        const { errors, validator, scopeValidator, configure: config } = props;
-        if (!model || (!validator && !scopeValidator)) {
+        const { errors, validator, configure: config } = props;
+        if (!model || !validator) {
             return;
         }
         if (errors) {
             yield* errors;
         }
-        if (validator) {
-            if (tools_1.isYup(validator)) {
-                yield* validation_1.yupValidator(validator, model, { state, props }, config);
-            }
-            else {
-                yield* validator.validate(model, { state, props, config });
-            }
+        if (tools_1.isYup(validator)) {
+            yield* validation_1.yupValidator(validator, model, { state, props }, config);
         }
-        if (scopeValidator) {
-            yield* scopeValidator.validate(model, { state, props, config });
+        else {
+            yield* validator.validate(model, { state, props, config });
         }
     }
 }

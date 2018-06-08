@@ -19,10 +19,6 @@ export interface IValidationProps<T> {
      */
     validator?: IValidator<T, IValidationErrors, IValidationMeta<T>> | Yup.Schema<T>;
     /**
-     * Function thet accepts form valus and returns scope erros
-     */
-    scopeValidator?: IValidator<T, IValidationErrors, IValidationMeta<T>>;
-    /**
      * Via this prop you can configure `Yup` validation
      */
     configure?: IValidationConfiguration & Yup.ValidateOptions;
