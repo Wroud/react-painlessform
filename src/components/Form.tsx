@@ -151,6 +151,10 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
             this.storage.values = newValues as any;
             this.storage.isChanged = this.storage.isChanged || isValuesChanged;
         }
+        this.storage.validation = {
+            errors: {} as any,
+            isValid: true
+        };
         this.storage.isChanged = isChanged !== undefined ? isChanged : this.storage.isChanged;
         this.storage.isSubmitting = isSubmitting !== undefined ? isSubmitting : this.storage.isSubmitting;
         return true;
@@ -219,6 +223,10 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
             isFocus: false,
             isVisited: false
         });
+        this.storage.validation = {
+            errors: {} as any,
+            isValid: true
+        };
         storage.isChanged = false;
         storage.isSubmitting = false;
     }

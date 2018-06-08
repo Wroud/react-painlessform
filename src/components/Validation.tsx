@@ -24,10 +24,6 @@ export interface IValidationProps<T> {
      */
     validator?: IValidator<T, IValidationErrors, IValidationMeta<T>> | Yup.Schema<T>;
     /**
-     * Function thet accepts form valus and returns scope erros
-     */
-    scopeValidator?: IValidator<T, IValidationErrors, IValidationMeta<T>>;
-    /**
      * Via this prop you can configure `Yup` validation
      */
     configure?: IValidationConfiguration & Yup.ValidateOptions;
@@ -147,24 +143,19 @@ export class Validation<T extends object> extends React.Component<IValidationPro
     private *validator(model: T): IterableIterator<IValidationErrors> {
         const props = getProps(this.props);
         const state = this.state;
-        const { errors, validator, scopeValidator, configure: config } = props;
+        const { errors, validator, configure: config } = props;
 
-        if (!model || (!validator && !scopeValidator)) {
+        if (!model || !validator) {
             return;
         }
 
         if (errors) {
             yield* errors;
         }
-        if (validator) {
-            if (isYup(validator)) {
-                yield* yupValidator(validator, model, { state, props }, config);
-            } else {
-                yield* validator.validate(model, { state, props, config });
-            }
-        }
-        if (scopeValidator) {
-            yield* scopeValidator.validate(model, { state, props, config });
+        if (isYup(validator)) {
+            yield* yupValidator(validator, model, { state, props }, config);
+        } else {
+            yield* validator.validate(model, { state, props, config });
         }
     }
     private mountValidation = (value: Validation<T>) => {

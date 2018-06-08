@@ -22,19 +22,19 @@ describe("Validation", () => {
         return !value || value.length === 0 ? ["Required"] : [];
     });
     const fieldValidator = createFieldValidator<any, string>(m => m.field, fieldRequired);
-    const validator = createFormValidator(fieldValidator);
     const validatorScope = createRawFormValidator<any>(model => {
         return [{
             selector: undefined,
             scope: [{ message: "Required" }]
         }][Symbol.iterator]();
     });
+    const validator = createFormValidator(fieldValidator, validatorScope);
 
     const { Form, Validation, Field } = createFormFactory<{ field: string }>();
     beforeEach(() => {
         wrapper = mount(
             <Form>
-                <Validation validator={validator} scopeValidator={validatorScope}>
+                <Validation validator={validator}>
                     <Field name={f => f.field}>
                         {({ inputHook }) => <input {...inputHook} />}
                     </Field>
