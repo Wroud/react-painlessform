@@ -19,7 +19,7 @@ class MyForm extends React.Component {
           {({ inputHook }) => (
             <div className={"input-group"}>
               <label className="label" htmlFor={inputHook.name}>First Name</label>
-              <input className="text-input" placeholder="John" {...inputHook} />
+              <input className="text-input" placeholder="John" id={inputHook.name} {...inputHook} />
             </div>
           )}
         </Field>
@@ -27,7 +27,7 @@ class MyForm extends React.Component {
           {({ inputHook }) => (
             <div className={"input-group"}>
               <label className="label" htmlFor={inputHook.name}>Last Name</label>
-              <input className="text-input" placeholder="Doe" {...inputHook} />
+              <input className="text-input" placeholder="Doe" id={inputHook.name} {...inputHook} />
             </div>
           )}
         </Field>
@@ -35,14 +35,14 @@ class MyForm extends React.Component {
           {({ inputHook }) => (
             <div className={"input-group"}>
               <label className="label" htmlFor={inputHook.name}>Email</label>
-              <input className="text-input" placeholder="Enter your email" {...inputHook} />
+              <input className="text-input" placeholder="Enter your email" id={inputHook.name} {...inputHook} />
             </div>
           )}
         </Field>
         <Field name={f => f.agree} type="checkbox">
           {({ inputHook }) => (
             <div className={"input-group"}>
-              <input {...inputHook} id="agree" />
+              <input {...inputHook} id={inputHook.name} />
               <label htmlFor={inputHook.name}>I agree with terms</label>
             </div>
           )}

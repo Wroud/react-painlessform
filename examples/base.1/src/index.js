@@ -95,9 +95,10 @@ const TextInput = ({ label, name, type, placeholder }) => {
         });
         return (
           <div className={classes}>
-            <Label htmlFor={name}>{label}</Label>
+            <Label htmlFor={inputHook.name}>{label}</Label>
             <input
               {...inputHook}
+              id={inputHook.name}
               className="text-input"
               placeholder={placeholder}
               disabled={rest.isSubmitting}
