@@ -108,7 +108,8 @@ const TextInput = ({ label, name, type, placeholder }) => {
     </Field>
   );
 };
-function* transformer({ value }, is, { values }) {
+function* transformer(event, is, { values }) {
+  const { value } = event;
   if (is(f => f.min)) {
     if (parseInt(value) > parseInt(values.max)) {
       yield {
@@ -143,7 +144,7 @@ function* transformer({ value }, is, { values }) {
       state: {}
     };
   }
-  return {};
+  yield event;
 }
 
 class MyForm extends React.Component {
