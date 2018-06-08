@@ -1,24 +1,27 @@
 /// <reference types="react" />
 import * as React from "react";
-import { IFieldState } from "../interfaces/field";
-import { FormModel, IFormConfiguration } from "../interfaces/form";
+import { IUpdateEvent } from "../interfaces/field";
+import { FieldsState, IFormConfiguration, IFormStorage } from "../interfaces/form";
+import { Field } from "./Field";
 /**
  * Describes [[Form]] props
  */
-export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement> {
+export interface IFormProps<TModel extends object> extends React.FormHTMLAttributes<HTMLFormElement> {
     /**
-     * Via this prop you can controll form via `Redux` as example
-     * if passed you need control `isSubmitting` `isChanged` by yourself
+     * You can control form by yourself by passing `values` and `state`
+     * Must be passed with `isSubmitting` `isChanged` props
      */
-    values?: Partial<T>;
+    values?: TModel;
+    state?: FieldsState<TModel>;
     /**
-     * Sets inital form values on mount and when reset
+     * Sets inital form values when mount and reset
      */
-    initValues?: Partial<T>;
+    initValues?: TModel;
+    initState?: FieldsState<TModel>;
     /**
      * That prop allows you configure form
      */
-    configure?: IFormConfiguration;
+    config?: IFormConfiguration;
     /**
      * If `true` form will be first reset and after sets passed `values`
      * example when you need set new values you want to reset all `isChanged`, `isVisited`
@@ -28,32 +31,18 @@ export interface IFormProps<T> extends React.FormHTMLAttributes<HTMLFormElement>
     isChanged?: boolean;
     isSubmitting?: boolean;
     /**
-     * Fire when [[Form]] [[model]] changed
+     * Fire when [[Form]] changed
      */
-    onModelChange?: (nextModel: T, prevModel: T) => any;
-    onReset?: () => any;
+    onModelChange?: (nextModel: TModel, prevModel: TModel) => any;
+    onReset?: (event: React.FormEvent<HTMLFormElement>) => any;
     /**
-     * Fire when form submits
+     * Fire when form submitting
      */
-    onSubmit?: (event: React.FormEvent<HTMLFormElement>) => (values: T, isValid: boolean) => any;
+    onSubmit?: (event: React.FormEvent<HTMLFormElement>) => (values: TModel, isValid: boolean) => any;
     [rest: string]: any;
 }
-/**
- * Describes [[Form]] state and [[FormContext]]
- */
-export interface IFormState<T> {
-    /**
-     * Current form values and [[Field]] flags
-     */
-    model: FormModel<T>;
-    /**
-     * Derived from props
-     */
-    isChanged: boolean;
-    isSubmitting: boolean;
-}
-export interface IFormContext<T> extends IFormState<T> {
-    configure?: IFormConfiguration;
+export interface IFormContext<TModel extends object> {
+    storage: IFormStorage<TModel>;
     /**
      * Reset form to `initValues` and call [[onReset]] from props
      */
@@ -61,42 +50,44 @@ export interface IFormContext<T> extends IFormState<T> {
     /**
      * Update [[model]] [[Field]] state and call [[onModelChange]] from props
      */
-    handleChange: (field: keyof T, value: IFieldState<T[typeof field]>) => any;
-}
-export interface IForm<T = {}> extends Form<T> {
-    new (props: IFormProps<T>): Form<T>;
+    handleChange: (event: IUpdateEvent) => any;
+    mountField: (value: Field<any, TModel>) => any;
+    unMountField: (value: Field<any, TModel>) => any;
 }
 /**
  * Default [[Form]] configuration
  */
 export declare const defaultConfiguration: IFormConfiguration;
-export declare const Provider: React.ComponentType<React.ProviderProps<IFormContext<any>>>, Consumer: React.ComponentType<React.ConsumerProps<IFormContext<any>>>;
+export declare const Provider: React.ComponentType<React.ProviderProps<IFormContext<{}>>>, Consumer: React.ComponentType<React.ConsumerProps<IFormContext<{}>>>;
+export interface IForm<TModel extends object> extends Form<TModel> {
+    new (props: IFormProps<TModel>): Form<TModel>;
+}
 /**
  * Form component controlls [[Field]]s and passes [[FormContext]]
  */
-export declare class Form<T = {}> extends React.Component<IFormProps<T>, IFormState<T>> {
+export declare class Form<TModel extends object> extends React.Component<IFormProps<TModel>> {
     static defaultProps: Partial<IFormProps<any>>;
-    static getDerivedStateFromProps(props: IFormProps<any>, state: IFormState<any>): {
-        model: FormModel<any>;
-        isChanged: boolean;
-        isSubmitting: boolean;
-    };
+    private fields;
     private transform;
     private validation;
-    constructor(props: IFormProps<T>);
+    private storage;
+    constructor(props: IFormProps<TModel>);
+    readonly getStorage: IFormStorage<TModel>;
+    readonly getFields: Field<any, TModel>[];
     /**
-     * [[Form]] rerenders only if `model` or `props` changed
+     * [[Form]] update [[storage]]
      */
-    shouldComponentUpdate(nextProps: IFormProps<T>, nextState: IFormState<T>): boolean;
-    /**
-     * After form did rerendered call [[onModelChange]] from props
-     */
-    componentDidUpdate(prevProps: IFormProps<any>, prevState: IFormState<T>): void;
+    shouldComponentUpdate(nextProps: IFormProps<TModel>): boolean;
     render(): JSX.Element;
+    componentDidMount(): void;
+    private updateState(state);
+    private resetToInital(initalValues?);
+    private mountField;
+    private unMountField;
     /**
      * Transform `model` to `values` and call `onModelChange`
      */
-    private callModelChange(model, prevModel);
+    private callModelChange(prevModel);
     /**
      * Handles form submitting and `preventDefault` if
      * `configure.submitting.preventDefault` === true
@@ -108,6 +99,7 @@ export declare class Form<T = {}> extends React.Component<IFormProps<T>, IFormSt
      * Reset form to [[initValues]]
      */
     private handleReset;
+    private invokeFieldsUpdate();
     /**
      * Update [[Field]] state with new `value` and sets form `isChanged` to `true`
      */

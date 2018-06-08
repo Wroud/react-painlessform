@@ -6,18 +6,13 @@ class ArrayValidator {
         this.validators = validators;
         this.validate = this.validate.bind(this);
     }
-    validate(data, meta) {
-        let errors = [];
+    *validate(data, meta) {
         if (data === undefined) {
-            return errors;
+            return;
         }
-        this.validators.forEach(validator => {
-            const validatorErrors = validator(data, meta);
-            errors = Array.isArray(validatorErrors)
-                ? [...errors, ...validatorErrors]
-                : [...errors, validatorErrors];
-        });
-        return errors;
+        for (const validator of this.validators) {
+            yield* validator(data, meta);
+        }
     }
 }
 exports.ArrayValidator = ArrayValidator;

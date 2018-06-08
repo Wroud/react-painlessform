@@ -2,21 +2,22 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const React = require("react");
 const form_1 = require("../helpers/form");
+const tools_1 = require("../tools");
 _a = React.createContext(undefined), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 class Transform extends React.Component {
     constructor() {
         super(...arguments);
         this.transformers = [];
-        this.transform = (values, prevModel) => {
+        this.transform = (events, state) => {
             const { transformer } = this.props;
-            let model = Object.assign({}, values);
+            let next = events;
             if (transformer) {
-                model = form_1.mergeModels(transformer(model, prevModel), model);
+                next = tools_1.exchangeIterator(next, event => transformer(event, form_1.isField(state.values, event), state));
             }
             this.transformers.forEach(({ transform }) => {
-                model = form_1.mergeModels(transform(model, prevModel), model);
+                next = transform(next, state);
             });
-            return model;
+            return next;
         };
         this.mountTransform = (value) => {
             this.transformers.push(value);
@@ -24,7 +25,7 @@ class Transform extends React.Component {
         this.unMountTransform = (value) => {
             const id = this.transformers.indexOf(value);
             if (id > -1) {
-                this.transformers.slice(id, 1);
+                this.transformers.splice(id, 1);
             }
         };
     }

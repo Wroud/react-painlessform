@@ -1,10 +1,10 @@
 import { IValidator } from "./ArrayValidator";
-import { FormErrors, IErrorMessage } from "./FormValidator";
-export declare class FieldValidator<TSource, TValue, TMeta = {}> implements IValidator<TSource, FormErrors<TSource>, TMeta> {
-    private name;
+import { ModelFieldSelector } from "./interfaces/field";
+import { IValidationErrors } from "./interfaces/validation";
+export declare class FieldValidator<TModel, TValue, TMeta = {}> implements IValidator<TModel, IValidationErrors, TMeta> {
+    private field;
     private validator;
-    private selectValue;
-    constructor(name: keyof TSource, validator: IValidator<TValue | TSource[keyof TSource], Array<IErrorMessage<any>>, TMeta>, selectValue?: (source: TSource) => TValue | TSource[keyof TSource]);
-    validate(data: TSource, meta: TMeta): FormErrors<TSource>;
+    constructor(field: ModelFieldSelector<TModel, TValue>, validator: IValidator<TValue, string, TMeta>);
+    validate(data: TModel, meta?: TMeta): IterableIterator<IValidationErrors>;
 }
-export declare function createFieldValidator<TSource, TValue, TMeta = {}>(name: keyof TSource, validator: IValidator<TValue | TSource[keyof TSource], Array<IErrorMessage<any>>, TMeta>, seelctValue?: (source: TSource) => TValue | TSource[keyof TSource]): IValidator<TSource, FormErrors<TSource>, TMeta>;
+export declare function createFieldValidator<TModel, TValue, TMeta = {}>(field: ModelFieldSelector<TModel, TValue>, validator: IValidator<TValue, string, TMeta>): FieldValidator<TModel, TValue, TMeta>;

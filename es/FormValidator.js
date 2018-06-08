@@ -1,36 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const validation_1 = require("./helpers/validation");
 const tools_1 = require("./tools");
 class FormValidator {
     constructor(...validators) {
-        this.validate = (data, meta) => {
-            let errors = {};
-            this.validators.forEach(validator => {
-                if (tools_1.isYup(validator)) {
-                    try {
-                        validator.validateSync(data, {
-                            abortEarly: false,
-                            context: meta || {}
-                        });
-                    }
-                    catch (_errors) {
-                        const __errors = _errors;
-                        if (__errors.path === undefined) {
-                            __errors.inner.forEach(error => {
-                                errors = tools_1.mergeFormErrors(errors, {
-                                    [error.path]: error.errors.map(message => ({ message }))
-                                });
-                            });
-                        }
-                    }
-                }
-                else {
-                    errors = tools_1.mergeFormErrors(errors, validator.validate(data, meta));
-                }
-            });
-            return errors;
-        };
         this.validators = validators;
+    }
+    *validate(data, meta) {
+        for (const validator of this.validators) {
+            if (tools_1.isYup(validator)) {
+                yield* validation_1.yupValidator(validator, data, meta || {});
+            }
+            else {
+                yield* validator.validate(data, meta);
+            }
+        }
     }
 }
 exports.FormValidator = FormValidator;

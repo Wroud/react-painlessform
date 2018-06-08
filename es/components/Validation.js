@@ -1,111 +1,42 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const React = require("react");
-const shallowequal = require("shallowequal");
-const form_1 = require("../helpers/form");
+const util_1 = require("util");
 const validation_1 = require("../helpers/validation");
 const tools_1 = require("../tools");
 const Form_1 = require("./Form");
 const NoErrors = {};
 const NoScopeErrors = [];
 _a = React.createContext({
-    errors: NoErrors,
-    scope: NoScopeErrors,
-    isValid: true
+    validation: {
+        errors: NoErrors,
+        scope: NoScopeErrors,
+        isValid: true
+    }
 }), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 class Validation extends React.Component {
-    constructor() {
-        super(...arguments);
-        this.cacheErrors = {
-            errors: NoErrors,
-            scope: NoScopeErrors,
-            isValid: true
-        };
-        this.cacheData = {
-            model: {},
-            props: {},
-            state: {}
-        };
+    constructor(props) {
+        super(props);
         this.validators = [];
-        this.validate = (model) => {
-            let validation = {
-                errors: NoErrors,
-                scope: NoScopeErrors,
+        this.validate = (values) => {
+            this.validationState = {
+                errors: {},
+                scope: [],
                 isValid: this.props.isValid
             };
-            const values = form_1.getValuesFromModel(model);
-            validation = validation_1.mergeValidations(this.validator(values), validation);
-            this.validators.forEach(validator => {
-                validation = validation_1.mergeValidations(validator.validator(values), validation);
+            const errorsCollection = this.validator(values);
+            tools_1.forEachElement(errorsCollection, ({ selector, scope, errors }) => {
+                if (scope) {
+                    this.validationState.scope.push(...scope);
+                    this.validationState.isValid = scope.length === 0 && this.validationState.isValid;
+                }
+                if (util_1.isArray(errors) && selector) {
+                    const validationError = tools_1.fromProxy(tools_1.autoCreateProxy(this.validationState.errors), selector, []);
+                    tools_1.setPathValue([...validationError, ...errors], selector, this.validationState.errors);
+                    this.validationState.isValid = false;
+                }
             });
-            this.cacheErrors = validation;
-            return validation;
-        };
-        this.validator = (model) => {
-            let errors = NoErrors;
-            let scope = NoScopeErrors;
-            let isValid = true;
-            const props = validation_1.getProps(this.props);
-            const { validator, scopeValidator } = props;
-            if (!model || (!validator && !scopeValidator)) {
-                return { errors, scope, isValid };
-            }
-            if (props.errors || props.scope) {
-                return {
-                    errors: props.errors,
-                    scope: props.scope,
-                    isValid: props.isValid
-                };
-            }
-            const state = this.state;
-            const data = this.cacheData;
-            if (shallowequal(data.model, model)
-                && shallowequal(data.props, props)
-                && shallowequal(data.state, state)) {
-                return this.cacheErrors;
-            }
-            if (validator) {
-                if (tools_1.isYup(validator)) {
-                    try {
-                        validator.validateSync(model, Object.assign({ abortEarly: false, context: { state, props } }, props.configure));
-                    }
-                    catch (validationErrors) {
-                        const _errors = validationErrors;
-                        if (_errors.path === undefined) {
-                            _errors.inner.forEach(error => {
-                                errors = Object.assign({}, errors, { [error.path]: [...(errors[error.path] || []),
-                                        ...error.errors.map(message => ({ message }))] });
-                            });
-                        }
-                        else {
-                            errors = Object.assign({}, errors, { [_errors.path]: [...(errors[_errors.path] || []),
-                                    ..._errors.errors.map(message => ({ message }))] });
-                        }
-                        isValid = false;
-                    }
-                }
-                else {
-                    const preErrors = validator.validate(model, { state, props });
-                    for (const key of Object.keys(preErrors)) {
-                        if (preErrors[key].length > 0) {
-                            isValid = false;
-                            errors = preErrors;
-                            break;
-                        }
-                    }
-                }
-            }
-            if (scopeValidator) {
-                const preScope = scopeValidator.validate(model, { state, props });
-                if (preScope.length > 0) {
-                    isValid = false;
-                    scope = preScope;
-                }
-            }
-            const result = { errors, scope, isValid };
-            this.cacheData = { model, props, state };
-            this.cacheErrors = result;
-            return result;
+            return this.validationState;
         };
         this.mountValidation = (value) => {
             this.validators.push(value);
@@ -113,16 +44,23 @@ class Validation extends React.Component {
         this.unMountValidation = (value) => {
             const id = this.validators.indexOf(value);
             if (id > -1) {
-                this.validators.slice(id, 1);
+                this.validators.splice(id, 1);
             }
         };
+        this.validator = this.validator.bind(this);
     }
     render() {
         return (React.createElement(exports.Consumer, null, validationContext => (React.createElement(Form_1.Consumer, null, formContext => {
             this._context = validationContext.mountValidation
                 ? validationContext
                 : undefined;
-            const context = Object.assign({}, (this._context ? validationContext : this.validate(formContext.model)), { mountValidation: this.mountValidation, unMountValidation: this.unMountValidation });
+            const context = {
+                validation: this._context
+                    ? validationContext.validation
+                    : this.validate(formContext.storage.values),
+                mountValidation: this.mountValidation,
+                unMountValidation: this.unMountValidation
+            };
             return React.createElement(exports.Provider, { value: context }, this.props.children);
         }))));
     }
@@ -134,6 +72,35 @@ class Validation extends React.Component {
     componentWillUnmount() {
         if (this._context) {
             this._context.unMountValidation(this);
+        }
+    }
+    *validator(model) {
+        const props = validation_1.getProps(this.props);
+        const { validator, scopeValidator } = props;
+        if (!model || (!validator && !scopeValidator)) {
+            return;
+        }
+        if (this.props.errors) {
+            yield* this.props.errors.values();
+        }
+        else {
+            yield* this.generator(validator, scopeValidator, model, props, this.state);
+        }
+        for (const _validator of this.validators) {
+            yield* _validator.validator(model);
+        }
+    }
+    *generator(validator, scopeValidator, model, props, state) {
+        if (validator) {
+            if (tools_1.isYup(validator)) {
+                yield* validation_1.yupValidator(validator, model, { state, props }, props.configure);
+            }
+            else {
+                yield* validator.validate(model, { state, props });
+            }
+        }
+        if (scopeValidator) {
+            yield* scopeValidator.validate(model, { state, props });
         }
     }
 }

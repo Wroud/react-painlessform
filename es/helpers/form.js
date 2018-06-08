@@ -1,67 +1,69 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-function mergeModels(value, model, rest) {
+const deepEqual = require("deep-equal");
+const util_1 = require("util");
+const tools_1 = require("../tools");
+function updateFieldsState(value, model, fields) {
     const newModel = Object.assign({}, model);
-    for (const key of Object.keys(value)) {
-        const preState = Object.assign({}, (newModel[key] || {}), value[key]);
-        newModel[key] = Object.assign({}, preState, (rest ? rest(preState, (model[key] || {})) : {}));
-    }
+    fields.forEach(selector => {
+        const prevValue = tools_1.fromProxy(tools_1.autoCreateProxy(newModel), selector, {});
+        tools_1.setPathValue(Object.assign({}, prevValue, value), selector, newModel);
+    });
     return newModel;
 }
-exports.mergeModels = mergeModels;
-function updateModelFields(value, model) {
-    const newModel = Object.assign({}, model);
-    for (const key of Object.keys(model)) {
-        newModel[key] = Object.assign({}, newModel[key], value);
-    }
-    return newModel;
-}
-exports.updateModelFields = updateModelFields;
-function setModelValues(values, model, rest) {
-    const newModel = Object.assign({}, model);
-    for (const key of Object.keys(values)) {
-        newModel[key] = Object.assign({}, (newModel[key] || {}), { value: values[key] }, (rest || {}));
-    }
-    return newModel;
+exports.updateFieldsState = updateFieldsState;
+function setModelValues(value, model, rest) {
+    const newValue = Object.assign({}, model);
+    tools_1.deepExtend(newValue, value);
+    return { model: newValue, isChanged: deepEqual(model, newValue) };
 }
 exports.setModelValues = setModelValues;
-function resetModel(model) {
-    let newModel = {};
-    for (const key of Object.keys(model)) {
-        newModel = Object.assign({}, newModel, { [key]: {
-                value: "",
-                isChanged: false,
-                isVisited: false
-            } });
-    }
-    return newModel;
+function updateField(field, index, value, state) {
+    return { field, index, value, state };
 }
-exports.resetModel = resetModel;
-function getValuesFromModel(model) {
-    const values = {};
-    if (typeof model !== "object") {
-        return undefined;
-    }
-    for (const key of Object.keys(model)) {
-        values[key] = model[key].value;
-    }
-    return values;
-}
-exports.getValuesFromModel = getValuesFromModel;
-function getMapsFromModel(model) {
-    const maps = {
-        values: {},
-        isChanged: {},
-        isVisited: {}
+exports.updateField = updateField;
+exports.isField = (state, from) => {
+    const path = tools_1.getPath(from.selector, state);
+    return (field, strict) => {
+        return strict
+            ? path === tools_1.getPath(field, state)
+            : path.includes(tools_1.getPath(field, state));
     };
-    if (typeof model !== "object") {
-        return undefined;
+};
+function getInputValue(value, forwardedValue, type, multiple) {
+    if (/radio/.test(type) || /checkbox/.test(type)) {
+        return forwardedValue;
     }
-    for (const key of Object.keys(model)) {
-        maps.values[key] = model[key].value;
-        maps.isVisited[key] = model[key].isVisited;
-        maps.isChanged[key] = model[key].isChanged;
-    }
-    return maps;
+    const defaultValue = multiple ? [] : "";
+    const castValue = /number|range/.test(type) && isNaN(value)
+        ? 0
+        : value;
+    return forwardedValue !== undefined
+        ? forwardedValue
+        : castValue;
 }
-exports.getMapsFromModel = getMapsFromModel;
+exports.getInputValue = getInputValue;
+function getInputChecked(value, forwardedValue, type) {
+    if (/checkbox/.test(type)) {
+        return util_1.isArray(value) ? value.indexOf(forwardedValue) !== -1 : value;
+    }
+    if (/radio/.test(type)) {
+        return value === forwardedValue;
+    }
+    return undefined;
+}
+exports.getInputChecked = getInputChecked;
+function getValue(value, type, forwardedValue, multiple) {
+    if (/checkbox/.test(type)) {
+        return value || false;
+    }
+    if (/number|range/.test(type)) {
+        return value === undefined ? 0 : value;
+    }
+    return value !== undefined
+        ? value
+        : multiple
+            ? []
+            : "";
+}
+exports.getValue = getValue;

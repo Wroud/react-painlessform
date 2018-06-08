@@ -9,9 +9,11 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const deepEqual = require("deep-equal");
 const React = require("react");
-const shallowequal = require("shallowequal");
+const field_1 = require("../helpers/field");
 const form_1 = require("../helpers/form");
+const tools_1 = require("../tools");
 const Transform_1 = require("./Transform");
 const Validation_1 = require("./Validation");
 exports.defaultConfiguration = {
@@ -20,122 +22,177 @@ exports.defaultConfiguration = {
     }
 };
 const emptyModel = {};
-_a = React.createContext({
-    model: emptyModel,
-    configure: exports.defaultConfiguration,
+const defaultStorage = {
+    values: emptyModel,
+    state: emptyModel,
+    config: exports.defaultConfiguration,
+    validation: {
+        errors: {},
+        scope: [],
+        isValid: true
+    },
     isChanged: false,
-    isSubmitting: false,
+    isSubmitting: false
+};
+_a = React.createContext({
+    storage: defaultStorage,
     handleReset: () => ({}),
-    handleChange: () => ({})
+    handleChange: () => ({}),
+    mountField: () => ({}),
+    unMountField: () => ({})
 }), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 class Form extends React.Component {
     constructor(props) {
         super(props);
+        this.fields = [];
+        this.mountField = (value) => {
+            this.fields.push(value);
+        };
+        this.unMountField = (value) => {
+            const id = this.fields.indexOf(value);
+            if (id > -1) {
+                this.fields.splice(id, 1);
+            }
+        };
         this.handleSubmit = (event) => {
-            const { onSubmit, configure } = this.props;
-            if (event && configure.submitting.preventDefault) {
+            const { onSubmit, config } = this.props;
+            if (event && config.submitting.preventDefault) {
                 event.preventDefault();
             }
-            this.setState(({ model }) => ({
-                model: form_1.updateModelFields({
-                    isChanged: false,
-                    isVisited: true
-                }, model),
-                isChanged: false
-            }));
+            this.updateState({
+                isChanged: false,
+                isFocus: false,
+                isVisited: true
+            });
+            this.storage.isChanged = false;
             if (onSubmit) {
-                onSubmit(event)(form_1.getValuesFromModel(this.state.model), this.validation.current.cacheErrors.isValid);
+                onSubmit(event)(this.storage.values, this.storage.validation.isValid);
             }
         };
-        this.handleReset = () => {
-            const { onReset, values } = this.props;
+        this.handleReset = (event) => {
+            const { onReset, values, initValues } = this.props;
             if (onReset) {
-                onReset();
+                onReset(event);
             }
             if (!values) {
-                this.setState(({ model }, { initValues }) => ({
-                    model: initValues
-                        ? form_1.setModelValues(initValues, emptyModel)
-                        : form_1.resetModel(model),
-                    isChanged: false,
-                    isSubmitting: false
-                }));
+                this.resetToInital();
             }
         };
-        this.handleChange = (field, value) => {
-            this.setState(({ model: prevModel }) => {
-                if (prevModel[field] && shallowequal(prevModel[field], Object.assign({}, prevModel[field], value))) {
-                    return null;
-                }
-                const model = this.transform.current.transform({ [field]: value }, prevModel);
-                return {
-                    model: form_1.mergeModels(model, prevModel, ({ value: _value, isChanged: _isChanged }, { value: prevValue, isChanged }) => ({ isChanged: (isChanged || _isChanged) || prevValue !== undefined && _value !== prevValue })),
-                    isChanged: true
-                };
+        this.handleChange = (event) => {
+            if (field_1.isDiffEqual(event, this.storage)) {
+                return;
+            }
+            const updatedFields = [];
+            const prevValues = this.storage.values;
+            this.storage.values = Object.assign({}, prevValues);
+            this.storage.state = Object.assign({}, this.storage.state);
+            const valuesProxy = tools_1.autoCreateProxy(this.storage.values);
+            if (this.transform.current) {
+                const transforms = this.transform.current.transform([event][Symbol.iterator](), this.storage);
+                const stateProxy = tools_1.autoCreateProxy(this.storage.state);
+                tools_1.forEachElement(transforms, ({ selector, value, state }) => {
+                    const prevValue = tools_1.fromProxy(valuesProxy, selector);
+                    const prevState = tools_1.fromProxy(stateProxy, selector, {});
+                    const newState = Object.assign({}, prevState, state, { isChanged: state.isChanged !== undefined
+                            ? state.isChanged
+                            : prevValue !== undefined && !field_1.isValueEqual(value, prevValue) });
+                    tools_1.setPathValue(value, selector, this.storage.values);
+                    tools_1.setPathValue(newState, selector, this.storage.state);
+                    updatedFields.push(selector);
+                });
+            }
+            this.storage.isChanged = true;
+            if (this.validation.current) {
+                this.storage.validation = this.validation.current.validate(this.storage.values);
+            }
+            updatedFields.forEach(selector => {
+                this.fields.forEach(field => {
+                    const path1 = tools_1.getPath(selector, this.storage.values);
+                    const path2 = tools_1.getPath(field.props.name, this.storage.values);
+                    if (path1 === path2) {
+                        field.forceUpdate();
+                    }
+                });
             });
+            this.callModelChange(prevValues);
         };
-        const model = props.initValues
-            ? form_1.setModelValues(props.initValues, emptyModel, { isChanged: false, isVisited: false })
-            : emptyModel;
-        this.state = {
-            model,
-            isChanged: false,
-            isSubmitting: false
-        };
+        this.storage = defaultStorage;
+        this.storage.state = props.state || props.initState || emptyModel;
+        this.storage.values = props.values || props.initValues || emptyModel;
+        this.storage.isChanged = props.isChanged || false;
+        this.storage.isSubmitting = props.isSubmitting || false;
         this.transform = React.createRef();
         this.validation = React.createRef();
     }
-    static getDerivedStateFromProps(props, state) {
-        const { values, isChanged, isSubmitting } = props;
-        const model = props.isReset ? form_1.resetModel(state.model) : state.model;
-        return {
-            model: values
-                ? form_1.setModelValues(values, model)
-                : model,
-            isChanged: isChanged !== undefined ? isChanged : state.isChanged,
-            isSubmitting: isSubmitting !== undefined ? isSubmitting : state.isSubmitting
-        };
+    get getStorage() {
+        return this.storage;
     }
-    shouldComponentUpdate(nextProps, nextState) {
-        const _a = this.state, { model } = _a, rest = __rest(_a, ["model"]);
-        const { model: nextModel } = nextState, nextRest = __rest(nextState, ["model"]);
-        const _b = this.props, { children } = _b, props = __rest(_b, ["children"]);
-        const { children: _ } = nextProps, nnextProps = __rest(nextProps, ["children"]);
-        const maps = form_1.getMapsFromModel(model);
-        const _maps = form_1.getMapsFromModel(nextModel);
-        if (!shallowequal(props, nnextProps)
-            || !shallowequal(maps.values, _maps.values)
-            || !shallowequal(maps.isChanged, _maps.isChanged)
-            || !shallowequal(maps.isVisited, _maps.isVisited)
-            || !shallowequal(rest, nextRest)) {
-            return true;
+    get getFields() {
+        return this.fields;
+    }
+    shouldComponentUpdate(nextProps) {
+        const { values, initValues, config, isReset, isChanged, isSubmitting } = nextProps;
+        this.storage.config = config;
+        if (isReset) {
+            this.resetToInital(values);
         }
-        return false;
-    }
-    componentDidUpdate(prevProps, prevState) {
-        this.callModelChange(this.state.model, prevState.model);
+        else if (values !== undefined) {
+            const { isChanged: isValuesChanged, model: newValues } = form_1.setModelValues(values, this.storage.values);
+            this.storage.values = newValues;
+            this.storage.isChanged = this.storage.isChanged || isValuesChanged;
+        }
+        this.storage.isChanged = isChanged !== undefined ? isChanged : this.storage.isChanged;
+        this.storage.isSubmitting = isSubmitting !== undefined ? isSubmitting : this.storage.isSubmitting;
+        return true;
     }
     render() {
-        const _a = this.props, { componentId, values, initValues, actions, children, configure, isReset, isChanged, isSubmitting, onModelReset, onModelChange, onSubmit } = _a, rest = __rest(_a, ["componentId", "values", "initValues", "actions", "children", "configure", "isReset", "isChanged", "isSubmitting", "onModelReset", "onModelChange", "onSubmit"]);
-        const context = Object.assign({}, this.state, { configure, handleReset: this.handleReset, handleChange: this.handleChange });
+        const _a = this.props, { componentId, actions, values, state, initValues, initState, children, config, isReset, isChanged, isSubmitting, onModelChange, onSubmit, onReset } = _a, rest = __rest(_a, ["componentId", "actions", "values", "state", "initValues", "initState", "children", "config", "isReset", "isChanged", "isSubmitting", "onModelChange", "onSubmit", "onReset"]);
+        const context = {
+            storage: this.storage,
+            handleReset: this.handleReset,
+            handleChange: this.handleChange,
+            mountField: this.mountField,
+            unMountField: this.unMountField
+        };
         return (React.createElement(exports.Provider, { value: context },
-            React.createElement("form", Object.assign({ onSubmit: this.handleSubmit }, rest),
+            React.createElement("form", Object.assign({ onSubmit: this.handleSubmit, onReset: this.handleReset }, rest),
                 React.createElement(Transform_1.Transform, { ref: this.transform },
                     React.createElement(Validation_1.Validation, { ref: this.validation }, children)))));
     }
-    callModelChange(model, prevModel) {
+    componentDidMount() {
+        this.fields.forEach(field => {
+            field.field.current.mountValue();
+        });
+    }
+    updateState(state) {
+        this.storage.state = form_1.updateFieldsState(state, this.storage.state, this.fields.map(f => f.props.name));
+    }
+    resetToInital(initalValues) {
+        const { storage, fields, props: { initValues } } = this;
+        storage.values = initalValues || initValues || emptyModel;
+        this.updateState({
+            isChanged: false,
+            isFocus: false,
+            isVisited: false
+        });
+        storage.isChanged = false;
+        storage.isSubmitting = false;
+    }
+    callModelChange(prevModel) {
         if (!this.props.onModelChange) {
             return;
         }
-        const values = form_1.getValuesFromModel(model);
-        const prevValues = form_1.getValuesFromModel(prevModel);
-        if (!shallowequal(values, prevValues)) {
-            this.props.onModelChange(values, prevValues);
+        const { values } = this.storage;
+        if (!deepEqual(values, prevModel)) {
+            this.props.onModelChange(values, prevModel);
         }
+    }
+    invokeFieldsUpdate() {
+        this.fields.forEach(field => field.forceUpdate());
     }
 }
 Form.defaultProps = {
-    configure: exports.defaultConfiguration
+    config: exports.defaultConfiguration
 };
 exports.Form = Form;
 var _a;
