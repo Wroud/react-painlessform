@@ -20,13 +20,14 @@ const submitValidator = createRawFormValidator((values, meta) => {
   Object.keys(values).forEach(name => {
     const error = stateErrors[name];
     if (error) {
-      const message = {
-        message: error.message,
+      const messages = [];
+      error.message.forEach(message => messages.push({
+        message,
         meta: { type: "server" }
-      };
+      }));
       errors.push({
         selector: f => f[name],
-        errors: [message]
+        errors: messages
       });
     }
   });
