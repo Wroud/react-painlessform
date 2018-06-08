@@ -6,7 +6,7 @@
     "classnames": "2.2.5",
     "react": "16.4.0",
     "react-dom": "16.4.0",
-    "react-painlessform": "3.0.0-alpha4",
+    "react-painlessform": "3.0.0-alpha5",
     "yup": "0.23.0"
   },
   "keywords": ["react", "form", "react-painlessform"],
