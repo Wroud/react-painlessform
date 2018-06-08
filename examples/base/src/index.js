@@ -208,7 +208,7 @@ class MyForm extends React.Component {
                 label="Last Name"
                 placeholder="Doe"
               />
-              <Transform transformer={this.transformer}>
+              <Transform transformer={transformer}>
                 <TextInput
                   name={f => f.min}
                   type="number"
