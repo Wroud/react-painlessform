@@ -341,6 +341,7 @@ describe("Form", () => {
         const {
             getStorage: { state: model, values: v }
         } = wrapper.instance() as IForm<IModel>;
+        // wrapper.find("FieldClass").forEach(f => console.log(f.props().isChanged));
 
         assert.strictEqual(wrapper.find("input[name='field2']").props().value, "TestValue");
         assert.strictEqual(v.field2, "TestValue");
