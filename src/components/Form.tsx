@@ -74,11 +74,9 @@ export const defaultConfiguration: IFormConfiguration = {
     }
 };
 
-const emptyModel = {};
-
 const defaultStorage: IFormStorage<{}> = {
-    values: emptyModel,
-    state: emptyModel,
+    values: {},
+    state: {},
     config: defaultConfiguration,
     validation: {
         errors: {},
@@ -117,8 +115,8 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
         super(props);
 
         this.storage = defaultStorage as any;
-        this.storage.state = props.state || props.initState || emptyModel as FieldsState<TModel>;
-        this.storage.values = props.values || props.initValues || emptyModel as TModel;
+        this.storage.state = props.state || props.initState || {} as FieldsState<TModel>;
+        this.storage.values = props.values || props.initValues || {} as TModel;
         this.storage.isChanged = props.isChanged || false;
         this.storage.isSubmitting = props.isSubmitting || false;
 
@@ -217,7 +215,7 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
     }
     private resetToInital(initalValues?: TModel) {
         const { storage, fields, props: { initValues } } = this;
-        storage.values = initalValues || initValues || emptyModel as any;
+        storage.values = initalValues || initValues || {} as any;
         this.updateState({
             isChanged: false,
             isFocus: false,
