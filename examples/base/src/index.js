@@ -128,7 +128,7 @@ function* transformer(event, is, { values }) {
       };
     }
   }
-  if (is(f => f.lastName)) {
+  if (is(f => f.lastName) && value.length > 0) {
     const value = value.charAt(0).toUpperCase() + value.slice(1);
     yield {
       selector: f => f.lastName,
@@ -136,7 +136,7 @@ function* transformer(event, is, { values }) {
       state: {}
     };
   }
-  if (is(f => f.firstName)) {
+  if (is(f => f.firstName) && value.length > 0) {
     const value = value.charAt(0).toUpperCase() + value.slice(1);
     yield {
       selector: f => f.firstName,
