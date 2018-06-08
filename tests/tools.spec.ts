@@ -1,10 +1,7 @@
 import * as chai from "chai";
-import * as assertArrays from "chai-arrays";
 import "mocha";
 
 import { isArrayEqual } from "../src/tools";
-
-chai.use(assertArrays);
 
 describe("Tools", () => {
 

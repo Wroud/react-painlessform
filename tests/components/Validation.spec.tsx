@@ -1,5 +1,4 @@
 import chai, { assert, expect, use } from "chai";
-import * as assertArrays from "chai-arrays";
 import "mocha";
 import * as React from "react";
 import { createRenderer, ShallowRenderer } from "react-test-renderer/shallow";
@@ -16,7 +15,6 @@ import {
 } from "../../src";
 import { defaultConfiguration, IFormContext } from "../../src/components/Form";
 
-use(assertArrays);
 describe("Validation", () => {
     let renderer: ShallowRenderer;
     const fieldRequired = createValidator<string>("field", value => {

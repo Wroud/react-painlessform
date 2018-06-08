@@ -2,13 +2,20 @@ import * as React from "react";
 import shallowequal = require("shallowequal");
 
 import { IErrorMessage } from "../FormValidator";
-import { autoCreateProxy, fromProxy, getPath, isArrayEqual, isInputChangeEvent, isSelectChangeEvent } from "../tools";
+import {
+    autoCreateProxy,
+    fromProxy,
+    getPath,
+    isArrayEqual,
+    isInputChangeEvent,
+    isSelectChangeEvent
+} from "../tools";
 
 import { castValue, isValueEqual } from "../helpers/field";
 import { getInputChecked, getInputValue, getValue } from "../helpers/form";
 import { createFormFactory } from "../helpers/formFactory";
 
-import { FieldSelector, FieldStateSelect, IFieldState } from "../interfaces/field";
+import { FieldSelector, FieldStateSelector, IFieldState } from "../interfaces/field";
 import { FieldsState, IFormStorage } from "../interfaces/form";
 import { ErrorsSelector } from "../interfaces/validation";
 
@@ -23,13 +30,7 @@ export interface IFieldClass<TModel extends object> {
 }
 
 export interface IInputHook<TValue, TModel> {
-    /**
-     * Field name
-     */
     name: string;
-    /**
-     * Value of [[FieldClass]]
-     */
     value: InputType<TValue>;
     multiple: boolean;
     checked: boolean;
@@ -41,7 +42,6 @@ export interface IInputHook<TValue, TModel> {
 }
 
 export interface IFieldBase<TValue, TModel extends object> {
-    // Form controlled fields
     /**
      * [[Form]] context
      */
@@ -54,12 +54,12 @@ export interface IFieldBase<TValue, TModel extends object> {
      * Form scope Validation errors from [[Validation]] context
      */
     validationScope: Array<IErrorMessage<any>>;
+
     isVisited: boolean;
     isChanged: boolean;
-    isValid: boolean;
     isFocus: boolean;
-    //
 
+    isValid: boolean;
     /**
      * Rest passed to [[Field]]
      */
@@ -71,26 +71,21 @@ export interface IFieldBase<TValue, TModel extends object> {
  */
 export interface IFieldClassProps<TValue, TModel extends object>
     extends IFieldBase<TValue, TModel> {
-    /**
-     * Value of [[FieldClass]]
-     */
     value: TValue;
+    /**
+     * Value passed to [[Field]]
+     */
     forwardedValue: InputType<TValue>;
     /**
-     * Field name
+     * Field selector from model
      */
     name: (model: TModel) => TValue;
     type: string;
     multiple: boolean;
+
     onFocus: () => any;
     onBlur: () => any;
-    /**
-     * Click event handler
-     */
     onClick?: () => any;
-    /**
-     * Change [[Form]] event handler
-     */
     onChange?: (value: TValue, nextState?: IFieldState) => any;
     /**
      * Accepts `(context: FieldModelContext<TModel>) => React.ReactNode` function or `React.ReactNode`
@@ -158,25 +153,9 @@ export class FieldClass<TValue, TModel extends object> extends React.Component<I
                 onBlur: this.handleFocus(false)
             }
         } as IFieldContext<TValue, TModel>;
-        // console.log(context.inputHook.name, context.inputHook.value);
         return children && typeof children === "function"
             ? children(context)
             : <Provider value={context} children={children} />;
-    }
-
-    mountValue() {
-        const { value, type, forwardedValue, multiple } = this.props;
-        if (value === undefined) {
-            // console.log("mount");
-            this.update(
-                getValue(undefined, type, forwardedValue as TValue, multiple) as any,
-                {
-                    isVisited: false,
-                    isChanged: false,
-                    isFocus: false
-                }
-            ); // mount field to form model
-        }
     }
 
     /**
@@ -188,7 +167,6 @@ export class FieldClass<TValue, TModel extends object> extends React.Component<I
     }
 
     componentWillUnmount() {
-        // console.log("unmounting");
         this.update(undefined, {});
     }
 
@@ -197,48 +175,62 @@ export class FieldClass<TValue, TModel extends object> extends React.Component<I
      * with empty string `value`
      */
     componentDidUpdate(prevProps: IFieldClassProps<TValue, TModel>) {
-        this.mountValue(); // remount field if it not exists in form model
+        this.mountValue();
     }
 
-    /**
-     * Field updates only if
-     * `value` || `name` || `isVisited` || `isChanged`
-     * `isValid` || `validationErrors` || `validationScope`
-     * `rest` was changed
-     */
-    shouldComponentUpdate(nextProps: IFieldClassProps<TValue, TModel>) {
-        const {
-            value: nextValue,
-            forwardedValue: nextForwardedValue,
-            children: _,
-            validationErrors: nextErrors, validationScope: nextScope,
-            rest: nextRest,
-            ...nextRestProps
-        } = nextProps;
-        const {
-            value,
-            forwardedValue,
-            children,
-            validationErrors, validationScope,
-            rest,
-            ...restProps
-        } = this.props;
+    // /**
+    //  * Field updates only if
+    //  * `value` || `name` || `isVisited` || `isChanged`
+    //  * `isValid` || `validationErrors` || `validationScope`
+    //  * `rest` was changed
+    //  */
+    // shouldComponentUpdate(nextProps: IFieldClassProps<TValue, TModel>) {
+    //     const {
+    //         value: nextValue,
+    //         forwardedValue: nextForwardedValue,
+    //         children: _,
+    //         validationErrors: nextErrors, validationScope: nextScope,
+    //         rest: nextRest,
+    //         ...nextRestProps
+    //     } = nextProps;
+    //     const {
+    //         value,
+    //         forwardedValue,
+    //         children,
+    //         validationErrors, validationScope,
+    //         rest,
+    //         ...restProps
+    //     } = this.props;
 
-        if (
-            !isValueEqual(nextValue, value)
-            || !isValueEqual(nextForwardedValue, forwardedValue)
-            || !isArrayEqual(
-                validationErrors.map(error => error.message),
-                nextErrors.map(error => error.message))
-            || !isArrayEqual(
-                validationScope.map(error => error.message),
-                nextScope.map(error => error.message))
-            || !shallowequal(nextRest, rest)
-            || !shallowequal(nextRestProps, restProps)
-        ) {
-            return true;
+    //     if (
+    //         !isValueEqual(nextValue, value)
+    //         || !isValueEqual(nextForwardedValue, forwardedValue)
+    //         || !isArrayEqual(
+    //             validationErrors.map(error => error.message),
+    //             nextErrors.map(error => error.message))
+    //         || !isArrayEqual(
+    //             validationScope.map(error => error.message),
+    //             nextScope.map(error => error.message))
+    //         || !shallowequal(nextRest, rest)
+    //         || !shallowequal(nextRestProps, restProps)
+    //     ) {
+    //         return true;
+    //     }
+    //     return false;
+    // }
+
+    mountValue() {
+        const { value, type, forwardedValue, multiple } = this.props;
+        if (value === undefined) {
+            this.update(
+                getValue(undefined, type, forwardedValue as TValue, multiple) as any,
+                {
+                    isVisited: false,
+                    isChanged: false,
+                    isFocus: false
+                }
+            ); // mount field to form model
         }
-        return false;
     }
 
     private handleFocus = (type: boolean) => () => {
@@ -312,7 +304,7 @@ export class FieldClass<TValue, TModel extends object> extends React.Component<I
     }
 
     /**
-     * Call [[Form]] `handleChange` with `name` & new `value`
+     * Call [[Form]] `handleChange` with [[IUpdateEvent]] as argument
      * and call [[onChange]] from props
      */
     private update = (nextValue: TValue, nextState?: Partial<IFieldState>) => {
@@ -332,20 +324,8 @@ export class FieldClass<TValue, TModel extends object> extends React.Component<I
         const updValue = castValue(value, nextValue, forwardedValue, type, multiple);
         const updState: IFieldState = { isVisited, isFocus, isChanged, ...nextState };
 
-        // if ((nextValue as any).unmount) {
-        //     handleChange({
-        //         selector: name as FieldSelector<TModel>,
-        //         value: updValue,
-        //         state: updState
-        //     });
-        //     return;
-        // }
-
-        // if (nextValue === undefined) {
-        //     console.log(">>", value, nextValue, updValue);
-        // }
         handleChange({
-            selector: name as FieldSelector<TModel>,
+            selector: name,
             value: updValue,
             state: updState
         });
@@ -387,27 +367,26 @@ export class Field<TValue, TModel extends object> extends React.Component<IField
     field = React.createRef<FieldClass<TValue, TModel>>();
     render() {
         const { FormContext, ValidationContext } = createFormFactory<TModel>();
+        const {
+            value: forwardedValue,
+            name,
+            type,
+            multiple,
+            children,
+            subscribe,
+            onClick,
+            onChange,
+            onFocus,
+            onBlur,
+            ...rest
+        } = this.props;
+
         return (
             <FormContext>
                 {formContext => (
                     <ValidationContext>
                         {({ validation }) => {
                             this.formContext = formContext;
-                            const {
-                                value: propsValue,
-                                name,
-                                index,
-                                type,
-                                multiple,
-                                children,
-                                subscribe,
-                                onClick,
-                                onChange,
-                                onFocus,
-                                onBlur,
-                                ...rest
-                            } = this.props;
-
                             let fullRest = rest;
                             if (subscribe !== undefined) {
                                 fullRest = {
@@ -415,24 +394,22 @@ export class Field<TValue, TModel extends object> extends React.Component<IField
                                     ...subscribe(formContext.storage)
                                 };
                             }
-                            const value = fromProxy<TModel, TValue>(autoCreateProxy(formContext.storage.values), name);
-                            const modelState = fromProxy<FieldsState<TModel>, IFieldState>(
+                            const value = fromProxy(autoCreateProxy(formContext.storage.values), name);
+                            const modelState = fromProxy(
                                 autoCreateProxy(formContext.storage.state),
-                                name as any
+                                name as any as FieldStateSelector<TModel>,
+                                {}
                             );
-                            // const value = name(formContext.storage.values);
-                            // const modelState = (name as any as FieldStateSelect<TModel>)(formContext.storage.state);
-
-                            const isChanged = modelState === undefined ? false : modelState.isChanged;
-                            const isVisited = modelState === undefined ? false : modelState.isVisited;
-                            const isFocus = modelState === undefined ? false : modelState.isFocus;
-                            // const errors = (name as any as ErrorsSelector)(validation.errors);
                             const errors = fromProxy(
                                 autoCreateProxy(validation.errors),
-                                name as any,
+                                name as any as ErrorsSelector,
                                 []
                             );
-                            const isValid = (errors === undefined || errors.length === 0);
+
+                            const isChanged = modelState.isChanged === true;
+                            const isVisited = modelState.isVisited === true;
+                            const isFocus = modelState.isFocus === true;
+                            const isValid = errors.length === 0;
                             /*&& (validation.scope === undefined || validation.scope.length === 0)*/
 
                             const _Field = FieldClass as IFieldClass<TModel>;
@@ -442,7 +419,7 @@ export class Field<TValue, TModel extends object> extends React.Component<IField
                                     type={type}
                                     multiple={multiple}
                                     value={value}
-                                    forwardedValue={propsValue}
+                                    forwardedValue={forwardedValue}
                                     validationErrors={errors}
                                     validationScope={validation.scope}
                                     form={formContext}

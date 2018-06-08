@@ -2,12 +2,12 @@ import deepEqual = require("deep-equal");
 import * as React from "react";
 
 import { isDiffEqual, isValueEqual } from "../helpers/field";
-import { setModelValues, updateModelFields } from "../helpers/form";
+import { setModelValues, updateFieldsState } from "../helpers/form";
 
 import { IFieldState, InputValue, IUpdateEvent } from "../interfaces/field";
 import { FieldsState, IFormConfiguration, IFormStorage } from "../interfaces/form";
 
-import { autoCreateProxy, fromProxy, setPathValue } from "../tools";
+import { autoCreateProxy, forEachElement, fromProxy, getPath, setPathValue } from "../tools";
 import { Field } from "./Field";
 import { Transform } from "./Transform";
 import { Validation } from "./Validation";
@@ -15,18 +15,18 @@ import { Validation } from "./Validation";
 /**
  * Describes [[Form]] props
  */
-export interface IFormProps<T extends object> extends React.FormHTMLAttributes<HTMLFormElement> {
+export interface IFormProps<TModel extends object> extends React.FormHTMLAttributes<HTMLFormElement> {
     /**
-     * Via this prop you can controll form via `Redux` as example
-     * if passed you need control `isSubmitting` `isChanged` by yourself
+     * You can control form by yourself by passing `values` and `state`
+     * Must be passed with `isSubmitting` `isChanged` props
      */
-    values?: Partial<T>;
-    state?: FieldsState<T>;
+    values?: TModel;
+    state?: FieldsState<TModel>;
     /**
-     * Sets inital form values on mount and when reset
+     * Sets inital form values when mount and reset
      */
-    initValues?: Partial<T>;
-    initState?: FieldsState<T>;
+    initValues?: TModel;
+    initState?: FieldsState<TModel>;
     /**
      * That prop allows you configure form
      */
@@ -40,19 +40,19 @@ export interface IFormProps<T extends object> extends React.FormHTMLAttributes<H
     isChanged?: boolean;
     isSubmitting?: boolean;
     /**
-     * Fire when [[Form]] [[model]] changed
+     * Fire when [[Form]] changed
      */
-    onModelChange?: (nextModel: T, prevModel: T) => any;
+    onModelChange?: (nextModel: TModel, prevModel: TModel) => any;
     onReset?: (event: React.FormEvent<HTMLFormElement>) => any;
     /**
-     * Fire when form submits
+     * Fire when form submitting
      */
-    onSubmit?: (event: React.FormEvent<HTMLFormElement>) => (values: T, isValid: boolean) => any;
+    onSubmit?: (event: React.FormEvent<HTMLFormElement>) => (values: TModel, isValid: boolean) => any;
     [rest: string]: any;
 }
 
-export interface IFormContext<T extends object> {
-    storage: IFormStorage<T>;
+export interface IFormContext<TModel extends object> {
+    storage: IFormStorage<TModel>;
     /**
      * Reset form to `initValues` and call [[onReset]] from props
      */
@@ -61,13 +61,9 @@ export interface IFormContext<T extends object> {
      * Update [[model]] [[Field]] state and call [[onModelChange]] from props
      */
     handleChange: (event: IUpdateEvent) => any;
-    mountField: (value: Field<any, T>) => any;
-    unMountField: (value: Field<any, T>) => any;
+    mountField: (value: Field<any, TModel>) => any;
+    unMountField: (value: Field<any, TModel>) => any;
 }
-
-// export interface IForm<T extends ValuesModel<T>> extends Form<T> {
-//     new(props: IFormProps<T>): Form<T>;
-// }
 
 /**
  * Default [[Form]] configuration
@@ -108,25 +104,27 @@ export interface IForm<TModel extends object> extends Form<TModel> {
 /**
  * Form component controlls [[Field]]s and passes [[FormContext]]
  */
-export class Form<T extends object> extends React.Component<IFormProps<T>> {
+export class Form<TModel extends object> extends React.Component<IFormProps<TModel>> {
     static defaultProps: Partial<IFormProps<any>> = {
         config: defaultConfiguration
     };
 
-    private fields: Array<Field<any, T>> = [];
-    private transform: React.RefObject<Transform<T>>;
-    private validation: React.RefObject<Validation<T>>;
-    private storage: IFormStorage<T>;
+    private fields: Array<Field<any, TModel>> = [];
+    private transform: React.RefObject<Transform<TModel>>;
+    private validation: React.RefObject<Validation<TModel>>;
+    private storage: IFormStorage<TModel>;
 
-    constructor(props: IFormProps<T>) {
+    constructor(props: IFormProps<TModel>) {
         super(props);
 
-        const model = props.values || props.initValues || emptyModel;
-
         this.storage = defaultStorage as any;
-        this.storage.values = model as T;
-        this.transform = React.createRef<Transform<T>>();
-        this.validation = React.createRef<Validation<T>>();
+        this.storage.state = props.state || props.initState || emptyModel as FieldsState<TModel>;
+        this.storage.values = props.values || props.initValues || emptyModel as TModel;
+        this.storage.isChanged = props.isChanged || false;
+        this.storage.isSubmitting = props.isSubmitting || false;
+
+        this.transform = React.createRef<Transform<TModel>>();
+        this.validation = React.createRef<Validation<TModel>>();
     }
     get getStorage() {
         return this.storage;
@@ -135,9 +133,9 @@ export class Form<T extends object> extends React.Component<IFormProps<T>> {
         return this.fields;
     }
     /**
-     * [[Form]] rerenders only if `model` or `props` changed
+     * [[Form]] update [[storage]]
      */
-    shouldComponentUpdate(nextProps: IFormProps<T>) {
+    shouldComponentUpdate(nextProps: IFormProps<TModel>) {
         const {
             values,
             initValues,
@@ -148,26 +146,11 @@ export class Form<T extends object> extends React.Component<IFormProps<T>> {
         this.storage.config = config;
 
         if (isReset) {
-            this.storage.values = initValues
-                ? initValues as any
-                : {};
-            this.storage.state = updateModelFields(
-                {
-                    isChanged: false,
-                    isFocus: false,
-                    isVisited: false
-                },
-                this.storage.state,
-                this.fields.map(f => f.props.name)
-            );
-            this.storage.isChanged = false;
-        }
-        if (values !== undefined) {
-            const { isChanged: isValuesChanged, model } = setModelValues(values, this.storage.values);
-            this.storage.values = model as any;
-            if (!isReset) {
-                this.storage.isChanged = this.storage.isChanged || isValuesChanged;
-            }
+            this.resetToInital(values);
+        } else if (values !== undefined) {
+            const { isChanged: isValuesChanged, model: newValues } = setModelValues(values, this.storage.values);
+            this.storage.values = newValues as any;
+            this.storage.isChanged = this.storage.isChanged || isValuesChanged;
         }
         this.storage.isChanged = isChanged !== undefined ? isChanged : this.storage.isChanged;
         this.storage.isSubmitting = isSubmitting !== undefined ? isSubmitting : this.storage.isSubmitting;
@@ -178,22 +161,23 @@ export class Form<T extends object> extends React.Component<IFormProps<T>> {
     render() {
         const {
             componentId,
-            values,
-            initValues,
             actions,
+            values,
+            state,
+            initValues,
+            initState,
             children,
             config,
             isReset,
             isChanged,
             isSubmitting,
-            onModelReset,
             onModelChange,
             onSubmit,
             onReset,
             ...rest
         } = this.props;
 
-        const context: IFormContext<T> = {
+        const context: IFormContext<TModel> = {
             storage: this.storage,
             handleReset: this.handleReset,
             handleChange: this.handleChange,
@@ -218,14 +202,32 @@ export class Form<T extends object> extends React.Component<IFormProps<T>> {
             field.field.current.mountValue();
         });
     }
-    componentDidCatch(error, info) {
+    // componentDidCatch(error, info) {
 
-        console.log(error, info);
+    //     console.log(error, info);
+    // }
+    private updateState(state: Partial<IFieldState>) {
+        this.storage.state = updateFieldsState(
+            state,
+            this.storage.state,
+            this.fields.map(f => f.props.name)
+        );
     }
-    private mountField = (value: Field<any, T>) => {
+    private resetToInital(initalValues?: TModel) {
+        const { storage, fields, props: { initValues } } = this;
+        storage.values = initalValues || initValues || emptyModel as any;
+        this.updateState({
+            isChanged: false,
+            isFocus: false,
+            isVisited: false
+        });
+        storage.isChanged = false;
+        storage.isSubmitting = false;
+    }
+    private mountField = (value: Field<any, TModel>) => {
         this.fields.push(value);
     }
-    private unMountField = (value: Field<any, T>) => {
+    private unMountField = (value: Field<any, TModel>) => {
         const id = this.fields.indexOf(value);
         if (id > -1) {
             this.fields.splice(id, 1);
@@ -234,7 +236,7 @@ export class Form<T extends object> extends React.Component<IFormProps<T>> {
     /**
      * Transform `model` to `values` and call `onModelChange`
      */
-    private callModelChange(prevModel: T) {
+    private callModelChange(prevModel: TModel) {
         if (!this.props.onModelChange) {
             return;
         }
@@ -254,15 +256,11 @@ export class Form<T extends object> extends React.Component<IFormProps<T>> {
         if (event && config.submitting.preventDefault) {
             event.preventDefault();
         }
-        this.storage.state = updateModelFields(
-            {
-                isChanged: false,
-                isFocus: false,
-                isVisited: true
-            },
-            this.storage.state,
-            this.fields.map(f => f.props.name)
-        );
+        this.updateState({
+            isChanged: false,
+            isFocus: false,
+            isVisited: true
+        });
         this.storage.isChanged = false;
         if (onSubmit) {
             onSubmit(event)(this.storage.values, this.storage.validation.isValid);
@@ -276,24 +274,8 @@ export class Form<T extends object> extends React.Component<IFormProps<T>> {
         if (onReset) {
             onReset(event);
         }
-        // console.log("pp");
         if (!values) {
-            this.storage.values = initValues
-                ? initValues as any
-                : {};
-            // console.log(">>", this.storage.state);
-            this.storage.state = updateModelFields(
-                {
-                    isChanged: false,
-                    isFocus: false,
-                    isVisited: false
-                },
-                this.storage.state,
-                this.fields.map(f => f.props.name)
-            );
-
-            this.storage.isChanged = false;
-            this.storage.isSubmitting = false;
+            this.resetToInital();
         }
     }
     private invokeFieldsUpdate() {
@@ -303,54 +285,52 @@ export class Form<T extends object> extends React.Component<IFormProps<T>> {
      * Update [[Field]] state with new `value` and sets form `isChanged` to `true`
      */
     private handleChange = (event: IUpdateEvent) => {
-        // console.log(event);
         if (isDiffEqual(event, this.storage)) {
-            return null;
+            return;
         }
-        // console.log("upd >>>>>>>>>");
+        const updatedFields = [];
         const prevValues = this.storage.values;
         this.storage.values = { ...prevValues as any };
         this.storage.state = { ...this.storage.state as any };
+
+        const valuesProxy = autoCreateProxy(this.storage.values);
+
         if (this.transform.current) {
             const transforms = this.transform.current.transform([event][Symbol.iterator](), this.storage);
-            let result: IteratorResult<IUpdateEvent>;
-            do {
-                result = transforms.next();
-                if (!result.value) {
-                    break;
-                }
-                const { selector, value, state } = result.value;
-                const prevValue = fromProxy<T, InputValue>(autoCreateProxy(this.storage.values), selector);
-                const prevState = fromProxy<FieldsState<T>, IFieldState>(
-                    autoCreateProxy(this.storage.state),
-                    selector,
-                    {}
-                );
-                // console.log("vals", prevValues);
-                // console.log("set: ", value, state);
-                setPathValue(selector, this.storage.values, value);
-                // console.log(this.storage.values);
-                // console.log("prevState: ", prevState, state);
-                setPathValue(
-                    selector,
-                    this.storage.state,
-                    {
-                        ...prevState,
-                        ...state,
-                        isChanged: state.isChanged
-                            || prevValue !== undefined
-                            && !isValueEqual(value, prevValue)
-                    });
-                // console.log(this.storage.state);
-            } while (!result.done);
+            const stateProxy = autoCreateProxy(this.storage.state);
+
+            forEachElement(transforms, ({ selector, value, state }) => {
+                const prevValue = fromProxy(valuesProxy, selector) as InputValue;
+                const prevState = fromProxy(stateProxy, selector, {}) as IFieldState;
+                const newState = {
+                    ...prevState,
+                    ...state,
+                    isChanged: state.isChanged !== undefined
+                        ? state.isChanged
+                        : prevValue !== undefined && !isValueEqual(value, prevValue)
+                };
+
+                setPathValue(value, selector, this.storage.values);
+                setPathValue(newState, selector, this.storage.state);
+                updatedFields.push(selector);
+            });
         }
         this.storage.isChanged = true;
         if (this.validation.current) {
             this.storage.validation = this.validation.current.validate(this.storage.values);
         }
 
-        this.invokeFieldsUpdate();
+        updatedFields.forEach(selector => {
+            this.fields.forEach(field => {
+                const path1 = getPath(selector, this.storage.values);
+                const path2 = getPath(field.props.name, this.storage.values);
+                if (path1 === path2) {
+                    field.forceUpdate();
+                }
+            }
+            );
+        });
+        // this.invokeFieldsUpdate();
         this.callModelChange(prevValues);
-        // console.log("upd <<<<<<<<<<");
     }
 }

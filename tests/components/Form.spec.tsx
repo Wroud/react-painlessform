@@ -1,5 +1,4 @@
 import chai, { assert, expect, use } from "chai";
-import * as assertArrays from "chai-arrays";
 import "mocha";
 import * as React from "react";
 
@@ -9,8 +8,6 @@ import { createFormFactory } from "../../src";
 import { IForm, IFormProps } from "../../src/components/Form";
 import { FieldSelector, IUpdateEvent } from "../../src/interfaces/field";
 import { IFormStorage } from "../../src/interfaces/form";
-
-use(assertArrays);
 
 describe("Form", () => {
     interface IProps {
@@ -230,7 +227,7 @@ describe("Form", () => {
         } = wrapper.instance() as any as IForm<IModel>;
 
         // console.log(getStorage.values);
-        assert.deepEqual(expectedValues, getStorage.values);
+        assert.deepEqual(getStorage.values, expectedValues);
 
         testValues(expectedValues);
     });

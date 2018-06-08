@@ -1,5 +1,5 @@
 import * as React from "react";
-import { isArray, isNumber } from "util";
+import { isArray } from "util";
 import * as Yup from "yup";
 
 export function deepExtend(destination, source) {
@@ -58,12 +58,9 @@ export function getFromObject(object, keys: string | string[], defaultVal = null
 
 export function fromProxy<TModel, TValue>(proxy: TModel, selector: (model: TModel) => TValue, defaultValue?): TValue {
     const value = selector(proxy);
-    const bval = typeof value === "object" && (!isArray(value) || (value as any).length === 0)
-        && value[Symbol("util.inspect.custom")] !== undefined
+    const bval = typeof value === "object" && !isArray(value)
         ? defaultValue
         : value;
-    // console.log(proxy);
-    // console.log(value, bval);
     return bval;
 }
 
@@ -110,14 +107,28 @@ export function getPath(selector: (obj) => any, data) {
     return path;
 }
 
-export function setPathValue(selector: (obj) => any, data, value: any) {
+export function forEachElement<TValue, TResult>(iterator: IterableIterator<TValue>, action: (element: TValue) => TResult) {
+    let result = iterator.next();
+    const array = [];
+    while (!result.done) {
+        array.push(action(result.value));
+        result = iterator.next();
+    }
+    return array[Symbol.iterator]();
+}
+export function* exchangeIterator<TValue, TResult>(iterator: IterableIterator<TValue>, action: (element: TValue) => IterableIterator<TResult>) {
+    let result = iterator.next();
+    while (!result.done) {
+        yield* action(result.value);
+        result = iterator.next();
+    }
+}
+
+export function setPathValue<T>(value: any, selector: (obj: T) => any, to: T) {
     let lastProperty: PropertyKey = "";
     let lastParent;
-    // console.log(data);
-    let path = "";
     const proxyFactory = object => new Proxy(object, {
         get(target, prop) {
-            path += "." + prop.toString();
             if (prop === undefined) {
                 return undefined;
             }
@@ -139,12 +150,10 @@ export function setPathValue(selector: (obj) => any, data, value: any) {
             }
         }
     });
-    selector(proxyFactory(data));
+    selector(proxyFactory(to));
     if (value === undefined) {
         delete lastParent[lastProperty];
     } else {
         lastParent[lastProperty] = value;
     }
-    // console.log(path, value);
-    // console.log(data);
 }

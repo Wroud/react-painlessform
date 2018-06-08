@@ -6,7 +6,7 @@ import { IValidator } from "../ArrayValidator";
 import { IErrorMessage } from "../FormValidator";
 import { getProps, yupValidator } from "../helpers/validation";
 import { IValidationConfiguration, IValidationErrors, IValidationMeta, IValidationState, ValidationModel } from "../interfaces/validation";
-import { autoCreateProxy, fromProxy, isYup, setPathValue } from "../tools";
+import { autoCreateProxy, forEachElement, fromProxy, isYup, setPathValue } from "../tools";
 import { Consumer as FormContext } from "./Form";
 
 /**
@@ -83,28 +83,21 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
         };
 
         const errorsCollection = this.validator(values);
-        let result: IteratorResult<IValidationErrors>;
-        do {
-            result = errorsCollection.next();
-            if (!result.value) {
-                break;
-            }
-            const { selector, scope, errors } = result.value;
-            const validationError = fromProxy(autoCreateProxy(this.validationState.errors), selector, []);
-
-            if (scope !== undefined) {
+        forEachElement(errorsCollection, ({ selector, scope, errors }) => {
+            if (scope) {
                 this.validationState.scope.push(...scope);
                 this.validationState.isValid = scope.length === 0 && this.validationState.isValid;
             }
-            if (isArray(errors) && isArray(validationError)) {
+            if (isArray(errors) && selector) {
+                const validationError = fromProxy(autoCreateProxy(this.validationState.errors), selector, []);
                 setPathValue(
+                    [...validationError, ...errors],
                     selector,
-                    autoCreateProxy(this.validationState.errors),
-                    [...validationError, ...errors]
+                    this.validationState.errors
                 );
                 this.validationState.isValid = false;
             }
-        } while (!result.done);
+        });
         return this.validationState;
     }
 
@@ -175,17 +168,11 @@ export class Validation<T> extends React.Component<IValidationProps<T>, any> {
             if (isYup(validator)) {
                 yield* yupValidator(validator, model, { state, props }, props.configure);
             } else {
-                yield* validator.validate(
-                    model,
-                    { state, props }
-                );
+                yield* validator.validate(model, { state, props });
             }
         }
         if (scopeValidator) {
-            yield* scopeValidator.validate(
-                model,
-                { state, props }
-            );
+            yield* scopeValidator.validate(model, { state, props });
         }
     }
     private mountValidation = (value: Validation<T>) => {

@@ -14,8 +14,6 @@ export interface IUpdateEvent {
     state: IFieldState;
 }
 
-export type NeverState<T> = T extends FieldsState<infer P> ? never : T;
-
-export type FieldStateSelect<TModel> = (state: FieldsState<TModel>) => IFieldState;
+export type FieldStateSelector<TModel> = (state: FieldsState<TModel>) => IFieldState;
 export type FieldSelector<TModel> = (values: TModel | FieldsState<TModel>) => any;
 export type ModelFieldSelector<TModel, TValue> = (values: TModel) => TValue;

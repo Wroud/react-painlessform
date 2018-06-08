@@ -1,6 +1,9 @@
+const chai = require("chai");
+const assertArrays = require("chai-arrays");
 const { configure } = require('enzyme');
 // import Adapter from "enzyme-adapter-react-16";
 const Adapter = require('./ReactSixteenAdapter');
+chai.use(assertArrays);
 
 configure({ adapter: new Adapter() });
 

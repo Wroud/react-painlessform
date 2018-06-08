@@ -1,9 +1,6 @@
 import * as chai from "chai";
-import * as assertArrays from "chai-arrays";
 import "mocha";
 import { createFieldValidator, createValidator } from "../src";
-
-chai.use(assertArrays);
 
 // describe("FieldValidator", () => {
 

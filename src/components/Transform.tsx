@@ -3,6 +3,7 @@ import * as React from "react";
 import { isField } from "../helpers/form";
 import { FieldSelector, IUpdateEvent } from "../interfaces/field";
 import { IFormStorage } from "../interfaces/form";
+import { exchangeIterator } from "../tools";
 
 /**
  * Describes [[Transform]] props
@@ -12,7 +13,7 @@ export interface ITranformProps<T extends object> {
      * Transformer function that accepts changed `field` and his `value` and form `model`
      * and returns fields map to update values
      */
-    transformer?: (value: IUpdateEvent, is: (field: FieldSelector<T>) => boolean, state: IFormStorage<T>) => IterableIterator<IUpdateEvent>;
+    transformer?: (value: IUpdateEvent, is: (field: FieldSelector<T>, strict?: boolean) => boolean, state: IFormStorage<T>) => IterableIterator<IUpdateEvent>;
     [key: string]: any;
 }
 
@@ -41,7 +42,10 @@ export class Transform<T extends object> extends React.Component<ITranformProps<
         let next = events;
 
         if (transformer) {
-            next = this.generator(next, transformer, state);
+            next = exchangeIterator(
+                next,
+                event => transformer(event, isField(state.values, event), state)
+            );
         }
 
         this.transformers.forEach(({ transform }) => {
@@ -82,23 +86,5 @@ export class Transform<T extends object> extends React.Component<ITranformProps<
         if (id > -1) {
             this.transformers.splice(id, 1);
         }
-    }
-    private *generator(
-        iterator: IterableIterator<IUpdateEvent>,
-        transformer: (value: IUpdateEvent, is: (field: FieldSelector<T>) => boolean, state: IFormStorage<T>) => IterableIterator<IUpdateEvent>,
-        state: IFormStorage<T>
-    ) {
-        let result: IteratorResult<IUpdateEvent>;
-        do {
-            result = iterator.next();
-            if (!result.value) {
-                break;
-            }
-            yield* transformer(
-                result.value,
-                isField(state.values, result.value),
-                state
-            );
-        } while (!result.done);
     }
 }

@@ -1,8 +1,5 @@
 import * as chai from "chai";
-import * as assertArrays from "chai-arrays";
 import "mocha";
-
-chai.use(assertArrays);
 
 // describe("Helpers", () => {
 

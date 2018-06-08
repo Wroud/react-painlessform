@@ -28,9 +28,6 @@ export function* yupErrors<T>(error: Yup.ValidationError): IterableIterator<IVal
                 scope: error.errors.map(e => ({ message: e }))
             } as IValidationErrors;
         } else {
-            // const indexOfDot = error.path.lastIndexOf(".");
-            // const field = error.path.slice(indexOfDot + 1);
-            // const path = error.path.slice(0, indexOfDot > -1 ? indexOfDot : undefined);
             yield {
                 selector: model => getFromObject(model, error.path),
                 errors: error.errors.map(e => ({ message: e }))

@@ -1,7 +1,8 @@
 import { IValidator } from "./ArrayValidator";
 import { IErrorMessage } from "./FormValidator";
-import { FieldSelector, ModelFieldSelector } from "./interfaces/field";
-import { ErrorsSelector, IValidationErrors } from "./interfaces/validation";
+import { ModelFieldSelector } from "./interfaces/field";
+import { IValidationErrors } from "./interfaces/validation";
+import { forEachElement } from "./tools";
 
 export class FieldValidator<TModel, TValue, TMeta = {}>
     implements IValidator<TModel, IValidationErrors, TMeta> {
@@ -24,14 +25,7 @@ export class FieldValidator<TModel, TValue, TMeta = {}>
         }
         const iterator = this.validator.validate(this.field(data), meta);
         const errors: Array<IErrorMessage<TMeta>> = [];
-        let result: IteratorResult<string>;
-        do {
-            result = iterator.next();
-            if (result.value === undefined) {
-                break;
-            }
-            errors.push({ message: result.value });
-        } while (!result.done);
+        forEachElement(iterator, message => errors.push({ message }));
         yield {
             selector: this.field as any,
             errors

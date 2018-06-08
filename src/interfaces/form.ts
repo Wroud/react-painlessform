@@ -18,15 +18,6 @@ export type CastValueState<T> = T extends Array<infer S> ? CastStateArray<S> : C
 export type FieldsState<T> = {
     [P in keyof T]: CastValueState<P>;
 };
-interface IP {
-    a: number;
-    b: string;
-    c: {
-        a: string,
-        b: number
-    };
-}
-type p = FieldsState<IP>;
 
 export interface IFormConfiguration {
     submitting: {

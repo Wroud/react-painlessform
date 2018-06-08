@@ -26,29 +26,25 @@ export function castValue<T>(
                     castTo.splice(indexOf, 1);
                 }
             }
-            // console.log(">>>>>", result, indexOf, castTo);
             result = castTo as any;
         }
     }
     if (type === "radio") {
-        // console.log(">>", to, value, forwardedValue);
-        return result === undefined
-            ? to === forwardedValue
+        return result !== undefined
+            ? result
+            : to === forwardedValue
                 ? "" as any
-                : to
-            : result;
+                : to;
     }
     return result;
 }
 
 export function isDiffEqual<T extends object>(diff: IUpdateEvent, model: IFormStorage<T>) {
-    const value = fromProxy<T, any>(autoCreateProxy(model.values), diff.selector);
+    const value = fromProxy(autoCreateProxy(model.values), diff.selector);
     const state = fromProxy<FieldsState<T>, IFieldState>(
         autoCreateProxy(model.state),
         diff.selector
     );
-    // const value = diff.selector(model.values);
-    // const state = diff.selector(model.state);
     return isValueEqual(value, diff.value)
         && shallowequal(state, diff.state);
 }

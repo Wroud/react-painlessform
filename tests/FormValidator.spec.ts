@@ -1,10 +1,7 @@
 import * as chai from "chai";
-import * as assertArrays from "chai-arrays";
 import "mocha";
 import * as Yup from "yup";
 import { createFieldValidator, createFormValidator, createRawFormValidator, createValidator } from "../src";
-
-chai.use(assertArrays);
 
 // describe("FormValidator", () => {
 
