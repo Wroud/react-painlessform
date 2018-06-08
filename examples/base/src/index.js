@@ -7,22 +7,13 @@ import classnames from "classnames";
 const { Field, Form, FormContex } = createFormFactory();
 
 class MyForm extends React.Component {
-  constructor(props) {
-    super(props);
-    this.initValues = {
-      firstName: "",
-      min: 0,
-      max: 0
-    };
-  }
   handleReset = () => { };
-  handleSubmit = event => model => console.log(model, event);
+  handleSubmit = event => model => console.log(model);
   render() {
     return (
       <Form
         onReset={this.handleReset}
         onSubmit={this.handleSubmit}
-        initValues={this.initValues}
       >
         <Field name={f => f.user.firstName}>
           {({ inputHook }) => (
@@ -51,8 +42,8 @@ class MyForm extends React.Component {
         <Field name={f => f.agree} type="checkbox">
           {({ inputHook }) => (
             <div className={"input-group"}>
-              <input className="text-input" {...inputHook} />
-              <label className="label" htmlFor={inputHook.name}>I agree with terms</label>
+              <input {...inputHook} id="agree" />
+              <label htmlFor={inputHook.name}>I agree with terms</label>
             </div>
           )}
         </Field>
