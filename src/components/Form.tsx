@@ -280,6 +280,7 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
         }
         if (!values) {
             this.resetToInital();
+            this.invokeFieldsUpdate();
         }
     }
     private invokeFieldsUpdate() {
