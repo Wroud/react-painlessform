@@ -206,6 +206,15 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
 
     //     console.log(error, info);
     // }
+    private validate() {
+        if (this.validation.current) {
+            this.storage.validation = {
+                errors: {} as any,
+                isValid: true
+            };
+            this.validation.current.smartValidate(this.storage);
+        }
+    }
     private updateState(state: Partial<IFieldState>) {
         this.storage.state = updateFieldsState(
             state,
@@ -266,6 +275,7 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
             isVisited: true
         });
         this.storage.isChanged = false;
+        this.validate();
         if (onSubmit) {
             onSubmit(event)(this.storage.values, this.storage.validation.isValid);
         }
@@ -321,13 +331,7 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
             });
         }
         this.storage.isChanged = true;
-        if (this.validation.current) {
-            this.storage.validation = {
-                errors: {} as any,
-                isValid: true
-            };
-            this.validation.current.smartValidate(this.storage);
-        }
+        this.validate();
 
         updatedFields.forEach(selector => {
             this.fields.forEach(field => {
