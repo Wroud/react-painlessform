@@ -28,8 +28,9 @@ npm install --save react-painlessform
 
 ## Examples
 
-* [Usage example](https://codesandbox.io/s/1yl74031w3)
-* [Advanced usage](https://codesandbox.io/s/l2zrk27lr9)
+* [Usage](https://codesandbox.io/s/github/Wroud/react-painlessform/tree/master/examples/base)
+* [Styling](https://codesandbox.io/s/github/Wroud/react-painlessform/tree/master/examples/styling-example)
+* [Yup validation](https://codesandbox.io/s/github/Wroud/react-painlessform/tree/master/examples/validation-yup)
 * [Date range picker & selector with data from api](https://codesandbox.io/s/73nwk5ljxx)
 
 ```js
@@ -46,17 +47,13 @@ const MyForm = (props) => {
     return (
         <Form initValues={values} onModelChange={onModelChange}>
             <div>
-                <Field name={"field"}>
-                    {({ name, value, onClick, onChange, rest }) => (
-                        <input name={name} value={value} onClick={onClick} onChange={onChange} {...rest} />
-                    )}
+                <Field name={f=>f.field}>
+                    {({ inputHook, rest }) => <input {...inputHook, ...rest} />}
                 </Field>
-                <Field name={"field2"}>
-                    {({ name, value, onClick, onChange, rest }) => (
-                        <input name={name} value={value} onClick={onClick} onChange={onChange} {...rest} />
-                    )}
+                <Field name={f=>f.field2}>
+                    {({ inputHook, rest }) => <input {...inputHook, ...rest} />}
                 </field>
-                <button type={"submit"}>Submit</button>
+                <button type="submit">Submit</button>
             </div>
         </Form>
     );
