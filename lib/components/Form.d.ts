@@ -80,6 +80,7 @@ export declare class Form<TModel extends object> extends React.Component<IFormPr
     shouldComponentUpdate(nextProps: IFormProps<TModel>): boolean;
     render(): JSX.Element;
     componentDidMount(): void;
+    private validate();
     private updateState(state);
     private resetToInital(initalValues?);
     private mountField;

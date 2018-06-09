@@ -63,6 +63,7 @@ class Form extends React.Component {
                 isVisited: true
             });
             this.storage.isChanged = false;
+            this.validate();
             if (onSubmit) {
                 onSubmit(event)(this.storage.values, this.storage.validation.isValid);
             }
@@ -101,13 +102,7 @@ class Form extends React.Component {
                 });
             }
             this.storage.isChanged = true;
-            if (this.validation.current) {
-                this.storage.validation = {
-                    errors: {},
-                    isValid: true
-                };
-                this.validation.current.smartValidate(this.storage);
-            }
+            this.validate();
             updatedFields.forEach(selector => {
                 this.fields.forEach(field => {
                     const path1 = tools_1.getPath(selector, this.storage.values);
@@ -170,6 +165,15 @@ class Form extends React.Component {
         this.fields.forEach(field => {
             field.field.current.mountValue();
         });
+    }
+    validate() {
+        if (this.validation.current) {
+            this.storage.validation = {
+                errors: {},
+                isValid: true
+            };
+            this.validation.current.smartValidate(this.storage);
+        }
     }
     updateState(state) {
         this.storage.state = form_1.updateFieldsState(state, this.storage.state, this.fields.map(f => f.props.name));
