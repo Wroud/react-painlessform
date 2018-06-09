@@ -2,12 +2,12 @@
   "name": "painless-form-building-input-primitives",
   "description": "Example shows how create simple form with own styling components.",
   "keywords": ["react", "form", "react-painlessform"],
-  "version": "3.0.0-alpha9",
+  "version": "3.0.0-beta",
   "dependencies": {
     "yup": "0.23.0",
     "react-dom": "16.4.0",
     "react": "16.4.0",
-    "react-painlessform": "3.0.0-alpha9",
+    "react-painlessform": "3.0.0-beta",
     "classnames": "2.2.5"
   },
   "devDependencies": {
