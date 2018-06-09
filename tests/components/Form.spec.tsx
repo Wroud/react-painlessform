@@ -303,8 +303,7 @@ describe("Form", () => {
             getFields
         } = wrapper.instance() as IForm<IModel>;
 
-        assert.deepEqual(v, values);
-        // console.log(state);
+        assert.deepEqual(v, expectedValues);
 
         getFields.forEach(({ props: { name } }) => {
             assert.strictEqual(name(state as any).isVisited || false, false);
