@@ -28,7 +28,7 @@ class MyForm extends React.Component {
   render() {
     return (
       <Form onReset={this.handleReset} onSubmit={this.handleSubmit}>
-        <Transform transformer={}>
+        <Transform transformer={transformer}>
           <Field name={f => f.min} label={"Minimum Value"} placeholder={"0"} children={TextField} />
           <Field name={f => f.max} label={"Maximum Value"} placeholder={"0"} children={TextField} />
         </Transform>
