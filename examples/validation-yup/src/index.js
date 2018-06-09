@@ -7,18 +7,59 @@ import Yup from "yup";
 
 const { Field, Form, Validation, FormContex } = createFormFactory();
 
-const TextField = ({ inputHook, rest: { label, placeholder } }) => (
-  <div className={"input-group"}>
-    <label className="label" htmlFor={inputHook.name}>{label}</label>
-    <input className="text-input" placeholder={placeholder} id={inputHook.name} {...inputHook} />
-  </div>
-);
-const CheckBox = ({ inputHook, rest: { label } }) => (
-  <div className={"input-group"}>
-    <input {...inputHook} id={inputHook.name} />
-    <label htmlFor={inputHook.name}>{label}</label>
-  </div>
-);
+const checkErrors = (validationErrors, isVisited, isChanged) => {
+  const isErrorVisible = validationErrors.length !== 0 && isVisited && isChanged;
+  const classes = classnames("input-group", {
+    "animated shake error": isErrorVisible
+  });
+  return { classes, isErrorVisible };
+}
+
+const InputFeedback = ({ errors, hidden }) =>
+  hidden
+    ? null
+    : (
+      <div className="input-feedback">
+        {errors.map((error, key) => (
+          <span key={key}>{error.message}<br /></span>
+        ))}
+      </div>
+    );
+
+const TextField = ({
+  inputHook,
+  rest: { label, placeholder },
+  isVisited,
+  isChanged,
+  isValid,
+  validationErrors
+}) => {
+  const { classes, isErrorVisible } = checkErrors(validationErrors, isVisited, isChanged);
+  return (
+    <div className={classes}>
+      <label className="label" htmlFor={inputHook.name}>{label}</label>
+      <input className="text-input" placeholder={placeholder} id={inputHook.name} {...inputHook} />
+      <InputFeedback errors={validationErrors} hidden={!isErrorVisible} />
+    </div>
+  );
+};
+const CheckBox = ({
+  inputHook,
+  rest: { label },
+  isVisited,
+  isChanged,
+  isValid,
+  validationErrors
+}) => {
+  const { classes, isErrorVisible } = checkErrors(validationErrors, isVisited, isChanged);
+  return (
+    <div className={classes}>
+      <input {...inputHook} id={inputHook.name} />
+      <label htmlFor={inputHook.name}>{label}</label>
+      <InputFeedback errors={validationErrors} hidden={!isErrorVisible} />
+    </div>
+  );
+};
 
 const validationYup = Yup.object().shape({
   user: Yup.object().shape({
@@ -32,7 +73,7 @@ const validationYup = Yup.object().shape({
   email: Yup.string()
     .email("Invalid email address")
     .required("Email is required!"),
-  agree: Yup.boolean()
+  agree: Yup.boolean().oneOf([true], "Must be checked")
 });
 
 class MyForm extends React.Component {
