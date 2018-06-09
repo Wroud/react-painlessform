@@ -35,10 +35,10 @@ class MyForm extends React.Component {
   }
   addEmail = () => {
     this.emails.push(this.id++);
-    this.forceUpdate();
+    this.setState({});
   };
-  removeEmail = (id) => (value) => {
-    if(value === "") {
+  removeEmail = (id) => (value, { isChanged }) => {
+    if (value === "" && isChanged) {
       this.emails.splice(this.emails.indexOf(id), 1);
     }
   };
@@ -87,37 +87,37 @@ const MultipleCheckbox = ({ name, label, values }) => (
 const gender = [
   {
     value: undefined,
-    text: "Select gender"
+    label: "Select gender"
   },
   {
     value: 1,
-    text: "Male"
+    label: "Male"
   },
   {
     value: 2,
-    text: "Female"
+    label: "Female"
   },
   {
     value: 3,
-    text: "Transgen"
+    label: "Transgen"
   }
 ];
 const langs = [
   {
     value: "C#",
-    text: "C#"
+    label: "C#"
   },
   {
     value: "JS",
-    text: "JavaScript"
+    label: "JavaScript"
   },
   {
     value: "C++",
-    text: "C++"
+    label: "C++"
   },
   {
     value: "go",
-    text: "Go"
+    label: "Go"
   }
 ];
 const want = ["Sleep", "Eat", "Coffe"];
