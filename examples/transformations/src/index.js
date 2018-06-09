@@ -9,7 +9,7 @@ const { Field, Form, FormContex, Transform } = createFormFactory();
 function* transformer(event, is, { values }) {
   if (is(f => f.min) && event.value > values.max) {
     yield {
-      selector: f.max,
+      selector: f => f.max,
       value: event.value,
       state: {}
     }
