@@ -37,7 +37,7 @@ class MyForm extends React.Component {
     this.emails.push(this.id++);
     this.forceUpdate();
   };
-  removeEmail = (id) => (value) = {
+  removeEmail = (id) => (value) => {
     if(value === "") {
       this.emails.splice(this.emails.indexOf(id), 1);
     }
@@ -56,7 +56,7 @@ const SelectField = ({ inputHook, rest: { label, placeholder, options } }) => (
   <div className={"input-group"}>
     <label className="label" htmlFor={inputHook.name}>{label}</label>
     <select className="text-input" placeholder={placeholder} id={inputHook.name} {...inputHook} >
-      {options.map(({ value, label }) => <option value={value} key={value} disabled={value === undefined}>{text}</option>)}
+      {options.map(({ value, label }) => <option value={value} key={value} disabled={value === undefined}>{label}</option>)}
     </select>
   </div>
 );
