@@ -276,6 +276,7 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
         });
         this.storage.isChanged = false;
         this.validate();
+        this.invokeFieldsUpdate();
         if (onSubmit) {
             onSubmit(event)(this.storage.values, this.storage.validation.isValid);
         }
