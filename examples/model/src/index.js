@@ -18,11 +18,11 @@ class MyForm extends React.Component {
         <Field name={f => f.user.firstName} label={"First Name"} placeholder={"John"} children={TextField} />
         <Field name={f => f.user.lastName} label={"Last Name"} placeholder={"Doe"} children={TextField} />
         <Field name={f => f.user.gender} label={"Gender"} placeholder={"Select gender"} options={gender} children={SelectField} />
-        <Field name={f => f.user.langs} label={"Favorite languages"} placeholder={"Select languages"} options={langs} children={SelectField} />
+        <Field name={f => f.user.langs} label={"Favorite languages"} placeholder={"Select languages"} options={langs} multiple={true} children={SelectField} />
         <MultipleCheckbox name={f => f.user.wants} label={"I want"} values={want} />
-        <Field name={f => f.stars} type={"radio"} label={"Good"} value={3} children={RadioField} />
-        <Field name={f => f.stars} type={"radio"} label={"Normal"} value={1} children={RadioField} />
-        <Field name={f => f.stars} type={"radio"} label={"bad"} value={0} children={RadioField} />
+        <Field name={f => f.stars} type={"radio"} label={"Good"} value={"3"} children={RadioField} />
+        <Field name={f => f.stars} type={"radio"} label={"Normal"} value={"1"} children={RadioField} />
+        <Field name={f => f.stars} type={"radio"} label={"Bad"} value={"0"} children={RadioField} />
         {this.emails.map(id => (
           <Field name={f => f.email[id]} type={"email"} label={"Email"} placeholder={"Enter your email"} key={id} onChange={this.removeEmail(id)} children={TextField} />
         ))}
@@ -34,7 +34,7 @@ class MyForm extends React.Component {
     );
   }
   addEmail = () => {
-    this.emails.push(this.id++);
+    this.emails.push(++this.id);
     this.setState({});
   };
   removeEmail = (id) => (value, { isChanged }) => {
@@ -68,8 +68,8 @@ const Checkbox = ({ inputHook, rest: { label } }) => (
 );
 const RadioField = ({ inputHook, rest: { label } }) => (
   <div className={"input-group"}>
-    <input {...inputHook} id={inputHook.name} />
-    <label htmlFor={inputHook.name}>{label}</label>
+    <input {...inputHook} id={label + inputHook.name} /> {label}
+    <label htmlFor={label + inputHook.name}>{label}</label>
   </div>
 );
 const MultipleCheckbox = ({ name, label, values }) => (
@@ -77,10 +77,12 @@ const MultipleCheckbox = ({ name, label, values }) => (
     <label className="label">{label}</label>
     {values.map(v => (
       <Field name={name} type={"checkbox"} value={v} multiple={true} key={v} >
-        {({ inputHook }) => [
-          <input {...inputHook} id={inputHook.name} />,
-          <label htmlFor={inputHook.name}>{v}</label>
-        ]}
+        {({ inputHook }) => (
+          <React.Fragment>
+            <input {...inputHook} id={v + inputHook.name} />
+            <label htmlFor={v + inputHook.name}>{v}</label>
+          </React.Fragment>
+        )}
       </Field>
     ))}
   </div>);
