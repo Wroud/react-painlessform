@@ -10,5 +10,5 @@
     "yup": "0.23.0"
   },
   "keywords": ["react", "form", "react-painlessform"],
-  "description": "This is an example of how you can use Painless Form to easily build form."
+  "description": "Example shows how create simple form with own styling components."
 }

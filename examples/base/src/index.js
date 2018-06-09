@@ -7,14 +7,9 @@ import classnames from "classnames";
 const { Field, Form, FormContex } = createFormFactory();
 
 class MyForm extends React.Component {
-  handleReset = () => { };
-  handleSubmit = event => model => console.log(model);
   render() {
     return (
-      <Form
-        onReset={this.handleReset}
-        onSubmit={this.handleSubmit}
-      >
+      <Form onReset={this.handleReset} onSubmit={this.handleSubmit}>
         <Field name={f => f.user.firstName}>
           {({ inputHook }) => (
             <div className={"input-group"}>
@@ -52,6 +47,8 @@ class MyForm extends React.Component {
       </Form>
     );
   }
+  handleReset = () => { };
+  handleSubmit = event => model => console.log(model);
 }
 
 const App = () => (
