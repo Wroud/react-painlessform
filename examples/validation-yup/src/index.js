@@ -7,6 +7,40 @@ import Yup from "yup";
 
 const { Field, Form, Validation, FormContex } = createFormFactory();
 
+const validationYup = Yup.object().shape({
+  user: Yup.object().shape({
+    firstName: Yup.string()
+      .min(2, "C'mon, your name is longer than that")
+      .required("First name is required."),
+    lastName: Yup.string()
+      .min(2, "C'mon, your name is longer than that")
+      .required("Last name is required."),
+  }),
+  email: Yup.string()
+    .email("Invalid email address")
+    .required("Email is required!"),
+  agree: Yup.boolean().oneOf([true], "Must be checked")
+});
+
+class MyForm extends React.Component {
+  render() {
+    return (
+      <Form onReset={this.handleReset} onSubmit={this.handleSubmit}>
+        <Validation validator={validationYup}>
+          <Field name={f => f.user.firstName} label={"First Name"} placeholder={"John"} children={TextField} />
+          <Field name={f => f.user.lastName} label={"Last Name"} placeholder={"Doe"} children={TextField} />
+          <Field name={f => f.email} type={"email"} label={"Email"} placeholder={"Enter your email"} children={TextField} />
+          <Field name={f => f.agree} type={"checkbox"} label={"I agree with terms"} children={CheckBox} />
+        </Validation>
+        <button type="reset" className="outline">Reset</button>
+        <button type="submit">Submit</button>
+      </Form >
+    );
+  }
+  handleReset = () => { };
+  handleSubmit = event => (model, isValid) => console.log(model, `isValid: ${isValid}`);
+}
+
 const checkErrors = (validationErrors, isVisited, isChanged) => {
   const isErrorVisible = validationErrors.length !== 0 && isVisited && isChanged;
   const classes = classnames("input-group", {
@@ -60,40 +94,6 @@ const CheckBox = ({
     </div>
   );
 };
-
-const validationYup = Yup.object().shape({
-  user: Yup.object().shape({
-    firstName: Yup.string()
-      .min(2, "C'mon, your name is longer than that")
-      .required("First name is required."),
-    lastName: Yup.string()
-      .min(2, "C'mon, your name is longer than that")
-      .required("Last name is required."),
-  }),
-  email: Yup.string()
-    .email("Invalid email address")
-    .required("Email is required!"),
-  agree: Yup.boolean().oneOf([true], "Must be checked")
-});
-
-class MyForm extends React.Component {
-  render() {
-    return (
-      <Form onReset={this.handleReset} onSubmit={this.handleSubmit}>
-        <Validation validator={validationYup}>
-          <Field name={f => f.user.firstName} label={"First Name"} placeholder={"John"} children={TextField} />
-          <Field name={f => f.user.lastName} label={"Last Name"} placeholder={"Doe"} children={TextField} />
-          <Field name={f => f.email} type={"email"} label={"Email"} placeholder={"Enter your email"} children={TextField} />
-          <Field name={f => f.agree} type={"checkbox"} label={"I agree with terms"} children={CheckBox} />
-        </Validation>
-        <button type="reset" className="outline">Reset</button>
-        <button type="submit">Submit</button>
-      </Form >
-    );
-  }
-  handleReset = () => { };
-  handleSubmit = event => model => console.log(model);
-}
 
 const App = () => (
   <div className="app">
