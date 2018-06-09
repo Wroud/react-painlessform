@@ -112,34 +112,33 @@ describe("Form", () => {
         </Field>
     );
 
-    function* transformer(_values: IUpdateEvent, is: (field: FieldSelector<IModel>) => boolean, state: IFormStorage<IModel>): IterableIterator<IUpdateEvent> {
-        if (is(f => f.min) && _values.value > state.values.max) {
+    function* transformer(event: IUpdateEvent, is: (field: FieldSelector<IModel>) => boolean, { values: v }: IFormStorage<IModel>): IterableIterator<IUpdateEvent> {
+        if (is(f => f.min) && event.value > v.max) {
             yield {
                 selector: f => f.max,
-                value: _values.value,
+                value: event.value,
                 state: {} as any
             };
         }
-        if (is(f => f.max) && _values.value < state.values.min) {
+        if (is(f => f.max) && event.value < v.min) {
             yield {
                 selector: f => f.min,
-                value: _values.value,
+                value: event.value,
                 state: {} as any
             };
         }
-        yield _values;
+        yield event;
     }
 
-    function* transformer2(_values: IUpdateEvent, is: (field: FieldSelector<IModel>) => boolean, state: IFormStorage<IModel>): IterableIterator<IUpdateEvent> {
-        if (is(f => f.field)
-            && _values.value !== state.values.field && _values.value === 15) {
+    function* transformer2(event: IUpdateEvent, is: (field: FieldSelector<IModel>) => boolean, { values: v }: IFormStorage<IModel>): IterableIterator<IUpdateEvent> {
+        if (is(f => f.field) && event.value !== v.field && event.value === 15) {
             yield {
                 selector: f => f.max,
                 value: transformTestValue,
                 state: {} as any
             };
         }
-        yield _values;
+        yield event;
     }
     const onModelChange = model => {
         newValues = model;

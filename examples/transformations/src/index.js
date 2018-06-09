@@ -51,10 +51,10 @@ const TextField = ({ inputHook, rest: { label, placeholder } }) => (
 const App = () => (
   <div className="app">
     <h3>
-      Building input primitives with{" "}
+      Calculated fields example with{" "}
       <a href="https://github.com/Wroud/react-painlessform">Painless Form</a>
     </h3>
-    <p>Example shows how create simple form with own styling components.</p>
+    <p>Example shows how create simple form with calculated fields.</p>
     <MyForm />
   </div>
 );
