@@ -27,10 +27,10 @@ function* transformer(event, is, { values }) {
 class MyForm extends React.Component {
   render() {
     return (
-      <Form onReset={this.handleReset} onSubmit={this.handleSubmit}>
+      <Form onReset={this.handleReset} onSubmit={this.handleSubmit} initValues={{ min: 0, max: 0 }}>
         <Transform transformer={transformer}>
-          <Field name={f => f.min} label={"Minimum Value"} placeholder={"0"} children={TextField} />
-          <Field name={f => f.max} label={"Maximum Value"} placeholder={"0"} children={TextField} />
+          <Field name={f => f.min} type={"number"} label={"Minimum Value"} placeholder={"0"} children={TextField} />
+          <Field name={f => f.max} type={"number"} label={"Maximum Value"} placeholder={"0"} children={TextField} />
         </Transform>
         <button type="reset" className="outline">Reset</button>
         <button type="submit">Submit</button>
