@@ -43,9 +43,7 @@ class MyForm extends React.Component {
 
 const checkErrors = (validationErrors, isVisited, isChanged) => {
   const isErrorVisible = validationErrors.length !== 0 && isVisited && isChanged;
-  const classes = classnames("input-group", {
-    "animated shake error": isErrorVisible
-  });
+  const classes = classnames("input-group", { "error": isErrorVisible });
   return { classes, isErrorVisible };
 }
 
@@ -65,7 +63,6 @@ const TextField = ({
   rest: { label, placeholder },
   isVisited,
   isChanged,
-  isValid,
   validationErrors
 }) => {
   const { classes, isErrorVisible } = checkErrors(validationErrors, isVisited, isChanged);
@@ -82,7 +79,6 @@ const CheckBox = ({
   rest: { label },
   isVisited,
   isChanged,
-  isValid,
   validationErrors
 }) => {
   const { classes, isErrorVisible } = checkErrors(validationErrors, isVisited, isChanged);
