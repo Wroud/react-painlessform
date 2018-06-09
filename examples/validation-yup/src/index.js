@@ -3,6 +3,7 @@ import React from "react";
 import { render } from "react-dom";
 import { createFormFactory } from "react-painlessform";
 import classnames from "classnames";
+import Yup from "yup";
 
 const { Field, Form, Validation, FormContex } = createFormFactory();
 
