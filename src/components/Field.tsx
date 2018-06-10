@@ -142,7 +142,7 @@ export class FieldClass<TValue, TModel extends object> extends React.Component<I
         const context = {
             ...rest,
             inputHook: {
-                name: getPath(model => name(model), form.storage.values),
+                name: getPath(name, form.storage.values),
                 type,
                 value: getInputValue(value, forwardedValue as TValue, type, multiple),
                 checked: getInputChecked(value, forwardedValue as TValue, type),
@@ -333,7 +333,7 @@ export class Field<TValue, TModel extends object> extends React.Component<IField
     formContext: IFormContext<TModel>;
     field = React.createRef<FieldClass<TValue, TModel>>();
     render() {
-        const { FormContext, ValidationContext } = createFormFactory<TModel>();
+        const { FormContext, ValidationContext, ScopeContext } = createFormFactory<TModel>();
         const {
             value: forwardedValue,
             name,
@@ -349,65 +349,69 @@ export class Field<TValue, TModel extends object> extends React.Component<IField
         } = this.props;
 
         return (
-            <FormContext>
-                {formContext => (
-                    <ValidationContext>
-                        {({ scope }) => {
-                            this.formContext = formContext;
-                            let fullRest = rest;
-                            if (subscribe !== undefined) {
-                                fullRest = {
-                                    ...fullRest,
-                                    ...subscribe(formContext.storage)
-                                };
-                            }
-                            const value = fromProxy(autoCreateProxy(formContext.storage.values), name);
-                            const modelState = fromProxy(
-                                autoCreateProxy(formContext.storage.state),
-                                name as any as FieldStateSelector<TModel>,
-                                {}
-                            );
-                            const errors = fromProxy(
-                                autoCreateProxy(formContext.storage.validation.errors),
-                                name as any as ErrorsSelector,
-                                []
-                            );
+            <ScopeContext>
+                {scope => (
+                    <FormContext>
+                        {formContext => (
+                            <ValidationContext>
+                                {({ scope: validationScope }) => {
+                                    this.formContext = formContext;
+                                    let fullRest = rest;
+                                    if (subscribe !== undefined) {
+                                        fullRest = {
+                                            ...fullRest,
+                                            ...subscribe(formContext.storage)
+                                        };
+                                    }
+                                    const value = fromProxy(autoCreateProxy(formContext.storage.values), scope(name));
+                                    const modelState = fromProxy(
+                                        autoCreateProxy(formContext.storage.state),
+                                        scope(name as any as FieldStateSelector<TModel>),
+                                        {}
+                                    );
+                                    const errors = fromProxy(
+                                        autoCreateProxy(formContext.storage.validation.errors),
+                                        scope(name as any as ErrorsSelector),
+                                        []
+                                    );
 
-                            const isChanged = modelState.isChanged === true;
-                            const isVisited = modelState.isVisited === true;
-                            const isFocus = modelState.isFocus === true;
-                            const isValid = errors.length === 0;
-                            /*&& (validation.scope === undefined || validation.scope.length === 0)*/
+                                    const isChanged = modelState.isChanged === true;
+                                    const isVisited = modelState.isVisited === true;
+                                    const isFocus = modelState.isFocus === true;
+                                    const isValid = errors.length === 0;
+                                    /*&& (validation.scope === undefined || validation.scope.length === 0)*/
 
-                            const _Field = FieldClass as IFieldClass<TModel>;
-                            return (
-                                <_Field
-                                    name={name}
-                                    type={type}
-                                    multiple={multiple}
-                                    value={value}
-                                    forwardedValue={forwardedValue}
-                                    validationErrors={errors}
-                                    validationScope={scope}
-                                    form={formContext}
-                                    isChanged={isChanged}
-                                    isVisited={isVisited}
-                                    isValid={isValid}
-                                    isFocus={isFocus}
-                                    onClick={onClick}
-                                    onChange={onChange}
-                                    onBlur={onBlur}
-                                    onFocus={onFocus}
-                                    children={children}
-                                    rest={fullRest}
+                                    const _Field = FieldClass as IFieldClass<TModel>;
+                                    return (
+                                        <_Field
+                                            name={scope(name)}
+                                            type={type}
+                                            multiple={multiple}
+                                            value={value}
+                                            forwardedValue={forwardedValue}
+                                            validationErrors={errors}
+                                            validationScope={validationScope}
+                                            form={formContext}
+                                            isChanged={isChanged}
+                                            isVisited={isVisited}
+                                            isValid={isValid}
+                                            isFocus={isFocus}
+                                            onClick={onClick}
+                                            onChange={onChange}
+                                            onBlur={onBlur}
+                                            onFocus={onFocus}
+                                            children={children}
+                                            rest={fullRest}
 
-                                    ref={this.field}
-                                />
-                            );
-                        }}
-                    </ValidationContext>
+                                            ref={this.field}
+                                        />
+                                    );
+                                }}
+                            </ValidationContext>
+                        )}
+                    </FormContext>
                 )}
-            </FormContext>
+            </ScopeContext>
         );
     }
 

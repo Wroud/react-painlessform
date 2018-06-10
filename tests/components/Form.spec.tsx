@@ -23,15 +23,17 @@ describe("Form", () => {
         field4: string[];
         field5: string[];
         field6: string;
-        min: number;
-        max: number;
+        scope: {
+            min: number;
+            max: number;
+        };
         selectors: {
             select: string;
             select2: string[];
         };
     }
 
-    const { Form, Field, Validation, Transform, FieldContext, FormContext } = createFormFactory<IModel>();
+    const { Form, Field, Validation, Transform, Scope, FieldContext, FormContext } = createFormFactory<IModel>();
 
     let wrapper: ReactWrapper<any, any>;
     const values: IModel = {
@@ -41,8 +43,7 @@ describe("Form", () => {
         field4: ["gologo", "shui"],
         field5: ["hm1"],
         field6: "hhm1",
-        min: 0,
-        max: 1,
+        scope: { min: 0, max: 1 },
         selectors: {
             select: "2",
             select2: ["1", "2"]
@@ -55,8 +56,7 @@ describe("Form", () => {
         field4: ["gologo", "shui", ""],
         field5: ["hm1"],
         field6: "hhm1",
-        min: 0,
-        max: 1,
+        scope: { min: 0, max: 1 },
         selectors: {
             select: "2",
             select2: ["1", "2"]
@@ -69,8 +69,7 @@ describe("Form", () => {
         field4: ["", "", ""],
         field5: [],
         field6: "",
-        min: 0,
-        max: 0,
+        scope: { min: 0, max: 0 },
         selectors: {
             select: "",
             select2: []
@@ -112,14 +111,14 @@ describe("Form", () => {
         </Field>
     );
 
-    function* transformer(event: IUpdateEvent, is: (field: FieldSelector<IModel>) => boolean, { values: v }: IFormStorage<IModel>): IterableIterator<IUpdateEvent> {
-        if (is(f => f.min) && event.value > v.max) {
+    function* transformer(event: IUpdateEvent, is: (field: FieldSelector<IModel["scope"]>) => boolean, { values: v }: IFormStorage<IModel["scope"]>): IterableIterator<IUpdateEvent> {
+        if (is(f => f.min) && event.value > (!v ? 0 : v.max)) {
             yield {
                 selector: f => f.max,
                 value: event.value
             };
         }
-        if (is(f => f.max) && event.value < v.min) {
+        if (is(f => f.max) && event.value < (!v ? 0 : v.min)) {
             yield {
                 selector: f => f.min,
                 value: event.value
@@ -128,10 +127,10 @@ describe("Form", () => {
         yield event;
     }
 
-    function* transformer2(event: IUpdateEvent, is: (field: FieldSelector<IModel>) => boolean, { values: v }: IFormStorage<IModel>): IterableIterator<IUpdateEvent> {
-        if (is(f => f.field) && event.value !== v.field && event.value === 15) {
+    function* transformer2(event: IUpdateEvent, is: (field: FieldSelector<IModel>, strict: boolean) => boolean, { values: v }: IFormStorage<IModel>): IterableIterator<IUpdateEvent> {
+        if (is(f => f.field, true) && event.value !== v.field && event.value === 15) {
             yield {
-                selector: f => f.max,
+                selector: f => f.scope.max,
                 value: transformTestValue
             };
         }
@@ -158,10 +157,12 @@ describe("Form", () => {
                         <Transform transformer={transformer2}>
                             <MountField name={f => f.field2} type={"text"} />
                             <MountField name={f => f.field3} type={"checkbox"} value={"hm"} />
-                            {!context.storage.unmount ? (<Transform transformer={transformer}>
-                                <MountField type={"number"} name={f => f.min} />
-                                <MountField type={"number"} name={f => f.max} />
-                            </Transform>) : null}
+                            {!context.storage.unmount ? (<Scope scope={f => f.scope}>
+                                <Transform transformer={transformer}>
+                                    <MountField type={"number"} name={f => f.min} />
+                                    <MountField type={"number"} name={f => f.max} />
+                                </Transform>
+                            </Scope>) : null}
                         </Transform>
                         <MountField name={f => f.field4[0]} type={"text"} />
                         {!context.storage.unmount ? <MountField name={f => f.field4[1]} type={"text"} /> : null}
@@ -188,10 +189,10 @@ describe("Form", () => {
             .to.be.equal(model.field2);
         expect(wrapper.find(`input[name='field3']`).props().checked)
             .to.be.equal(model.field3);
-        expect(wrapper.find(`input[name='min']`).props().value)
-            .to.be.equal(model.min);
-        expect(wrapper.find(`input[name='max']`).props().value)
-            .to.be.equal(model.max);
+        expect(wrapper.find(`input[name='scope.min']`).props().value)
+            .to.be.equal(model.scope.min);
+        expect(wrapper.find(`input[name='scope.max']`).props().value)
+            .to.be.equal(model.scope.max);
         expect(wrapper.find(`input[name='field4[0]']`).props().value)
             .to.be.equal(model.field4[0]);
         expect(wrapper.find(`input[name='field4[1]']`).props().value)
@@ -435,40 +436,40 @@ describe("Form", () => {
         assert.strictEqual(state.field.isChanged, true);
         assert.strictEqual(state.field.isVisited, true);
 
-        assert.strictEqual(model.max, transformTestValue);
-        assert.strictEqual(state.max.isChanged, true);
-        assert.strictEqual(model.min, transformTestValue);
-        assert.strictEqual(state.min.isChanged, true);
+        assert.strictEqual(model.scope.max, transformTestValue);
+        assert.strictEqual(state.scope.max.isChanged, true);
+        assert.strictEqual(model.scope.min, transformTestValue);
+        assert.strictEqual(state.scope.min.isChanged, true);
     });
 
     it("does transform correctly", () => {
-        wrapper.find("input[name='max']").simulate("change", { target: { value: "12" } });
-        wrapper.find("input[name='min']").simulate("change", { target: { value: "60" } });
+        wrapper.find("input[name='scope.max']").simulate("change", { target: { value: "12" } });
+        wrapper.find("input[name='scope.min']").simulate("change", { target: { value: "60" } });
 
         const {
             getStorage: { values: model }
         } = wrapper.instance() as IForm<IModel>;
 
-        assert.strictEqual(model.min, 60);
-        assert.strictEqual(model.max, 60);
+        assert.strictEqual(model.scope.min, 60);
+        assert.strictEqual(model.scope.max, 60);
 
-        wrapper.find("input[name='max']").simulate("change", { target: { value: "12" } });
+        wrapper.find("input[name='scope.max']").simulate("change", { target: { value: "12" } });
 
         const {
             getStorage: { values: model2 }
         } = wrapper.instance() as IForm<IModel>;
 
-        assert.strictEqual(model2.min, 12);
-        assert.strictEqual(model2.max, 12);
+        assert.strictEqual(model2.scope.min, 12);
+        assert.strictEqual(model2.scope.max, 12);
 
-        wrapper.find("input[name='max']").simulate("change", { target: { value: "20" } });
+        wrapper.find("input[name='scope.max']").simulate("change", { target: { value: "20" } });
 
         const {
             getStorage: { values: model3 }
         } = wrapper.instance() as IForm<IModel>;
 
-        assert.strictEqual(model3.min, 12);
-        assert.strictEqual(model3.max, 20);
+        assert.strictEqual(model3.scope.min, 12);
+        assert.strictEqual(model3.scope.max, 20);
     });
 
     it("does field remounts correct", () => {

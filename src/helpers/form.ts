@@ -1,3 +1,4 @@
+import { IScopeContext, ScopeSelector } from "components/Scope";
 import deepEqual = require("deep-equal");
 import { isArray } from "util";
 import { FieldSelector, FieldStateSelector, IFieldState, IUpdateEvent } from "../interfaces/field";
@@ -33,12 +34,12 @@ export function updateField<T, M>(field: FieldStateSelector<M>, index: number, v
     return { field, index, value, state };
 }
 
-export const isField = <TModel>(state: TModel, from: IUpdateEvent) => {
+export const isField = <TModel extends object>(state: TModel, from: IUpdateEvent, scope: IScopeContext) => {
     const path = getPath(from.selector, state);
     return (field: FieldSelector<TModel>, strict?: boolean) => {
         return strict
-            ? path === getPath(field, state)
-            : path.includes(getPath(field, state));
+            ? path === getPath(scope(field), state)
+            : path.includes(getPath(scope(field), state));
     };
 };
 

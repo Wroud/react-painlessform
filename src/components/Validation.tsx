@@ -9,6 +9,7 @@ import { IErrorMessage } from "../FormValidator";
 import { getProps, yupValidator } from "../helpers/validation";
 import { IValidationConfiguration, IValidationErrors, IValidationMeta, IValidationState, ValidationModel } from "../interfaces/validation";
 import { autoCreateProxy, forEachElement, fromProxy, isYup, setPathValue } from "../tools";
+import { IScopeContext } from "./Scope";
 
 /**
  * Describes [[Validation]] props
@@ -57,14 +58,14 @@ export interface IValidation<T extends object = {}> extends Validation<T> {
  * That component connect to [[FormContext]] and use passed `validator`, `scopeValidator`
  * to validate [[Form]] model, errors was passed via [[ValidationContext]]
  */
-export class Validation<T extends object> extends React.Component<IValidationProps<T>, any> {
+export class Validation<TModel extends object> extends React.Component<IValidationProps<TModel>, any> {
     static defaultProps: IValidationProps<any> = {
         isValid: true,
         configure: {}
     };
-    private validationContext: IValidationContext<T>;
-    private validators: Array<Validation<T>> = [];
-    private _context: IValidationContext<T> | undefined;
+    private validationContext: IValidationContext<TModel>;
+    private validators: Array<Validation<TModel>> = [];
+    private _context: IValidationContext<TModel> | undefined;
 
     constructor(props) {
         super(props);
@@ -77,7 +78,7 @@ export class Validation<T extends object> extends React.Component<IValidationPro
         };
     }
 
-    smartValidate(storage: IFormStorage<T>) {
+    smartValidate(storage: IFormStorage<TModel>) {
         this.validate(storage);
         for (const _validator of this.validators) {
             _validator.smartValidate(storage);
@@ -85,22 +86,27 @@ export class Validation<T extends object> extends React.Component<IValidationPro
     }
 
     render() {
-        const { FormContext, ValidationContext } = createFormFactory<T>();
+        const { FormContext, ValidationContext, ScopeContext } = createFormFactory<TModel>();
         return (
-            <ValidationContext>
-                {validationContext => (
-                    <FormContext>
-                        {formContext => {
-                            this._context = validationContext.mountValidation
-                                ? validationContext
-                                : undefined;
+            <ScopeContext>
+                {scope => (
+                    <ValidationContext>
+                        {validationContext => (
+                            <FormContext>
+                                {formContext => {
+                                    this._context = validationContext.mountValidation
+                                        ? validationContext
+                                        : undefined;
 
-                            this.validate(formContext.storage);
-                            return <Provider value={this.validationContext}>{this.props.children}</Provider>;
-                        }}
-                    </FormContext>
+                                    this.scope = scope;
+                                    this.validate(formContext.storage);
+                                    return <Provider value={this.validationContext}>{this.props.children}</Provider>;
+                                }}
+                            </FormContext>
+                        )}
+                    </ValidationContext>
                 )}
-            </ValidationContext>
+            </ScopeContext>
         );
     }
     componentDidMount() {
@@ -114,21 +120,24 @@ export class Validation<T extends object> extends React.Component<IValidationPro
         }
     }
 
-    private validate = ({ values, validation }: IFormStorage<T>) => {
+    private scope: IScopeContext = f => f;
+    private validate = ({ values, validation }: IFormStorage<TModel>) => {
         this.validationContext.scope = [];
         this.validationContext.isValid = true;
 
-        const errorsCollection = this.validator(values);
+        // const valuesScope = fromProxy(autoCreateProxy(values), this.scope((f: TModel) => f));
+        const valuesScope = this.scope((f: TModel) => f)(values);
+        const errorsCollection = this.validator(valuesScope);
         forEachElement(errorsCollection, ({ selector, scope, errors }) => {
             if (isArray(scope) && scope.length > 0) {
                 this.validationContext.scope.push(...scope);
                 this.validationContext.isValid = false;
             }
             if (isArray(errors) && errors.length > 0 && selector) {
-                const validationError = fromProxy(autoCreateProxy(validation.errors), selector, []);
+                const validationError = fromProxy(autoCreateProxy(validation.errors), this.scope(selector), []);
                 setPathValue(
                     [...validationError, ...errors],
-                    selector,
+                    this.scope(selector),
                     validation.errors
                 );
                 this.validationContext.isValid = false;
@@ -140,7 +149,7 @@ export class Validation<T extends object> extends React.Component<IValidationPro
     /**
      * Validation function that accepts [[FormContext]] and validate [[Form]] `model`
      */
-    private *validator(model: T): IterableIterator<IValidationErrors> {
+    private *validator(model: TModel): IterableIterator<IValidationErrors> {
         const props = getProps(this.props);
         const state = this.state;
         const { errors, validator, configure: config } = props;
@@ -158,10 +167,10 @@ export class Validation<T extends object> extends React.Component<IValidationPro
             yield* validator.validate(model, { state, props, config });
         }
     }
-    private mountValidation = (value: Validation<T>) => {
+    private mountValidation = (value: Validation<TModel>) => {
         this.validators.push(value);
     }
-    private unMountValidation = (value: Validation<T>) => {
+    private unMountValidation = (value: Validation<TModel>) => {
         const id = this.validators.indexOf(value);
         if (id > -1) {
             this.validators.splice(id, 1);

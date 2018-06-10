@@ -1,5 +1,6 @@
 import { Consumer as FieldContext, Field, IField, IFieldContext } from "../components/Field";
 import { Consumer as FormContext, Form, IForm, IFormContext } from "../components/Form";
+import { Consumer as ScopeContext, IScope, IScopeContext, Scope } from "../components/Scope";
 import { Consumer as TransformContext, ITransform, ITransformContext, Transform } from "../components/Transform";
 import { Consumer as ValidationContext, IValidation, IValidationContext, Validation } from "../components/Validation";
 
@@ -9,30 +10,34 @@ export interface IConsumerProps<T> {
 
 export type Consumer<T> = React.ComponentClass<IConsumerProps<T>>;
 
-export interface IFormFactory<T extends object> {
-    Form: IForm<T>;
-    Field: IField<T>;
-    Transform: ITransform<T>;
-    Validation: IValidation<T>;
-    FormContext: Consumer<IFormContext<T>>;
-    FieldContext: Consumer<IFieldContext<any, T>>;
-    TransformContext: Consumer<ITransformContext<T>>;
-    ValidationContext: Consumer<IValidationContext<T>>;
+export interface IFormFactory<TModel extends object, TScope extends object = any> {
+    Form: IForm<TModel>;
+    Field: IField<TModel>;
+    Transform: ITransform<TModel>;
+    Validation: IValidation<TModel>;
+    Scope: IScope<TScope, TModel>;
+    FormContext: Consumer<IFormContext<TModel>>;
+    FieldContext: Consumer<IFieldContext<any, TModel>>;
+    TransformContext: Consumer<ITransformContext<TModel>>;
+    ValidationContext: Consumer<IValidationContext<TModel>>;
+    ScopeContext: Consumer<IScopeContext>;
 }
 
 /**
  * Used for typings [[Form]], [[Field]], [[Transform]], [[Validation]]
  * and their contexts with `model` type
  */
-export function createFormFactory<T extends object>(): IFormFactory<T> {
+export function createFormFactory<TModel extends object, TScope extends object = any>(): IFormFactory<TModel, TScope> {
     return {
         Form: Form as any,
         Field: Field as any,
         Transform: Transform as any,
         Validation: Validation as any,
+        Scope: Scope as any,
         FormContext: FormContext as any,
         FieldContext: FieldContext as any,
         TransformContext: TransformContext as any,
-        ValidationContext: ValidationContext as any
+        ValidationContext: ValidationContext as any,
+        ScopeContext: ScopeContext as any
     };
 }

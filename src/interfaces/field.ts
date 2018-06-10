@@ -12,6 +12,7 @@ export interface IUpdateEvent {
     selector: FieldSelector<any>;
     value?: InputValue | object | null;
     state?: IFieldState | null;
+    global?: boolean;
 }
 
 export type FieldStateSelector<TModel> = (state: FieldsState<TModel>) => IFieldState;

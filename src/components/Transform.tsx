@@ -1,9 +1,12 @@
 import * as React from "react";
 
+import { createFormFactory } from "..";
 import { isField } from "../helpers/form";
 import { FieldSelector, IUpdateEvent } from "../interfaces/field";
-import { IFormStorage } from "../interfaces/form";
-import { exchangeIterator } from "../tools";
+import { FieldsState, IFormStorage } from "../interfaces/form";
+import { IValidationState } from "../interfaces/validation";
+import { autoCreateProxy, exchangeIterator, fromProxy } from "../tools";
+import { IScopeContext } from "./Scope";
 
 /**
  * Describes [[Transform]] props
@@ -33,19 +36,40 @@ export interface ITransform<T extends object> extends Transform<T> {
  * Transform is React Component that accpts [[ITranformProps]] as props
  * and passes [[transformer]] function as [[TransformContext]]
  */
-export class Transform<T extends object> extends React.Component<ITranformProps<T>> {
-    private transformers: Array<Transform<T>> = [];
-    private _context: ITransformContext<T>;
-    transform = (events: IterableIterator<IUpdateEvent>, state: IFormStorage<T>) => {
+export class Transform<TModel extends object> extends React.Component<ITranformProps<TModel>> {
+    private transformers: Array<Transform<TModel>> = [];
+    private _context: ITransformContext<TModel>;
+    transform = (events: IterableIterator<IUpdateEvent>, state: IFormStorage<TModel>) => {
         const { transformer } = this.props;
+        const { scope } = this;
 
         let next = events;
 
         if (transformer) {
+            // const valuesScope = fromProxy(autoCreateProxy(state.values), scope((f: TModel) => f));
+            // const stateScope = fromProxy(autoCreateProxy(state.state), scope((f: FieldsState<TModel>) => f));
+            // const validationScope = fromProxy(autoCreateProxy(state.validation), scope((f: IValidationState<TModel>) => f));
+            const valuesScope = scope((f: TModel) => f)(state.values);
+            const stateScope = scope((f: FieldsState<TModel>) => f)(state.state);
+            const validationScope = scope((f: IValidationState<TModel>) => f)(state.validation);
+
+            function* addScope(event: IUpdateEvent, ignore: IUpdateEvent) {
+                if (event.global || event !== ignore) {
+                    event.selector = scope(event.selector);
+                }
+                yield event;
+            }
             next = exchangeIterator(
                 next,
-                event => transformer(event, isField(state.values, event), state)
-            );
+                event => exchangeIterator(
+                    transformer(event, isField(state.values, event, scope), {
+                        ...state,
+                        values: valuesScope,
+                        state: stateScope,
+                        validation: validationScope
+                    }),
+                    e => addScope(e, event)
+                ));
         }
 
         this.transformers.forEach(({ transform }) => {
@@ -58,14 +82,19 @@ export class Transform<T extends object> extends React.Component<ITranformProps<
             mountTransform: this.mountTransform,
             unMountTransform: this.unMountTransform
         };
+        const { ScopeContext } = createFormFactory<TModel>();
         return (
-            <Consumer>
-                {transform => {
-                    this._context = transform;
-
-                    return <Provider value={context}>{this.props.children}</Provider>;
-                }}
-            </Consumer>
+            <ScopeContext>
+                {scope => (
+                    <Consumer>
+                        {transform => {
+                            this._context = transform;
+                            this.scope = scope;
+                            return <Provider value={context}>{this.props.children}</Provider>;
+                        }}
+                    </Consumer>
+                )}
+            </ScopeContext>
         );
     }
     componentDidMount() {
@@ -78,10 +107,11 @@ export class Transform<T extends object> extends React.Component<ITranformProps<
             this._context.unMountTransform(this);
         }
     }
-    private mountTransform = (value: Transform<T>) => {
+    private scope: IScopeContext = s => s;
+    private mountTransform = (value: Transform<TModel>) => {
         this.transformers.push(value);
     }
-    private unMountTransform = (value: Transform<T>) => {
+    private unMountTransform = (value: Transform<TModel>) => {
         const id = this.transformers.indexOf(value);
         if (id > -1) {
             this.transformers.splice(id, 1);

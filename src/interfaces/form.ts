@@ -11,12 +11,8 @@ export interface IFormStorage<T extends object> {
     config: IFormConfiguration;
 }
 
-export type CastStateValue<T> = T extends object ? FieldsState<T> : IFieldState;
-export type CastStateArray<T> = T extends object ? Array<FieldsState<T>> : IFieldState;
-export type CastValueState<T> = T extends Array<infer S> ? CastStateArray<S> : CastStateValue<T>;
-
 export type FieldsState<T> = {
-    [P in keyof T]: CastValueState<P>;
+    [P in keyof T]: T[P] extends Array<infer S> ? S extends object ? Array<FieldsState<S>> : IFieldState[] : T[P] extends object ? FieldsState<T[P]> : IFieldState;
 };
 
 export interface IFormConfiguration {
