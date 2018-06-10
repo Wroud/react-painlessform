@@ -1,7 +1,6 @@
 import * as React from "react";
 import { render } from "react-dom";
 import Hello from "./Hello";
-import registerServiceWorker from "./registerServiceWorker";
 
 const styles = {
   fontFamily: "sans-serif",
@@ -16,4 +15,3 @@ const App = () => (
 );
 
 render(<App />, document.getElementById("root"));
-registerServiceWorker();
