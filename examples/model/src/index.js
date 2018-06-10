@@ -38,8 +38,8 @@ class MyForm extends React.Component {
     this.emails.push(++this.id);
     this.setState({});
   };
-  removeEmail = (id) => (value, { isChanged }) => {
-    if (value === "" && isChanged) {
+  removeEmail = (id) => (value, state) => {
+    if (value === "" && state && state.isChanged) {
       this.emails.splice(this.emails.indexOf(id), 1);
       this.setState({});
     }
