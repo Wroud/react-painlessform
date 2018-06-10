@@ -8,11 +8,8 @@ export interface IFormStorage<T extends object> {
     isSubmitting: boolean;
     config: IFormConfiguration;
 }
-export declare type CastStateValue<T> = T extends object ? FieldsState<T> : IFieldState;
-export declare type CastStateArray<T> = T extends object ? Array<FieldsState<T>> : IFieldState;
-export declare type CastValueState<T> = T extends Array<infer S> ? CastStateArray<S> : CastStateValue<T>;
 export declare type FieldsState<T> = {
-    [P in keyof T]: CastValueState<P>;
+    [P in keyof T]: T[P] extends Array<infer S> ? S extends object ? Array<FieldsState<S>> : IFieldState[] : T[P] extends object ? FieldsState<T[P]> : IFieldState;
 };
 export interface IFormConfiguration {
     submitting: {

@@ -1,3 +1,4 @@
+import { IScopeContext } from "components/Scope";
 import { FieldSelector, FieldStateSelector, IFieldState, IUpdateEvent } from "../interfaces/field";
 import { FieldsState } from "../interfaces/form";
 /**
@@ -21,7 +22,7 @@ export declare function updateField<T, M>(field: FieldStateSelector<M>, index: n
     value: T;
     state: IFieldState;
 };
-export declare const isField: <TModel>(state: TModel, from: IUpdateEvent) => (field: FieldSelector<TModel>, strict?: boolean) => boolean;
+export declare const isField: <TModel extends object>(state: TModel, from: IUpdateEvent, scope: IScopeContext) => (field: FieldSelector<TModel>, strict?: boolean) => boolean;
 export declare function getInputValue<T>(value: T, forwardedValue: T, type: string, multiple: boolean): 0 | T;
 export declare function getInputChecked<T>(value: T, forwardedValue: T, type: string): boolean | T;
 export declare function getValue<T>(value: T, type: string, forwardedValue: T, multiple: boolean): false | any[] | "" | 0 | T;

@@ -42,16 +42,17 @@ export interface IValidation<T extends object = {}> extends Validation<T> {
  * That component connect to [[FormContext]] and use passed `validator`, `scopeValidator`
  * to validate [[Form]] model, errors was passed via [[ValidationContext]]
  */
-export declare class Validation<T extends object> extends React.Component<IValidationProps<T>, any> {
+export declare class Validation<TModel extends object> extends React.Component<IValidationProps<TModel>, any> {
     static defaultProps: IValidationProps<any>;
     private validationContext;
     private validators;
     private _context;
     constructor(props: any);
-    smartValidate(storage: IFormStorage<T>): void;
+    smartValidate(storage: IFormStorage<TModel>): void;
     render(): JSX.Element;
     componentDidMount(): void;
     componentWillUnmount(): void;
+    private scope;
     private validate;
     /**
      * Validation function that accepts [[FormContext]] and validate [[Form]] `model`

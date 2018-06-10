@@ -25,13 +25,14 @@ export interface ITransform<T extends object> extends Transform<T> {
  * Transform is React Component that accpts [[ITranformProps]] as props
  * and passes [[transformer]] function as [[TransformContext]]
  */
-export declare class Transform<T extends object> extends React.Component<ITranformProps<T>> {
+export declare class Transform<TModel extends object> extends React.Component<ITranformProps<TModel>> {
     private transformers;
     private _context;
-    transform: (events: IterableIterator<IUpdateEvent>, state: IFormStorage<T>) => IterableIterator<IUpdateEvent>;
+    transform: (events: IterableIterator<IUpdateEvent>, state: IFormStorage<TModel>) => IterableIterator<IUpdateEvent>;
     render(): JSX.Element;
     componentDidMount(): void;
     componentWillUnmount(): void;
+    private scope;
     private mountTransform;
     private unMountTransform;
 }
