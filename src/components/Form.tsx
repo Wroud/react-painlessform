@@ -4,7 +4,7 @@ import * as React from "react";
 import { isDiffEqual, isValueEqual } from "../helpers/field";
 import { setModelValues, updateFieldsState } from "../helpers/form";
 
-import { IFieldState, InputValue, IUpdateEvent } from "../interfaces/field";
+import { FieldSelector, IFieldState, InputValue, IUpdateEvent } from "../interfaces/field";
 import { FieldsState, IFormConfiguration, IFormStorage } from "../interfaces/form";
 
 import { autoCreateProxy, forEachElement, fromProxy, getPath, setPathValue } from "../tools";
@@ -43,7 +43,7 @@ export interface IFormProps<TModel extends object> extends React.FormHTMLAttribu
      * Fire when [[Form]] changed
      */
     onModelChange?: (nextModel: TModel, prevModel: TModel) => any;
-    onReset?: (event: React.FormEvent<HTMLFormElement>) => any;
+    onReset?: (event?: React.FormEvent<HTMLFormElement>) => any;
     /**
      * Fire when form submitting
      */
@@ -60,7 +60,7 @@ export interface IFormContext<TModel extends object> {
     /**
      * Update [[model]] [[Field]] state and call [[onModelChange]] from props
      */
-    handleChange: (event: IUpdateEvent) => any;
+    handleChange: (event: IUpdateEvent<TModel>) => any;
     mountField: (value: Field<any, TModel>) => any;
     unMountField: (value: Field<any, TModel>) => any;
 }
@@ -86,7 +86,7 @@ const defaultStorage: IFormStorage<{}> = {
     isSubmitting: false
 };
 
-export const { Provider, Consumer } = React.createContext<IFormContext<{}>>({
+export const { Provider, Consumer } = React.createContext<IFormContext<any>>({
     storage: defaultStorage,
     handleReset: () => ({}),
     handleChange: () => ({}),
@@ -135,7 +135,6 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
     shouldComponentUpdate(nextProps: IFormProps<TModel>) {
         const {
             values,
-            initValues,
             config,
             isReset, isChanged, isSubmitting
         } = nextProps;
@@ -188,8 +187,8 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
         return (
             <Provider value={context}>
                 <form onSubmit={this.handleSubmit} onReset={this.handleReset} {...rest}>
-                    <Transform ref={this.transform}>
-                        <Validation ref={this.validation}>
+                    <Transform ref={this.transform as any}>
+                        <Validation ref={this.validation as any}>
                             {children}
                         </Validation>
                     </Transform>
@@ -199,7 +198,9 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
     }
     componentDidMount() {
         this.fields.forEach(field => {
-            field.field.current.mountValue();
+            if (field.field.current) {
+                field.field.current.mountValue();
+            }
         });
     }
     // componentDidCatch(error, info) {
@@ -266,7 +267,7 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
      */
     private handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         const { onSubmit, config } = this.props;
-        if (event && config.submitting.preventDefault) {
+        if (event && config && config.submitting.preventDefault) {
             event.preventDefault();
         }
         this.validate();
@@ -307,11 +308,11 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
     /**
      * Update [[Field]] state with new `value` and sets form `isChanged` to `true`
      */
-    private handleChange = (event: IUpdateEvent) => {
+    private handleChange = (event: IUpdateEvent<TModel>) => {
         if (isDiffEqual(event, this.storage)) {
             return;
         }
-        const updatedFields = [];
+        const updatedFields: Array<FieldSelector<TModel>> = [];
         const prevValues = this.storage.values;
         this.storage.values = { ...prevValues as any };
         this.storage.state = { ...this.storage.state as any };
@@ -323,7 +324,7 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
             const stateProxy = autoCreateProxy(this.storage.state);
 
             forEachElement(transforms, ({ selector, value, state }) => {
-                let newState = null;
+                let newState: IFieldState | null = null;
                 if (value !== undefined) {
                     if (state === undefined) {
                         const prevValue = fromProxy(valuesProxy, selector) as InputValue;

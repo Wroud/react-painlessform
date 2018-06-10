@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { mount, ReactWrapper, shallow } from "enzyme";
 
-import { createFormFactory } from "../../src";
+import { createFormFactory, IsField } from "../../src";
 import { IForm, IFormProps } from "../../src/components/Form";
 import { FieldSelector, IUpdateEvent } from "../../src/interfaces/field";
 import { IFormStorage } from "../../src/interfaces/form";
@@ -34,6 +34,7 @@ describe("Form", () => {
     }
 
     const { Form, Field, Validation, Transform, Scope, FieldContext, FormContext } = createFormFactory<IModel>();
+    const { Transform: STransform, Scope: SScope } = createFormFactory<IModel["scope"]>();
 
     let wrapper: ReactWrapper<any, any>;
     const values: IModel = {
@@ -76,6 +77,7 @@ describe("Form", () => {
         }
     };
     const transformTestValue = -2232;
+    let unmount = false;
     let newValues = {};
     let isReset = false;
     let isSubmitted = false;
@@ -111,7 +113,7 @@ describe("Form", () => {
         </Field>
     );
 
-    function* transformer(event: IUpdateEvent, is: (field: FieldSelector<IModel["scope"]>) => boolean, { values: v }: IFormStorage<IModel["scope"]>): IterableIterator<IUpdateEvent> {
+    function* transformer(event: IUpdateEvent<IModel["scope"]>, is: IsField<IModel["scope"]>, { values: v }: IFormStorage<IModel["scope"]>): IterableIterator<IUpdateEvent<IModel["scope"]>> {
         if (is(f => f.min) && event.value > (!v ? 0 : v.max)) {
             yield {
                 selector: f => f.max,
@@ -127,7 +129,7 @@ describe("Form", () => {
         yield event;
     }
 
-    function* transformer2(event: IUpdateEvent, is: (field: FieldSelector<IModel>, strict: boolean) => boolean, { values: v }: IFormStorage<IModel>): IterableIterator<IUpdateEvent> {
+    function* transformer2(event: IUpdateEvent<IModel>, is: IsField<IModel>, { values: v }: IFormStorage<IModel>): IterableIterator<IUpdateEvent<IModel>> {
         if (is(f => f.field, true) && event.value !== v.field && event.value === 15) {
             yield {
                 selector: f => f.scope.max,
@@ -153,25 +155,25 @@ describe("Form", () => {
             <FormContext>
                 {context => (
                     <React.Fragment>
-                        {!context.storage.unmount ? <MountField name={f => f.field} type={"number"} /> : null}
+                        {!unmount ? <MountField name={f => f.field} type={"number"} /> : null}
                         <Transform transformer={transformer2}>
                             <MountField name={f => f.field2} type={"text"} />
                             <MountField name={f => f.field3} type={"checkbox"} value={"hm"} />
-                            {!context.storage.unmount ? (<Scope scope={f => f.scope}>
-                                <Transform transformer={transformer}>
-                                    <MountField type={"number"} name={f => f.min} />
-                                    <MountField type={"number"} name={f => f.max} />
-                                </Transform>
-                            </Scope>) : null}
+                            {!unmount ? (<SScope name={f => f.scope}>
+                                <STransform transformer={transformer}>
+                                    <MountField type={"number"} name={(f: any) => f.min} />
+                                    <MountField type={"number"} name={(f: any) => f.max} />
+                                </STransform>
+                            </SScope>) : null}
                         </Transform>
                         <MountField name={f => f.field4[0]} type={"text"} />
-                        {!context.storage.unmount ? <MountField name={f => f.field4[1]} type={"text"} /> : null}
+                        {!unmount ? <MountField name={f => f.field4[1]} type={"text"} /> : null}
                         <MountField name={f => f.field4[2]} type={"text"} />
                         <MountField name={f => f.field5} type={"checkbox"} value={"hm0"} multiple={true} />
-                        {!context.storage.unmount ? <MountField name={f => f.field5} type={"checkbox"} value={"hm1"} multiple={true} /> : null}
+                        {!unmount ? <MountField name={f => f.field5} type={"checkbox"} value={"hm1"} multiple={true} /> : null}
                         <MountField name={f => f.field5} type={"checkbox"} value={"hm2"} multiple={true} />
                         <MountField name={f => f.field6} type={"radio"} value={"hhm0"} />
-                        {!context.storage.unmount ? <MountField name={f => f.field6} type={"radio"} value={"hhm1"} /> : null}
+                        {!unmount ? <MountField name={f => f.field6} type={"radio"} value={"hhm1"} /> : null}
                         <MountField name={f => f.field6} type={"radio"} value={"hhm2"} />
                         <MountSelect name={f => f.selectors.select} type={"select"} multiple={false} />
                         <MountSelect name={f => f.selectors.select2} type={"select"} multiple={true} />
@@ -409,7 +411,7 @@ describe("Form", () => {
         //     min: 0, //
         //     max: 1 //
         // };
-        ((wrapper.instance() as IForm<IModel>).getStorage as any).unmount = true;
+        unmount = true;
         wrapper.setProps({});
         const {
             getStorage: { values: model }
@@ -419,7 +421,7 @@ describe("Form", () => {
         expect(model.field4).to.be.equalTo(["gologo", "", ""]);
         expect(model.field5).to.be.equalTo([]);
         expect(model.field6).to.be.equal("");
-        ((wrapper.instance() as IForm<IModel>).getStorage as any).unmount = false;
+        unmount = false;
     });
 
     it("does transform correct", () => {

@@ -1,15 +1,15 @@
 import shallowequal = require("shallowequal");
 import { isArray } from "util";
 import { InputType } from "../components/Field";
-import { IFieldState, InputValue, IUpdateEvent } from "../interfaces/field";
+import { IFieldState, IUpdateEvent } from "../interfaces/field";
 import { FieldsState, IFormStorage } from "../interfaces/form";
 import { autoCreateProxy, fromProxy, isArrayEqual } from "../tools";
 
 export function castValue<T>(
     to: T,
     value: T,
-    forwardedValue: InputType<T>,
     type: string,
+    forwardedValue?: InputType<T>,
     multiple?: boolean
 ): T {
     let result = value;
@@ -38,14 +38,14 @@ export function castValue<T>(
     return result;
 }
 
-export function isDiffEqual<T extends object>(diff: IUpdateEvent, model: IFormStorage<T>) {
+export function isDiffEqual<TModel extends object>(diff: IUpdateEvent<TModel>, model: IFormStorage<TModel>) {
     let equal = true;
     if (diff.value !== undefined) {
         const value = fromProxy(autoCreateProxy(model.values), diff.selector);
         equal = equal && isValueEqual(value, diff.value);
     }
     if (diff.state !== undefined) {
-        const state = fromProxy<FieldsState<T>, IFieldState>(
+        const state = fromProxy<FieldsState<TModel>, IFieldState>(
             autoCreateProxy(model.state),
             diff.selector
         );

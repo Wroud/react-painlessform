@@ -1,5 +1,12 @@
 export {
+    IUpdateEvent,
+} from "./interfaces/field";
+export {
+    IsField,
+} from "./interfaces/transform";
+export {
     IFormConfiguration,
+    IFormStorage
 } from "./interfaces/form";
 export {
     createFormFactory,

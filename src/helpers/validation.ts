@@ -1,10 +1,7 @@
 import * as Yup from "yup";
-import { IValidationContext } from "../components/Validation";
 import {
     IValidationErrors,
     IValidationPropGetters,
-    IValidationState,
-    ValidationModel,
     ValidationProps
 } from "../interfaces/validation";
 import { getFromObject } from "../tools";
@@ -36,7 +33,7 @@ export function* yupErrors<T>(error: Yup.ValidationError): IterableIterator<IVal
     }
 }
 
-export function* yupValidator<T>(schema: Yup.Schema<T>, model: T, context: any, configure?: Yup.ValidateOptions) {
+export function* yupValidator<T>(schema: Yup.Schema<T>, model: T, context: any, configure?: Yup.ValidateOptions): Iterable<IValidationErrors> {
     try {
         schema.validateSync(model, {
             abortEarly: false,

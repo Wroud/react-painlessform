@@ -2,12 +2,12 @@ import * as React from "react";
 import { isArray } from "util";
 import * as Yup from "yup";
 
-import { IFormStorage } from "interfaces/form";
-import { createFormFactory } from "..";
 import { IValidator } from "../ArrayValidator";
 import { IErrorMessage } from "../FormValidator";
+import { createFormFactory } from "../helpers/formFactory";
 import { getProps, yupValidator } from "../helpers/validation";
-import { IValidationConfiguration, IValidationErrors, IValidationMeta, IValidationState, ValidationModel } from "../interfaces/validation";
+import { IFormStorage } from "../interfaces/form";
+import { IValidationConfiguration, IValidationErrors, IValidationMeta } from "../interfaces/validation";
 import { autoCreateProxy, forEachElement, fromProxy, isYup, setPathValue } from "../tools";
 import { IScopeContext } from "./Scope";
 
@@ -41,11 +41,8 @@ export interface IValidationContext<T extends object> {
     unMountValidation?: (validator: Validation<T>) => any;
 }
 
-const NoErrors = {};
-const NoScope = [];
-
 export const { Provider, Consumer } = React.createContext<IValidationContext<any>>({
-    scope: NoScope,
+    scope: {} as any,
     isValid: true
 });
 
@@ -67,11 +64,11 @@ export class Validation<TModel extends object> extends React.Component<IValidati
     private validators: Array<Validation<TModel>> = [];
     private _context: IValidationContext<TModel> | undefined;
 
-    constructor(props) {
+    constructor(props: IValidationProps<TModel>) {
         super(props);
         this.validator = this.validator.bind(this);
         this.validationContext = {
-            scope: NoScope,
+            scope: [],
             isValid: true,
             mountValidation: this.mountValidation,
             unMountValidation: this.unMountValidation
@@ -110,12 +107,12 @@ export class Validation<TModel extends object> extends React.Component<IValidati
         );
     }
     componentDidMount() {
-        if (this._context) {
+        if (this._context && this._context.mountValidation) {
             this._context.mountValidation(this);
         }
     }
     componentWillUnmount() {
-        if (this._context) {
+        if (this._context && this._context.unMountValidation) {
             this._context.unMountValidation(this);
         }
     }

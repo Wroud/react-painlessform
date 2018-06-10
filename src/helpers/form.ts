@@ -34,7 +34,7 @@ export function updateField<T, M>(field: FieldStateSelector<M>, index: number, v
     return { field, index, value, state };
 }
 
-export const isField = <TModel extends object>(state: TModel, from: IUpdateEvent, scope: IScopeContext) => {
+export const isField = <TModel extends object>(state: TModel, from: IUpdateEvent<TModel>, scope: IScopeContext) => {
     const path = getPath(from.selector, state);
     return (field: FieldSelector<TModel>, strict?: boolean) => {
         return strict
@@ -43,7 +43,7 @@ export const isField = <TModel extends object>(state: TModel, from: IUpdateEvent
     };
 };
 
-export function getInputValue<T>(value: T, forwardedValue: T, type: string, multiple: boolean) {
+export function getInputValue<T>(value: T, forwardedValue: T, type: string, multiple?: boolean) {
     if (/radio/.test(type) || /checkbox/.test(type)) {
         return forwardedValue;
     }
@@ -66,7 +66,7 @@ export function getInputChecked<T>(value: T, forwardedValue: T, type: string) {
     return undefined;
 }
 
-export function getValue<T>(value: T, type: string, forwardedValue: T, multiple: boolean) {
+export function getValue<T>(value: T, type: string, forwardedValue: T, multiple?: boolean) {
     if (/checkbox/.test(type)) {
         return value || false;
     }

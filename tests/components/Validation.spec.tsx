@@ -45,7 +45,7 @@ describe("Validation", () => {
 
     it("correct custom validator", () => {
         wrapper.find("input").simulate("change", { target: { value: "" } });
-        const result = wrapper.find("FieldClass").props();
+        const result = wrapper.find("FieldClass").props() as any;
 
         const resultSnapshot = {
             isValid: false,
@@ -81,7 +81,7 @@ describe("Validation Yup", () => {
 
     it("correct", () => {
         wrapper.find("input").simulate("change", { target: { value: "" } });
-        const result = wrapper.find("FieldClass").props();
+        const result = wrapper.find("FieldClass").props() as any;
 
         const resultSnapshot = {
             isValid: false,
@@ -120,7 +120,7 @@ describe("Validation Yup with config", () => {
 
     it("correct", () => {
         wrapper.find("input").simulate("change", { target: { value: "" } });
-        const result = wrapper.find("FieldClass").props();
+        const result = wrapper.find("FieldClass").props() as any;
 
         const resultSnapshot = {
             isValid: false,

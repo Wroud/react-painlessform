@@ -2,21 +2,22 @@ import * as React from "react";
 
 import { createFormFactory } from "..";
 import { isField } from "../helpers/form";
-import { FieldSelector, IUpdateEvent } from "../interfaces/field";
+import { IUpdateEvent } from "../interfaces/field";
 import { FieldsState, IFormStorage } from "../interfaces/form";
+import { IsField } from "../interfaces/transform";
 import { IValidationState } from "../interfaces/validation";
-import { autoCreateProxy, exchangeIterator, fromProxy } from "../tools";
+import { exchangeIterator } from "../tools";
 import { IScopeContext } from "./Scope";
 
 /**
  * Describes [[Transform]] props
  */
-export interface ITranformProps<T extends object> {
+export interface ITranformProps<TModel extends object> {
     /**
      * Transformer function that accepts changed `field` and his `value` and form `model`
      * and returns fields map to update values
      */
-    transformer?: (value: IUpdateEvent, is: (field: FieldSelector<T>, strict?: boolean) => boolean, state: IFormStorage<T>) => IterableIterator<IUpdateEvent>;
+    transformer?: (value: IUpdateEvent<TModel>, is: IsField<TModel>, state: IFormStorage<TModel>) => IterableIterator<IUpdateEvent<TModel>>;
     [key: string]: any;
 }
 
@@ -26,10 +27,17 @@ export interface ITransformContext<T extends object> {
     // transform: (field: keyof T, value: IFieldState<T[typeof field]>) => any;
 }
 
-export const { Provider, Consumer } = React.createContext<ITransformContext<any>>(undefined);
+export const { Provider, Consumer } = React.createContext<ITransformContext<any> | undefined>(undefined);
 
 export interface ITransform<T extends object> extends Transform<T> {
     new(props: ITranformProps<T>): Transform<T>;
+}
+
+function* addScope(event: IUpdateEvent<any>, ignore: IUpdateEvent<any>, scope: IScopeContext) {
+    if (event.global || event !== ignore) {
+        event.selector = scope(event.selector);
+    }
+    yield event;
 }
 
 /**
@@ -38,8 +46,8 @@ export interface ITransform<T extends object> extends Transform<T> {
  */
 export class Transform<TModel extends object> extends React.Component<ITranformProps<TModel>> {
     private transformers: Array<Transform<TModel>> = [];
-    private _context: ITransformContext<TModel>;
-    transform = (events: IterableIterator<IUpdateEvent>, state: IFormStorage<TModel>) => {
+    private _context: ITransformContext<TModel> | undefined;
+    transform = (events: IterableIterator<IUpdateEvent<TModel>>, state: IFormStorage<TModel>) => {
         const { transformer } = this.props;
         const { scope } = this;
 
@@ -53,12 +61,6 @@ export class Transform<TModel extends object> extends React.Component<ITranformP
             const stateScope = scope((f: FieldsState<TModel>) => f)(state.state);
             const validationScope = scope((f: IValidationState<TModel>) => f)(state.validation);
 
-            function* addScope(event: IUpdateEvent, ignore: IUpdateEvent) {
-                if (event.global || event !== ignore) {
-                    event.selector = scope(event.selector);
-                }
-                yield event;
-            }
             next = exchangeIterator(
                 next,
                 event => exchangeIterator(
@@ -68,7 +70,7 @@ export class Transform<TModel extends object> extends React.Component<ITranformP
                         state: stateScope,
                         validation: validationScope
                     }),
-                    e => addScope(e, event)
+                    e => addScope(e, event, scope)
                 ));
         }
 

@@ -14,7 +14,7 @@ export function deepExtend(destination, source) {
             && !Array.isArray(source[property])) {
 
             destination[property] = { ...destination[property] } || {};
-            this.deepExtend(destination[property], source[property]);
+            deepExtend(destination[property], source[property]);
         } else if (source[property] !== "__delete__") {
             destination[property] = source[property];
         } else {
@@ -109,7 +109,7 @@ export function getPath(selector: (obj) => any, data) {
 
 export function forEachElement<TValue, TResult>(iterator: IterableIterator<TValue>, action: (element: TValue) => TResult) {
     let result = iterator.next();
-    const array = [];
+    const array: TResult[] = [];
     while (!result.done) {
         array.push(action(result.value));
         result = iterator.next();

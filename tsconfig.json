@@ -12,8 +12,10 @@
     "experimentalDecorators": false,
     "sourceMap": true,
     "skipDefaultLibCheck": false,
-    "strict": false,
+    "strict": true,
     "lib": [
+      "es2015.iterable",
+      "es2015.generator",
       "es6",
       "dom"
     ]
