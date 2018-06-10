@@ -3,7 +3,7 @@ import * as React from "react";
 export type ScopeSelector<TModel extends object, TScope> = (model: TModel) => TScope;
 export type IScopeContext = <TModel extends object, TScope>(selector: (scope: TModel) => TScope) => ScopeSelector<TModel, TScope>;
 export interface IScopeProps<TModel extends object, TScope extends object> {
-    scope: ScopeSelector<TModel, TScope>;
+    name: ScopeSelector<TModel, TScope>;
 }
 
 export const { Provider, Consumer } = React.createContext<IScopeContext>(s => s);
@@ -16,7 +16,7 @@ export class Scope<TModel extends object, TScope extends object> extends React.C
     render() {
         return (
             <Consumer>
-                {scope => <Provider value={s => f => s(scope(this.props.scope)(f as any) as any)}>{this.props.children}</Provider>}
+                {scope => <Provider value={s => f => s(scope(this.props.name)(f as any) as any)}>{this.props.children}</Provider>}
             </Consumer>
         );
     }
