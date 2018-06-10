@@ -153,7 +153,7 @@ function setPathValue(value, selector, to) {
         }
     });
     selector(proxyFactory(to));
-    if (value === undefined) {
+    if (value === null) {
         delete lastParent[lastProperty];
     }
     else {
