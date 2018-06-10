@@ -10,15 +10,13 @@ function* transformer(event, is, { values }) {
   if (is(f => f.min) && event.value > values.max) {
     yield {
       selector: f => f.max,
-      value: event.value,
-      state: {}
+      value: event.value
     }
   }
   if (is(f => f.max) && event.value < values.min) {
     yield {
       selector: f => f.min,
-      value: event.value,
-      state: {}
+      value: event.value
     }
   }
   yield event;
