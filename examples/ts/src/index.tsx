@@ -1,17 +1,16 @@
 import * as React from "react";
 import { render } from "react-dom";
-import Hello from "./Hello";
+import { MyForm } from "./MyForm";
 import "./styles.css";
 
-const styles = {
-  fontFamily: "sans-serif",
-  textAlign: "center"
-};
-
 const App = () => (
-  <div style={styles}>
-    <Hello name="CodeSandbox" />
-    <h2>Start editing to see some magic happen {"\u2728"}</h2>
+  <div className="app">
+    <h3>
+      Calculated fields example with{" "}
+      <a href="https://github.com/Wroud/react-painlessform">Painless Form</a>
+    </h3>
+    <p>Example shows how create simple form with calculated fields.</p>
+    <MyForm />
   </div>
 );
 
