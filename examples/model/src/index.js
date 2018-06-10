@@ -24,6 +24,7 @@ class MyForm extends React.Component {
         <Field name={f => f.stars} type={"radio"} label={"Good"} value={"3"} children={RadioField} />
         <Field name={f => f.stars} type={"radio"} label={"Normal"} value={"1"} children={RadioField} />
         <Field name={f => f.stars} type={"radio"} label={"Bad"} value={"0"} children={RadioField} />
+        <Field name={f => f.message} type={"textarea"} label={"Notes"} placeholder={"Type something..."} children={TextareaField} />
         {this.emails.map(id => (
           <Field name={f => f.email[id]} type={"email"} label={"Email"} placeholder={"Enter your email"} key={id} onChange={this.removeEmail(id)} children={TextField} />
         ))}
@@ -56,6 +57,12 @@ const TextField = ({ inputHook, rest: { label, placeholder } }) => (
   <div className={"input-group"}>
     <label className="label" htmlFor={inputHook.name}>{label}</label>
     <input className="text-input" placeholder={placeholder} id={inputHook.name} {...inputHook} />
+  </div>
+);
+const TextareaField = ({ inputHook, rest: { label, placeholder } }) => (
+  <div className={"input-group"}>
+    <label className="label" htmlFor={inputHook.name}>{label}</label>
+    <textarea className="text-input" placeholder={placeholder} id={inputHook.name} {...inputHook} />
   </div>
 );
 const SelectField = ({ inputHook, rest: { label, placeholder, options } }) => (
@@ -136,7 +143,7 @@ const App = () => (
       Building input primitives with{" "}
       <a href="https://github.com/Wroud/react-painlessform">Painless Form</a>
     </h3>
-    <p>Example shows how create simple form with own styling components.</p>
+    <p>Example shows how create simple form.</p>
     <MyForm />
   </div>
 );

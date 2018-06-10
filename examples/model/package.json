@@ -1,6 +1,6 @@
 {
-  "name": "painless-form-building-input-primitives",
-  "description": "Example shows how create simple form with own styling components.",
+  "name": "Building input primitives",
+  "description": "Example shows how create simple form.",
   "keywords": ["react", "form", "react-painlessform"],
   "version": "3.0.0-beta4",
   "dependencies": {
