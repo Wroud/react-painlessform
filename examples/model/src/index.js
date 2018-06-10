@@ -20,6 +20,7 @@ class MyForm extends React.Component {
         <Field name={f => f.user.gender} label={"Gender"} placeholder={"Select gender"} options={gender} children={SelectField} />
         <Field name={f => f.user.langs} label={"Favorite languages"} placeholder={"Select languages"} options={langs} multiple={true} children={SelectField} />
         <MultipleCheckbox name={f => f.user.wants} label={"I want"} values={want} />
+        <label className="label">Painless form is</label>
         <Field name={f => f.stars} type={"radio"} label={"Good"} value={"3"} children={RadioField} />
         <Field name={f => f.stars} type={"radio"} label={"Normal"} value={"1"} children={RadioField} />
         <Field name={f => f.stars} type={"radio"} label={"Bad"} value={"0"} children={RadioField} />
@@ -40,9 +41,14 @@ class MyForm extends React.Component {
   removeEmail = (id) => (value, { isChanged }) => {
     if (value === "" && isChanged) {
       this.emails.splice(this.emails.indexOf(id), 1);
+      this.setState({});
     }
   };
-  handleReset = () => { };
+  handleReset = () => {
+    this.emails = [0];
+    this.id = 0;
+    this.setState({});
+  };
   handleSubmit = event => model => console.log(model);
 }
 
@@ -56,7 +62,7 @@ const SelectField = ({ inputHook, rest: { label, placeholder, options } }) => (
   <div className={"input-group"}>
     <label className="label" htmlFor={inputHook.name}>{label}</label>
     <select className="text-input" placeholder={placeholder} id={inputHook.name} {...inputHook} >
-      {options.map(({ value, label }) => <option value={value} key={value} disabled={value === undefined}>{label}</option>)}
+      {options.map(({ value, label, disabled }) => <option value={value} key={value} disabled={disabled}>{label}</option>)}
     </select>
   </div>
 );
@@ -68,7 +74,7 @@ const Checkbox = ({ inputHook, rest: { label } }) => (
 );
 const RadioField = ({ inputHook, rest: { label } }) => (
   <div className={"input-group"}>
-    <input {...inputHook} id={label + inputHook.name} /> {label}
+    <input {...inputHook} id={label + inputHook.name} />
     <label htmlFor={label + inputHook.name}>{label}</label>
   </div>
 );
@@ -88,8 +94,9 @@ const MultipleCheckbox = ({ name, label, values }) => (
   </div>);
 const gender = [
   {
-    value: undefined,
-    label: "Select gender"
+    value: "",
+    label: "Select gender",
+    disabled: true
   },
   {
     value: 1,

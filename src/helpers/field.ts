@@ -13,23 +13,22 @@ export function castValue<T>(
     multiple?: boolean
 ): T {
     let result = value;
-    if (type === "checkbox") {
+    if (/checkbox/.test(type)) {
         result = ((value as any) === true) as any;
         if (forwardedValue !== undefined && multiple) {
             let castTo = Array.isArray(to) ? [...to] : [];
             const indexOf = castTo.indexOf(forwardedValue);
 
-            if (indexOf > -1) {
-                if (result) {
-                    castTo = [...castTo, forwardedValue];
-                } else {
-                    castTo.splice(indexOf, 1);
-                }
+            if (indexOf === -1 && result) {
+                castTo = [...castTo, forwardedValue];
+            } else if (indexOf > -1 && !result) {
+                castTo.splice(indexOf, 1);
             }
             result = castTo as any;
         }
+        return result;
     }
-    if (type === "radio") {
+    if (/radio/.test(type)) {
         return result !== undefined
             ? result
             : to === forwardedValue
