@@ -2,12 +2,12 @@
   "name": "painless-form-building-input-primitives",
   "description": "This is an example of how you can use Painless Form to easily build and style your own reusable form components.",
   "keywords": ["react", "form", "react-painlessform"],
-  "version": "3.0.0-beta2",
+  "version": "3.0.0-beta3",
   "dependencies": {
     "yup": "0.23.0",
     "react-dom": "16.4.0",
     "react": "16.4.0",
-    "react-painlessform": "3.0.0-beta2",
+    "react-painlessform": "3.0.0-beta3",
     "classnames": "2.2.5"
   },
   "devDependencies": {
