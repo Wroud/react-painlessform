@@ -39,13 +39,19 @@ export function castValue<T>(
 }
 
 export function isDiffEqual<T extends object>(diff: IUpdateEvent, model: IFormStorage<T>) {
-    const value = fromProxy(autoCreateProxy(model.values), diff.selector);
-    const state = fromProxy<FieldsState<T>, IFieldState>(
-        autoCreateProxy(model.state),
-        diff.selector
-    );
-    return isValueEqual(value, diff.value)
-        && shallowequal(state, diff.state);
+    let equal = true;
+    if (diff.value !== undefined) {
+        const value = fromProxy(autoCreateProxy(model.values), diff.selector);
+        equal = equal && isValueEqual(value, diff.value);
+    }
+    if (diff.state !== undefined) {
+        const state = fromProxy<FieldsState<T>, IFieldState>(
+            autoCreateProxy(model.state),
+            diff.selector
+        );
+        equal = equal && shallowequal(state, diff.state);
+    }
+    return equal;
 }
 
 export function isValueEqual<T>(diff: T, value: T) {

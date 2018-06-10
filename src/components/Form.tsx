@@ -323,17 +323,30 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
             const stateProxy = autoCreateProxy(this.storage.state);
 
             forEachElement(transforms, ({ selector, value, state }) => {
-                const prevValue = fromProxy(valuesProxy, selector) as InputValue;
-                const prevState = fromProxy(stateProxy, selector, {}) as IFieldState;
-                const newState = {
-                    ...prevState,
-                    ...state,
-                    isChanged: prevState.isChanged === true
-                        || state.isChanged === true
-                        || prevValue !== undefined && !isValueEqual(value, prevValue)
-                };
-
-                setPathValue(value, selector, this.storage.values);
+                let newState = null;
+                if (value !== undefined) {
+                    setPathValue(value, selector, this.storage.values);
+                    if (state === undefined) {
+                        const prevValue = fromProxy(valuesProxy, selector) as InputValue;
+                        const prevState = fromProxy(stateProxy, selector, {}) as IFieldState;
+                        newState = {
+                            ...prevState,
+                            isChanged: prevState.isChanged === true
+                                || prevValue !== undefined && !isValueEqual(value, prevValue)
+                        };
+                    }
+                }
+                if (state !== undefined && state !== null) {
+                    const prevValue = fromProxy(valuesProxy, selector) as InputValue;
+                    const prevState = fromProxy(stateProxy, selector, {}) as IFieldState;
+                    newState = {
+                        ...prevState,
+                        ...state,
+                        isChanged: prevState.isChanged === true
+                            || state.isChanged === true
+                            || prevValue !== undefined && (value === undefined || !isValueEqual(value, prevValue))
+                    };
+                }
                 setPathValue(newState, selector, this.storage.state);
                 updatedFields.push(selector);
             });

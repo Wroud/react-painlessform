@@ -167,7 +167,7 @@ export class FieldClass<TValue, TModel extends object> extends React.Component<I
     }
 
     componentWillUnmount() {
-        this.update(undefined, {});
+        this.update(null, null);
     }
 
     /**
@@ -193,8 +193,8 @@ export class FieldClass<TValue, TModel extends object> extends React.Component<I
     }
 
     private handleFocus = (type: boolean) => () => {
-        const { value, onBlur, onFocus } = this.props;
-        this.update(value, { isVisited: true, isFocus: type });
+        const { onBlur, onFocus } = this.props;
+        this.update(undefined, { isVisited: true, isFocus: type });
         if (type && onFocus) {
             onFocus();
         }
@@ -207,7 +207,7 @@ export class FieldClass<TValue, TModel extends object> extends React.Component<I
      */
     private setVisited() {
         if (!this.props.isVisited) {
-            this.update(this.props.value, { isVisited: true });
+            this.update(undefined, { isVisited: true });
         }
     }
 
@@ -280,8 +280,16 @@ export class FieldClass<TValue, TModel extends object> extends React.Component<I
             onChange
         } = this.props;
 
-        const updValue = castValue(value, nextValue, forwardedValue, type, multiple);
-        const updState: IFieldState = { isVisited, isFocus, isChanged, ...nextState };
+        const updValue = nextValue === null
+            ? null
+            : nextValue === undefined
+                ? undefined
+                : castValue(value, nextValue, forwardedValue, type, multiple);
+        const updState: IFieldState = nextState === null
+            ? null
+            : nextState === undefined
+                ? undefined
+                : { isVisited, isFocus, isChanged, ...nextState };
 
         handleChange({
             selector: name,

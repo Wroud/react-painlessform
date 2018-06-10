@@ -10,8 +10,8 @@ export type InputValue = string[] | boolean | string | number;
 
 export interface IUpdateEvent {
     selector: FieldSelector<any>;
-    value: InputValue | object;
-    state: IFieldState;
+    value?: InputValue | object | null;
+    state?: IFieldState | null;
 }
 
 export type FieldStateSelector<TModel> = (state: FieldsState<TModel>) => IFieldState;

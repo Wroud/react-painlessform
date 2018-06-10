@@ -151,7 +151,7 @@ export function setPathValue<T>(value: any, selector: (obj: T) => any, to: T) {
         }
     });
     selector(proxyFactory(to));
-    if (value === undefined) {
+    if (value === null) {
         delete lastParent[lastProperty];
     } else {
         lastParent[lastProperty] = value;

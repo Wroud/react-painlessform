@@ -116,15 +116,13 @@ describe("Form", () => {
         if (is(f => f.min) && event.value > v.max) {
             yield {
                 selector: f => f.max,
-                value: event.value,
-                state: {} as any
+                value: event.value
             };
         }
         if (is(f => f.max) && event.value < v.min) {
             yield {
                 selector: f => f.min,
-                value: event.value,
-                state: {} as any
+                value: event.value
             };
         }
         yield event;
@@ -134,8 +132,7 @@ describe("Form", () => {
         if (is(f => f.field) && event.value !== v.field && event.value === 15) {
             yield {
                 selector: f => f.max,
-                value: transformTestValue,
-                state: {} as any
+                value: transformTestValue
             };
         }
         yield event;
