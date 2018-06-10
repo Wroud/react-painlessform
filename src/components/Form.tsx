@@ -325,7 +325,6 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
             forEachElement(transforms, ({ selector, value, state }) => {
                 let newState = null;
                 if (value !== undefined) {
-                    setPathValue(value, selector, this.storage.values);
                     if (state === undefined) {
                         const prevValue = fromProxy(valuesProxy, selector) as InputValue;
                         const prevState = fromProxy(stateProxy, selector, {}) as IFieldState;
@@ -335,6 +334,7 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
                                 || prevValue !== undefined && !isValueEqual(value, prevValue)
                         };
                     }
+                    setPathValue(value, selector, this.storage.values);
                 }
                 if (state !== undefined && state !== null) {
                     const prevValue = fromProxy(valuesProxy, selector) as InputValue;
