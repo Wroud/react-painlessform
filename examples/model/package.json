@@ -2,12 +2,12 @@
   "name": "Building input primitives",
   "description": "Example shows how create simple form.",
   "keywords": ["react", "form", "react-painlessform"],
-  "version": "3.0.0-beta5",
+  "version": "3.0.0-beta6",
   "dependencies": {
     "yup": "0.23.0",
     "react-dom": "16.4.0",
     "react": "16.4.0",
-    "react-painlessform": "3.0.0-beta5",
+    "react-painlessform": "3.0.0-beta6",
     "classnames": "2.2.5"
   },
   "devDependencies": {

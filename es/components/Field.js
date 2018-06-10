@@ -46,7 +46,7 @@ class FieldClass extends React.Component {
             const { type } = this.props;
             let nextValue;
             if (tools_1.isSelectChangeEvent(value)) {
-                const { checked, value: targetValue, options } = value.target;
+                const { value: targetValue, options } = value.target;
                 if (!this.props.multiple) {
                     nextValue = targetValue;
                 }
@@ -82,7 +82,7 @@ class FieldClass extends React.Component {
                 ? null
                 : nextValue === undefined
                     ? undefined
-                    : field_1.castValue(value, nextValue, forwardedValue, type, multiple);
+                    : field_1.castValue(value, nextValue, type, forwardedValue, multiple);
             const updState = nextState === null
                 ? null
                 : nextState === undefined

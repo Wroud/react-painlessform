@@ -1,7 +1,7 @@
 import { IScopeContext, ScopeSelector } from "components/Scope";
 import deepEqual = require("deep-equal");
 import { isArray } from "util";
-import { FieldSelector, FieldStateSelector, IFieldState, IUpdateEvent } from "../interfaces/field";
+import { FieldSelector, FieldStateSelector, IFieldState, IUpdateEvent, ModelFieldSelector } from "../interfaces/field";
 import { FieldsState } from "../interfaces/form";
 import { autoCreateProxy, deepExtend, fromProxy, getPath, setPathValue } from "../tools";
 
@@ -36,7 +36,7 @@ export function updateField<T, M>(field: FieldStateSelector<M>, index: number, v
 
 export const isField = <TModel extends object>(state: TModel, from: IUpdateEvent<TModel>, scope: IScopeContext) => {
     const path = getPath(from.selector, state);
-    return (field: FieldSelector<TModel>, strict?: boolean) => {
+    return <TValue>(field: ModelFieldSelector<TModel, TValue>, strict?: boolean) => {
         return strict
             ? path === getPath(scope(field), state)
             : path.includes(getPath(scope(field), state));

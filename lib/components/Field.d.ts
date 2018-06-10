@@ -4,7 +4,7 @@ import { IErrorMessage } from "../FormValidator";
 import { IFieldState } from "../interfaces/field";
 import { IFormStorage } from "../interfaces/form";
 import { IFormContext } from "./Form";
-export declare type InputType<C> = C extends Array<infer V> ? (V extends boolean ? string[] : V) : (C extends boolean ? string : C);
+export declare type InputType<C> = C extends Array<infer V> ? (V extends boolean ? string[] : V extends object ? string : V) : (C extends boolean ? string : C extends object ? string : C);
 export interface IFieldClass<TModel extends object> {
     new <TValue>(props: IFieldClassProps<TValue, TModel>): FieldClass<TValue, TModel>;
 }
@@ -51,17 +51,17 @@ export interface IFieldClassProps<TValue, TModel extends object> extends IFieldB
     /**
      * Value passed to [[Field]]
      */
-    forwardedValue: InputType<TValue>;
+    forwardedValue?: InputType<TValue>;
     /**
      * Field selector from model
      */
     name: (model: TModel) => TValue;
     type: string;
-    multiple: boolean;
-    onFocus: () => any;
-    onBlur: () => any;
+    multiple?: boolean;
+    onFocus?: () => any;
+    onBlur?: () => any;
     onClick?: () => any;
-    onChange?: (value: TValue, nextState?: IFieldState) => any;
+    onChange?: (value?: TValue | null, nextState?: IFieldState | null) => any;
     /**
      * Accepts `(context: FieldModelContext<TModel>) => React.ReactNode` function or `React.ReactNode`
      * if `children` is `React.ReactNode` then pass [[FieldModelContext]] via FieldContext
@@ -81,7 +81,7 @@ export declare const Provider: React.ComponentType<React.ProviderProps<IFieldCon
  */
 export declare class FieldClass<TValue, TModel extends object> extends React.Component<IFieldClassProps<TValue, TModel>> {
     static defaultProps: Partial<IFieldContext<any, any>>;
-    render(): {};
+    render(): {} | null | undefined;
     /**
      * Mount field to form model if passed `value` is `undefined`
      * with empty string `value`
@@ -126,7 +126,7 @@ export interface IFieldProps<TValue, TModel extends object> {
     onClick?: () => any;
     onFocus?: () => any;
     onBlur?: () => any;
-    onChange?: (value: TValue, nextState?: IFieldState) => any;
+    onChange?: (value?: TValue | null, nextState?: IFieldState | null) => any;
     children?: ((context: IFieldContext<TValue, TModel>) => React.ReactNode) | React.ReactNode;
     [key: string]: any;
 }

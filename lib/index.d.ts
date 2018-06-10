@@ -1,4 +1,6 @@
-export { IFormConfiguration } from "./interfaces/form";
+export { IUpdateEvent } from "./interfaces/field";
+export { IsField } from "./interfaces/transform";
+export { IFormConfiguration, IFormStorage } from "./interfaces/form";
 export { createFormFactory } from "./helpers/formFactory";
 export { Field, FieldClass, IFieldClassProps, IFieldProps, IField, IFieldClass, Provider as FieldProvider, Consumer as FieldContext } from "./components/Field";
 export { ITranformProps, Transform, ITransformContext, Consumer as TransformContext } from "./components/Transform";

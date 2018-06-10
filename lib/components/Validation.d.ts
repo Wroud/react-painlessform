@@ -1,9 +1,9 @@
 /// <reference types="react" />
 import * as React from "react";
 import * as Yup from "yup";
-import { IFormStorage } from "interfaces/form";
 import { IValidator } from "../ArrayValidator";
 import { IErrorMessage } from "../FormValidator";
+import { IFormStorage } from "../interfaces/form";
 import { IValidationConfiguration, IValidationErrors, IValidationMeta } from "../interfaces/validation";
 /**
  * Describes [[Validation]] props
@@ -47,9 +47,9 @@ export declare class Validation<TModel extends object> extends React.Component<I
     private validationContext;
     private validators;
     private _context;
-    constructor(props: any);
+    constructor(props: IValidationProps<TModel>);
     smartValidate(storage: IFormStorage<TModel>): void;
-    render(): JSX.Element;
+    render(): any;
     componentDidMount(): void;
     componentWillUnmount(): void;
     private scope;

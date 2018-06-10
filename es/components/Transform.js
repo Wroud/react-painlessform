@@ -5,6 +5,12 @@ const __1 = require("..");
 const form_1 = require("../helpers/form");
 const tools_1 = require("../tools");
 _a = React.createContext(undefined), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
+function* addScope(event, ignore, scope) {
+    if (event.global || event !== ignore) {
+        event.selector = scope(event.selector);
+    }
+    yield event;
+}
 class Transform extends React.Component {
     constructor() {
         super(...arguments);
@@ -17,13 +23,7 @@ class Transform extends React.Component {
                 const valuesScope = scope((f) => f)(state.values);
                 const stateScope = scope((f) => f)(state.state);
                 const validationScope = scope((f) => f)(state.validation);
-                function* addScope(event, ignore) {
-                    if (event.global || event !== ignore) {
-                        event.selector = scope(event.selector);
-                    }
-                    yield event;
-                }
-                next = tools_1.exchangeIterator(next, event => tools_1.exchangeIterator(transformer(event, form_1.isField(state.values, event, scope), Object.assign({}, state, { values: valuesScope, state: stateScope, validation: validationScope })), e => addScope(e, event)));
+                next = tools_1.exchangeIterator(next, event => tools_1.exchangeIterator(transformer(event, form_1.isField(state.values, event, scope), Object.assign({}, state, { values: valuesScope, state: stateScope, validation: validationScope })), e => addScope(e, event, scope)));
             }
             this.transformers.forEach(({ transform }) => {
                 next = transform(next, state);

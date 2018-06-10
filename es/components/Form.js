@@ -54,7 +54,7 @@ class Form extends React.Component {
         };
         this.handleSubmit = (event) => {
             const { onSubmit, config } = this.props;
-            if (event && config.submitting.preventDefault) {
+            if (event && config && config.submitting.preventDefault) {
                 event.preventDefault();
             }
             this.validate();
@@ -149,7 +149,7 @@ class Form extends React.Component {
         return this.fields;
     }
     shouldComponentUpdate(nextProps) {
-        const { values, initValues, config, isReset, isChanged, isSubmitting } = nextProps;
+        const { values, config, isReset, isChanged, isSubmitting } = nextProps;
         this.storage.config = config;
         if (isReset) {
             this.resetToInital(values);
@@ -183,7 +183,9 @@ class Form extends React.Component {
     }
     componentDidMount() {
         this.fields.forEach(field => {
-            field.field.current.mountValue();
+            if (field.field.current) {
+                field.field.current.mountValue();
+            }
         });
     }
     validate() {

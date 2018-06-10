@@ -2,13 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const React = require("react");
 const util_1 = require("util");
-const __1 = require("..");
+const formFactory_1 = require("../helpers/formFactory");
 const validation_1 = require("../helpers/validation");
 const tools_1 = require("../tools");
-const NoErrors = {};
-const NoScope = [];
 _a = React.createContext({
-    scope: NoScope,
+    scope: {},
     isValid: true
 }), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 class Validation extends React.Component {
@@ -45,7 +43,7 @@ class Validation extends React.Component {
         };
         this.validator = this.validator.bind(this);
         this.validationContext = {
-            scope: NoScope,
+            scope: [],
             isValid: true,
             mountValidation: this.mountValidation,
             unMountValidation: this.unMountValidation
@@ -58,7 +56,7 @@ class Validation extends React.Component {
         }
     }
     render() {
-        const { FormContext, ValidationContext, ScopeContext } = __1.createFormFactory();
+        const { FormContext, ValidationContext, ScopeContext } = formFactory_1.createFormFactory();
         return (React.createElement(ScopeContext, null, scope => (React.createElement(ValidationContext, null, validationContext => (React.createElement(FormContext, null, formContext => {
             this._context = validationContext.mountValidation
                 ? validationContext
@@ -69,12 +67,12 @@ class Validation extends React.Component {
         }))))));
     }
     componentDidMount() {
-        if (this._context) {
+        if (this._context && this._context.mountValidation) {
             this._context.mountValidation(this);
         }
     }
     componentWillUnmount() {
-        if (this._context) {
+        if (this._context && this._context.unMountValidation) {
             this._context.unMountValidation(this);
         }
     }

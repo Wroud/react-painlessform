@@ -5,8 +5,8 @@ export interface IFieldState {
     isFocus: boolean;
 }
 export declare type InputValue = string[] | boolean | string | number;
-export interface IUpdateEvent {
-    selector: FieldSelector<any>;
+export interface IUpdateEvent<TModel> {
+    selector: FieldSelector<TModel>;
     value?: InputValue | object | null;
     state?: IFieldState | null;
     global?: boolean;

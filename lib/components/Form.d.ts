@@ -34,7 +34,7 @@ export interface IFormProps<TModel extends object> extends React.FormHTMLAttribu
      * Fire when [[Form]] changed
      */
     onModelChange?: (nextModel: TModel, prevModel: TModel) => any;
-    onReset?: (event: React.FormEvent<HTMLFormElement>) => any;
+    onReset?: (event?: React.FormEvent<HTMLFormElement>) => any;
     /**
      * Fire when form submitting
      */
@@ -50,7 +50,7 @@ export interface IFormContext<TModel extends object> {
     /**
      * Update [[model]] [[Field]] state and call [[onModelChange]] from props
      */
-    handleChange: (event: IUpdateEvent) => any;
+    handleChange: (event: IUpdateEvent<TModel>) => any;
     mountField: (value: Field<any, TModel>) => any;
     unMountField: (value: Field<any, TModel>) => any;
 }
@@ -58,7 +58,7 @@ export interface IFormContext<TModel extends object> {
  * Default [[Form]] configuration
  */
 export declare const defaultConfiguration: IFormConfiguration;
-export declare const Provider: React.ComponentType<React.ProviderProps<IFormContext<{}>>>, Consumer: React.ComponentType<React.ConsumerProps<IFormContext<{}>>>;
+export declare const Provider: React.ComponentType<React.ProviderProps<IFormContext<any>>>, Consumer: React.ComponentType<React.ConsumerProps<IFormContext<any>>>;
 export interface IForm<TModel extends object> extends Form<TModel> {
     new (props: IFormProps<TModel>): Form<TModel>;
 }
