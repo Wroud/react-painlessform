@@ -344,7 +344,7 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
                         ...state,
                         isChanged: prevState.isChanged === true
                             || state.isChanged === true
-                            || prevValue !== undefined && (value === undefined || !isValueEqual(value, prevValue))
+                            || prevValue !== undefined && value !== undefined && !isValueEqual(value, prevValue)
                     };
                 }
                 setPathValue(newState, selector, this.storage.state);
