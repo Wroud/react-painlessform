@@ -125,8 +125,11 @@ class Form extends React.Component {
             this.validate();
             updatedFields.forEach(selector => {
                 this.fields.forEach(field => {
+                    if (!field.field.current) {
+                        return;
+                    }
                     const path1 = tools_1.getPath(selector, this.storage.values);
-                    const path2 = tools_1.getPath(field.props.name, this.storage.values);
+                    const path2 = tools_1.getPath(field.field.current.props.name, this.storage.values);
                     if (path1 === path2) {
                         field.forceUpdate();
                     }

@@ -1,13 +1,13 @@
 {
   "name": "my-app",
-  "version": "0.1.0",
+  "version": "3.0.0-beta9",
   "main": "src/index.tsx",
   "dependencies": {
     "react": "16.4.0",
     "react-dom": "16.4.0",
     "react-scripts-ts": "^2.16.0",
     "yup": "^0.25.1",
-    "react-painlessform": "^3.0.0-beta8"
+    "react-painlessform": "^3.0.0-beta9"
   },
   "scripts": {
     "start": "react-scripts-ts start",

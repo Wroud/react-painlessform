@@ -19,7 +19,7 @@ export class MyForm extends React.Component<{}, IState> {
   render() {
     const { users } = this.state;
     return (
-      <Form>
+      <Form onSubmit={e => m => console.log(m)}>
         {users.map(uId => (
           <UserForm
             name={(f: IMyForm) => f.users[uId]}
@@ -27,6 +27,9 @@ export class MyForm extends React.Component<{}, IState> {
             key={uId}
           />)
         )}
+        <br />
+        <button type="button" onClick={this.addUser}>Add User</button>
+        <button type="submit">Submit</button>
       </Form>
     );
   }
