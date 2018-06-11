@@ -1,6 +1,6 @@
 import * as React from "react";
 import { isString } from "util";
-import Yup from "yup";
+import * as Yup from "yup";
 import { createFormFactory, IFormStorage, IsField, IUpdateEvent } from "../../../src"; // "react-painlessform";
 import { TextField } from "./FormPrimitives";
 

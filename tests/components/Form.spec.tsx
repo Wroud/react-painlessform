@@ -130,7 +130,7 @@ describe("Form", () => {
     }
 
     function* transformer2(event: IUpdateEvent<IModel>, is: IsField<IModel>, { values: v }: IFormStorage<IModel>): IterableIterator<IUpdateEvent<IModel>> {
-        if (is(f => f.field, true) && event.value !== v.field && event.value === 15) {
+        if (is(f => f.field, true) && (!v || (event.value !== v.field && event.value === 15))) {
             yield {
                 selector: f => f.scope.max,
                 value: transformTestValue

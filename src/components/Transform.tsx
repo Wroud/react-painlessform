@@ -6,7 +6,7 @@ import { IUpdateEvent } from "../interfaces/field";
 import { FieldsState, IFormStorage } from "../interfaces/form";
 import { IsField } from "../interfaces/transform";
 import { IValidationState } from "../interfaces/validation";
-import { exchangeIterator } from "../tools";
+import { autoCreateProxy, exchangeIterator, fromProxy } from "../tools";
 import { IScopeContext } from "./Scope";
 
 /**
@@ -54,12 +54,12 @@ export class Transform<TModel extends object> extends React.Component<ITranformP
         let next = events;
 
         if (transformer) {
-            // const valuesScope = fromProxy(autoCreateProxy(state.values), scope((f: TModel) => f));
-            // const stateScope = fromProxy(autoCreateProxy(state.state), scope((f: FieldsState<TModel>) => f));
-            // const validationScope = fromProxy(autoCreateProxy(state.validation), scope((f: IValidationState<TModel>) => f));
-            const valuesScope = scope((f: TModel) => f)(state.values);
-            const stateScope = scope((f: FieldsState<TModel>) => f)(state.state);
-            const validationScope = scope((f: IValidationState<TModel>) => f)(state.validation);
+            const valuesScope = fromProxy(autoCreateProxy(state.values), scope((f: TModel) => f));
+            const stateScope = fromProxy(autoCreateProxy(state.state), scope((f: FieldsState<TModel>) => f));
+            const validationScope = fromProxy(autoCreateProxy(state.validation), scope((f: IValidationState<TModel>) => f));
+            // const valuesScope = scope((f: TModel) => f)(state.values);
+            // const stateScope = scope((f: FieldsState<TModel>) => f)(state.state);
+            // const validationScope = scope((f: IValidationState<TModel>) => f)(state.validation);
 
             next = exchangeIterator(
                 next,

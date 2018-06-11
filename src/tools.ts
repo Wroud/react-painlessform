@@ -57,22 +57,28 @@ export function getFromObject(object, keys: string | string[], defaultVal = null
 }
 
 export function fromProxy<TModel, TValue>(proxy: TModel, selector: (model: TModel) => TValue, defaultValue?): TValue {
-    const value = selector(proxy);
-    const bval = typeof value === "object" && !isArray(value) && value["@autoCreatedProxy"] === true
+    let value = selector(proxy);
+    if (typeof value === "object" && value["@autoCreatedProxy"] === true) {
+        value = value["@proxyTrueVal"];
+    }
+    return value === undefined
         ? defaultValue
         : value;
-    return bval;
 }
 
 export function autoCreateProxy<T extends object>(model: T): T {
     return new Proxy(model, {
         get(target, prop) {
-            let selectedVal = target[prop];
-            if (selectedVal === undefined) {
-                selectedVal = { "@autoCreatedProxy": true };
+            if (prop === "@proxyTrueVal") {
+                return target[prop];
             }
-            if (typeof selectedVal === "object") {
-                return autoCreateProxy(selectedVal);
+            const selectedVal = target[prop];
+            if (selectedVal === undefined || typeof selectedVal === "object") {
+                return autoCreateProxy({
+                    ...selectedVal || {},
+                    "@autoCreatedProxy": true,
+                    "@proxyTrueVal": selectedVal
+                });
             }
             return selectedVal;
         }

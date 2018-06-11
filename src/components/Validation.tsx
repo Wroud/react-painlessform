@@ -122,8 +122,8 @@ export class Validation<TModel extends object> extends React.Component<IValidati
         this.validationContext.scope = [];
         this.validationContext.isValid = true;
 
-        // const valuesScope = fromProxy(autoCreateProxy(values), this.scope((f: TModel) => f));
-        const valuesScope = this.scope((f: TModel) => f)(values);
+        const valuesScope = fromProxy(autoCreateProxy(values), this.scope((f: TModel) => f));
+        // const valuesScope = this.scope((f: TModel) => f)(values);
         const errorsCollection = this.validator(valuesScope);
         forEachElement(errorsCollection, ({ selector, scope, errors }) => {
             if (isArray(scope) && scope.length > 0) {
