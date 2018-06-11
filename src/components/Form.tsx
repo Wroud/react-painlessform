@@ -220,7 +220,7 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
         this.storage.state = updateFieldsState(
             state,
             this.storage.state,
-            this.fields.map(f => f.props.name)
+            this.fields.filter(f => f.field.current !== null).map(f => (f.field.current as any).props.name)
         );
     }
     private resetToInital(initalValues?: TModel) {
