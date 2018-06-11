@@ -7,7 +7,7 @@
     "react-dom": "16.4.0",
     "react-scripts-ts": "^2.16.0",
     "yup": "^0.25.1",
-    "react-painlessform": "^3.0.0-beta7"
+    "react-painlessform": "^3.0.0-beta8"
   },
   "scripts": {
     "start": "react-scripts-ts start",

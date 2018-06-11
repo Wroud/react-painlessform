@@ -1,5 +1,5 @@
 import * as React from "react";
-import { createFormFactory } from "../../../src";
+import { createFormFactory } from "react-painlessform";
 import { IUser, UserForm } from "./UserForm";
 
 export interface IMyForm {

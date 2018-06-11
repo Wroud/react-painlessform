@@ -20,9 +20,9 @@ class Transform extends React.Component {
             const { scope } = this;
             let next = events;
             if (transformer) {
-                const valuesScope = scope((f) => f)(state.values);
-                const stateScope = scope((f) => f)(state.state);
-                const validationScope = scope((f) => f)(state.validation);
+                const valuesScope = tools_1.fromProxy(tools_1.autoCreateProxy(state.values), scope((f) => f));
+                const stateScope = tools_1.fromProxy(tools_1.autoCreateProxy(state.state), scope((f) => f));
+                const validationScope = tools_1.fromProxy(tools_1.autoCreateProxy(state.validation), scope((f) => f));
                 next = tools_1.exchangeIterator(next, event => tools_1.exchangeIterator(transformer(event, form_1.isField(state.values, event, scope), Object.assign({}, state, { values: valuesScope, state: stateScope, validation: validationScope })), e => addScope(e, event, scope)));
             }
             this.transformers.forEach(({ transform }) => {

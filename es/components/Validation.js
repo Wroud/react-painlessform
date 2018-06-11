@@ -17,7 +17,7 @@ class Validation extends React.Component {
         this.validate = ({ values, validation }) => {
             this.validationContext.scope = [];
             this.validationContext.isValid = true;
-            const valuesScope = this.scope((f) => f)(values);
+            const valuesScope = tools_1.fromProxy(tools_1.autoCreateProxy(values), this.scope((f) => f));
             const errorsCollection = this.validator(valuesScope);
             tools_1.forEachElement(errorsCollection, ({ selector, scope, errors }) => {
                 if (util_1.isArray(scope) && scope.length > 0) {
