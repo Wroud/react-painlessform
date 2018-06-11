@@ -357,8 +357,11 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
 
         updatedFields.forEach(selector => {
             this.fields.forEach(field => {
+                if (!field.field.current) {
+                    return;
+                }
                 const path1 = getPath(selector, this.storage.values);
-                const path2 = getPath(field.props.name, this.storage.values);
+                const path2 = getPath(field.field.current.props.name, this.storage.values);
                 if (path1 === path2) {
                     field.forceUpdate();
                 }
