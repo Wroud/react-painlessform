@@ -201,7 +201,7 @@ class Form extends React.Component {
         }
     }
     updateState(state) {
-        this.storage.state = form_1.updateFieldsState(state, this.storage.state, this.fields.map(f => f.props.name));
+        this.storage.state = form_1.updateFieldsState(state, this.storage.state, this.fields.filter(f => f.field.current !== null).map(f => f.field.current.props.name));
     }
     resetToInital(initalValues) {
         const { storage, fields, props: { initValues } } = this;
