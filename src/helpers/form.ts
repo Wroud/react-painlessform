@@ -1,17 +1,17 @@
-import { IScopeContext, ScopeSelector } from "components/Scope";
+import { IScopeContext } from "components/Scope";
 import deepEqual = require("deep-equal");
 import { isArray } from "util";
-import { FieldSelector, FieldStateSelector, IFieldState, IUpdateEvent, ModelFieldSelector } from "../interfaces/field";
+import { FieldStateSelector, FieldValue, IFieldState, InputValue, IUpdateEvent, ModelFieldSelector } from "../interfaces/field";
 import { FieldsState } from "../interfaces/form";
 import { autoCreateProxy, deepExtend, fromProxy, getPath, setPathValue } from "../tools";
 
 /**
  * Update `model` with [[Field]] `state`
  * @param value [[Field]]s state
- * @param model [[Form]] `model`
+ * @param state [[Form]] `model`
  */
-export function updateFieldsState<T>(value: Partial<IFieldState>, model: FieldsState<T>, fields: Array<(model) => any>) {
-    const newModel: FieldsState<T> = { ...(model as any) };
+export function updateFieldsState<T>(value: Partial<IFieldState>, state: FieldsState<T>, fields: Array<(model: FieldsState<T>) => any>) {
+    const newModel: FieldsState<T> = { ...(state as any) };
     fields.forEach(selector => {
         const prevValue = fromProxy<FieldsState<T>, IFieldState>(autoCreateProxy(newModel), selector, {});
         setPathValue({ ...prevValue, ...value }, selector, newModel);
@@ -24,7 +24,7 @@ export function updateFieldsState<T>(value: Partial<IFieldState>, model: FieldsS
  * @param values fields values
  * @param model [[Form]] `model`
  */
-export function setModelValues<T extends object>(value: T, model: T, rest?: Partial<IFieldState>) {
+export function mergeModels<T extends object>(value: T, model: T) {
     const newValue: T = { ...model as any };
     deepExtend(newValue, value);
     return { model: newValue, isChanged: deepEqual(model, newValue) };
@@ -43,22 +43,25 @@ export const isField = <TModel extends object>(state: TModel, from: IUpdateEvent
     };
 };
 
-export function getInputValue<T>(value: T, forwardedValue: T, type: string, multiple?: boolean) {
+export function getInputValue<T>(value: T, type: string, forwardedValue?: InputValue, multiple?: boolean): InputValue {
     if (/radio/.test(type) || /checkbox/.test(type)) {
-        return forwardedValue;
+        return forwardedValue || "";
     }
-    const defaultValue = multiple ? [] : "";
     const castValue = /number|range/.test(type) && isNaN(value as any)
         ? 0
-        : value;
+        : value === undefined
+            ? ""
+            : value as any as string;
     return forwardedValue !== undefined
         ? forwardedValue
         : castValue;
 }
 
-export function getInputChecked<T>(value: T, forwardedValue: T, type: string) {
-    if (/checkbox/.test(type)) { // forwardedValue !== undefined
-        return isArray(value) ? value.indexOf(forwardedValue) !== -1 : value;
+export function getInputChecked(value: FieldValue, type: string, forwardedValue?: InputValue) {
+    if (/checkbox/.test(type)) {
+        return isArray(value) && forwardedValue
+            ? value.indexOf(forwardedValue as string) !== -1
+            : value as boolean;
     }
     if (/radio/.test(type)) {
         return value === forwardedValue;
@@ -66,17 +69,17 @@ export function getInputChecked<T>(value: T, forwardedValue: T, type: string) {
     return undefined;
 }
 
-export function getValue<T>(value: T, type: string, forwardedValue: T, multiple?: boolean) {
+export function getDefaultValue<T>(value: T, type: string, multiple?: boolean): T {
     if (/checkbox/.test(type)) {
         return value || false;
     }
     if (/number|range/.test(type)) {
-        return value === undefined ? 0 : value;
+        return value === undefined ? 0 : value as any;
     }
 
     return value !== undefined
         ? value
         : multiple
             ? []
-            : "";
+            : "" as any;
 }

@@ -1,6 +1,5 @@
 import { IValidationProps } from "../components/Validation";
 import { IErrorMessage } from "../FormValidator";
-import { FieldSelector, FieldStateSelector } from "./field";
 
 export type GetType<T> = T extends (...args: any[]) => infer P ? P : T;
 

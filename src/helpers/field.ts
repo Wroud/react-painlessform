@@ -1,7 +1,6 @@
 import shallowequal = require("shallowequal");
 import { isArray } from "util";
-import { InputType } from "../components/Field";
-import { IFieldState, IUpdateEvent } from "../interfaces/field";
+import { IFieldState, InputValue, IUpdateEvent } from "../interfaces/field";
 import { FieldsState, IFormStorage } from "../interfaces/form";
 import { autoCreateProxy, fromProxy, isArrayEqual } from "../tools";
 
@@ -9,7 +8,7 @@ export function castValue<T>(
     to: T,
     value: T,
     type: string,
-    forwardedValue?: InputType<T>,
+    forwardedValue?: InputValue,
     multiple?: boolean
 ): T {
     let result = value;
@@ -31,7 +30,7 @@ export function castValue<T>(
     if (/radio/.test(type)) {
         return result !== undefined
             ? result
-            : to === forwardedValue
+            : (to as any) === forwardedValue
                 ? "" as any
                 : to;
     }

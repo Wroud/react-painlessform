@@ -6,11 +6,12 @@ export interface IFieldState {
     isFocus: boolean;
 }
 
-export type InputValue = string[] | boolean | string | number;
+export type InputValue = string[] | string | number;
+export type FieldValue = string[] | boolean | string | number | object;
 
 export interface IUpdateEvent<TModel> {
     selector: FieldSelector<TModel>;
-    value?: InputValue | object | null;
+    value?: FieldValue | object | null;
     state?: IFieldState | null;
     global?: boolean;
 }
