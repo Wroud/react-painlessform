@@ -1,7 +1,7 @@
 import "./styles.css";
 import React from "react";
 import { render } from "react-dom";
-import { createFormFactory } from "react-painlessform";
+import { Path, createFormFactory } from "react-painlessform";
 import classnames from "classnames";
 
 const { Field, Form, FormContex, Transform } = createFormFactory();
@@ -9,13 +9,13 @@ const { Field, Form, FormContex, Transform } = createFormFactory();
 function* transformer(event, is, { values }) {
   if (is(f => f.min) && event.value > values.max) {
     yield {
-      selector: f => f.max,
+      selector: Path.fromSelector(f => f.max),
       value: event.value
     }
   }
   if (is(f => f.max) && event.value < values.min) {
     yield {
-      selector: f => f.min,
+      selector: Path.fromSelector(f => f.min),
       value: event.value
     }
   }
