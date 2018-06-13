@@ -11,8 +11,8 @@ import { FieldsState, IFormConfiguration, IFormStorage } from "../interfaces/for
 import { Path } from "../Path";
 import { forEachElement } from "../tools";
 import { Field as CField } from "./Field";
-import { ITransform } from "./Transform";
-import { IValidation } from "./Validation";
+import { ITranformProps, ITransform } from "./Transform";
+import { IValidation, IValidationProps } from "./Validation";
 
 /**
  * Describes [[Form]] props
@@ -52,6 +52,8 @@ export interface IFormProps<TModel extends object> extends React.FormHTMLAttribu
     onSubmit?: (event: React.FormEvent<HTMLFormElement>) => (values: TModel, isValid: boolean) => any;
     [rest: string]: any;
 }
+
+export type FormProps<TModel extends object> = IFormProps<TModel> & IValidationProps<TModel> & ITranformProps<TModel>;
 
 export interface IFormContext<TModel extends object> {
     storage: IFormStorage<TModel>;
@@ -98,14 +100,14 @@ export const { Provider, Consumer } = React.createContext<IFormContext<any>>({
 });
 
 export interface IForm<TModel extends object> extends Form<TModel> {
-    new(props: IFormProps<TModel>): Form<TModel>;
+    new(props: FormProps<TModel>): Form<TModel>;
 }
 
 /**
  * Form component controlls [[Field]]s and passes [[FormContext]]
  */
-export class Form<TModel extends object> extends React.Component<IFormProps<TModel>> {
-    static defaultProps: Partial<IFormProps<any>> = {
+export class Form<TModel extends object> extends React.Component<FormProps<TModel>> {
+    static defaultProps: Partial<FormProps<any>> = {
         config: defaultConfiguration
     };
 
@@ -114,7 +116,7 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
     private validation: React.RefObject<IValidation<TModel>>;
     private storage: IFormStorage<TModel>;
 
-    constructor(props: IFormProps<TModel>) {
+    constructor(props: FormProps<TModel>) {
         super(props);
 
         this.storage = defaultStorage as IFormStorage<any>;
@@ -135,7 +137,7 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
     /**
      * [[Form]] update [[storage]]
      */
-    shouldComponentUpdate(nextProps: IFormProps<TModel>) {
+    shouldComponentUpdate(nextProps: FormProps<TModel>) {
         const {
             values,
             state,
@@ -184,6 +186,14 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
             onModelChange,
             onSubmit,
             onReset,
+
+            errors,
+            isValid,
+            validator,
+            configure,
+
+            transformer,
+
             ...rest
         } = this.props;
 
@@ -198,8 +208,8 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
         return (
             <Provider value={context}>
                 <form onSubmit={this.handleSubmit} onReset={this.handleReset} {...rest}>
-                    <Transform ref={this.transform}>
-                        <Validation ref={this.validation as any}>
+                    <Transform ref={this.transform} transformer={transformer} {...rest}>
+                        <Validation ref={this.validation as any} validator={validator} isValid={isValid} errors={errors} configure={configure} {...rest}>
                             {children}
                         </Validation>
                     </Transform>
