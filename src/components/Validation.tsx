@@ -7,9 +7,9 @@ import { IErrorMessage } from "../FormValidator";
 import { createFormFactory } from "../helpers/formFactory";
 import { getProps, yupValidator } from "../helpers/validation";
 import { IFormStorage } from "../interfaces/form";
-import { IValidationConfiguration, IValidationErrors, IValidationMeta } from "../interfaces/validation";
-import { autoCreateProxy, forEachElement, fromProxy, isYup, setPathValue } from "../tools";
-import { IScopeContext } from "./Scope";
+import { IValidationErrors, IValidationMeta, IValidatorConfig, IValidatorState } from "../interfaces/validation";
+import { Path } from "../Path";
+import { forEachElement, isYup } from "../tools";
 
 /**
  * Describes [[Validation]] props
@@ -18,16 +18,16 @@ export interface IValidationProps<T> {
     /**
      * You can pass own errors via [[ValidationContext]]
      */
-    errors?: IValidationErrors[];
+    errors?: Array<IValidationErrors<T>>;
     isValid?: boolean;
     /**
      * Function or `Yup.Schema` object that accepts form values and returns errors
      */
-    validator?: IValidator<T, IValidationErrors, IValidationMeta<T>> | Yup.Schema<T>;
+    validator?: IValidator<T, IValidationErrors<T>, IValidationMeta<T>> | Yup.Schema<T>;
     /**
      * Via this prop you can configure `Yup` validation
      */
-    configure?: IValidationConfiguration & Yup.ValidateOptions;
+    configure?: IValidatorConfig & Yup.ValidateOptions;
     [rest: string]: any;
 }
 
@@ -55,7 +55,7 @@ export interface IValidation<T extends object = {}> extends Validation<T> {
  * That component connect to [[FormContext]] and use passed `validator`, `scopeValidator`
  * to validate [[Form]] model, errors was passed via [[ValidationContext]]
  */
-export class Validation<TModel extends object> extends React.Component<IValidationProps<TModel>, any> {
+export class Validation<TModel extends object> extends React.Component<IValidationProps<TModel>, IValidatorState> {
     static defaultProps: IValidationProps<any> = {
         isValid: true,
         configure: {}
@@ -63,6 +63,7 @@ export class Validation<TModel extends object> extends React.Component<IValidati
     private validationContext: IValidationContext<TModel>;
     private validators: Array<Validation<TModel>> = [];
     private _context: IValidationContext<TModel> | undefined;
+    private scope = Path.root<any>() as Path<any, TModel>;
 
     constructor(props: IValidationProps<TModel>) {
         super(props);
@@ -117,13 +118,11 @@ export class Validation<TModel extends object> extends React.Component<IValidati
         }
     }
 
-    private scope: IScopeContext = f => f;
-    private validate = ({ values, validation }: IFormStorage<TModel>) => {
+    private validate = ({ values, validation }: IFormStorage<any>) => {
         this.validationContext.scope = [];
         this.validationContext.isValid = true;
 
-        const valuesScope = fromProxy(autoCreateProxy(values), this.scope((f: TModel) => f));
-        // const valuesScope = this.scope((f: TModel) => f)(values);
+        const valuesScope = this.scope.getValue(values);
         const errorsCollection = this.validator(valuesScope);
         forEachElement(errorsCollection, ({ selector, scope, errors }) => {
             if (isArray(scope) && scope.length > 0) {
@@ -131,12 +130,9 @@ export class Validation<TModel extends object> extends React.Component<IValidati
                 this.validationContext.isValid = false;
             }
             if (isArray(errors) && errors.length > 0 && selector) {
-                const validationError = fromProxy(autoCreateProxy(validation.errors), this.scope(selector), []);
-                setPathValue(
-                    [...validationError, ...errors],
-                    this.scope(selector),
-                    validation.errors
-                );
+                const scopedSelector = this.scope.join(selector);
+                const validationError = scopedSelector.getValue(validation.errors, []);
+                scopedSelector.setValueImmutable(validation.errors, [...validationError, ...errors]);
                 this.validationContext.isValid = false;
             }
         });
@@ -146,7 +142,7 @@ export class Validation<TModel extends object> extends React.Component<IValidati
     /**
      * Validation function that accepts [[FormContext]] and validate [[Form]] `model`
      */
-    private *validator(model: TModel): IterableIterator<IValidationErrors> {
+    private *validator(model?: TModel): IterableIterator<IValidationErrors<TModel>> {
         const props = getProps(this.props);
         const state = this.state;
         const { errors, validator, configure: config } = props;
@@ -161,7 +157,7 @@ export class Validation<TModel extends object> extends React.Component<IValidati
         if (isYup(validator)) {
             yield* yupValidator(validator, model, { state, props }, config);
         } else {
-            yield* validator.validate(model, { state, props, config });
+            yield* validator.validate(model, { state, props, config: config as any });
         }
     }
     private mountValidation = (value: Validation<TModel>) => {

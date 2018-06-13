@@ -4,6 +4,7 @@ import {
     IValidationPropGetters,
     ValidationProps
 } from "../interfaces/validation";
+import { Path } from "../Path";
 import { getFromObject } from "../tools";
 
 export function getProps<T extends IValidationPropGetters>(getters: T): ValidationProps<T> {
@@ -14,7 +15,7 @@ export function getProps<T extends IValidationPropGetters>(getters: T): Validati
     return props;
 }
 
-export function* yupErrors<T>(error: Yup.ValidationError): IterableIterator<IValidationErrors> {
+export function* yupErrors<T>(error: Yup.ValidationError): IterableIterator<IValidationErrors<T>> {
     if (error.inner.length > 0) {
         for (const innerError of error.inner) {
             yield* yupErrors(innerError);
@@ -23,17 +24,17 @@ export function* yupErrors<T>(error: Yup.ValidationError): IterableIterator<IVal
         if (error.path === undefined) {
             yield {
                 scope: error.errors.map(e => ({ message: e }))
-            } as IValidationErrors;
+            };
         } else {
             yield {
-                selector: model => getFromObject(model, error.path),
+                selector: Path.fromSelector(model => getFromObject(model, error.path)),
                 errors: error.errors.map(e => ({ message: e }))
-            } as IValidationErrors;
+            };
         }
     }
 }
 
-export function* yupValidator<T>(schema: Yup.Schema<T>, model: T, context: any, configure?: Yup.ValidateOptions): Iterable<IValidationErrors> {
+export function* yupValidator<T>(schema: Yup.Schema<T>, model: T, context: any, configure?: Yup.ValidateOptions): Iterable<IValidationErrors<T>> {
     try {
         schema.validateSync(model, {
             abortEarly: false,

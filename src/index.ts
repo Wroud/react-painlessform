@@ -1,5 +1,7 @@
 export {
     IUpdateEvent,
+    FieldValue,
+    FieldPath
 } from "./interfaces/field";
 export {
     IsField,

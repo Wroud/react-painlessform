@@ -1,8 +1,9 @@
 import { Consumer as FieldContext, Field, IField, IFieldContext } from "../components/Field";
 import { Consumer as FormContext, Form, IForm, IFormContext } from "../components/Form";
-import { Consumer as ScopeContext, IScope, IScopeContext, Scope } from "../components/Scope";
+import { Consumer as ScopeContext, IScope, Scope } from "../components/Scope";
 import { Consumer as TransformContext, ITransform, ITransformContext, Transform } from "../components/Transform";
 import { Consumer as ValidationContext, IValidation, IValidationContext, Validation } from "../components/Validation";
+import { Path } from "../Path";
 
 export interface IConsumerProps<T> {
     children?: (context: T) => React.ReactNode;
@@ -17,10 +18,10 @@ export interface IFormFactory<TModel extends object, TScope extends object = any
     Validation: IValidation<TModel>;
     Scope: IScope<TScope, TModel>;
     FormContext: Consumer<IFormContext<TModel>>;
-    FieldContext: Consumer<IFieldContext<any, TModel>>;
+    FieldContext: Consumer<IFieldContext<any, TModel, any>>;
     TransformContext: Consumer<ITransformContext<TModel>>;
     ValidationContext: Consumer<IValidationContext<TModel>>;
-    ScopeContext: Consumer<IScopeContext>;
+    ScopeContext: Consumer<Path<TModel, any>>;
 }
 
 /**

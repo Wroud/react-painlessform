@@ -1,3 +1,1 @@
-import { FieldSelector, ModelFieldSelector } from "./field";
-
-export type IsField<TModel> = <TValue>(field: ModelFieldSelector<TModel, TValue>, strict?: boolean) => boolean;
+export type IsField<TModel> = <TValue>(field: (values: TModel) => TValue, strict?: boolean) => boolean;

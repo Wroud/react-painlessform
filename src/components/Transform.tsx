@@ -2,12 +2,12 @@ import * as React from "react";
 
 import { createFormFactory } from "..";
 import { isField } from "../helpers/form";
-import { IUpdateEvent } from "../interfaces/field";
+import { IUpdateEvent, UpdateValue } from "../interfaces/field";
 import { FieldsState, IFormStorage } from "../interfaces/form";
 import { IsField } from "../interfaces/transform";
-import { IValidationState } from "../interfaces/validation";
-import { autoCreateProxy, exchangeIterator, fromProxy } from "../tools";
-import { IScopeContext } from "./Scope";
+import { ValidationModel } from "../interfaces/validation";
+import { Path } from "../Path";
+import { exchangeIterator } from "../tools";
 
 /**
  * Describes [[Transform]] props
@@ -17,7 +17,7 @@ export interface ITranformProps<TModel extends object> {
      * Transformer function that accepts changed `field` and his `value` and form `model`
      * and returns fields map to update values
      */
-    transformer?: (value: IUpdateEvent<TModel>, is: IsField<TModel>, state: IFormStorage<TModel>) => IterableIterator<IUpdateEvent<TModel>>;
+    transformer?: (value: IUpdateEvent<TModel, UpdateValue>, is: IsField<TModel>, state: Partial<IFormStorage<TModel>>) => IterableIterator<IUpdateEvent<TModel, UpdateValue>>;
     [key: string]: any;
 }
 
@@ -33,9 +33,9 @@ export interface ITransform<T extends object> extends Transform<T> {
     new(props: ITranformProps<T>): Transform<T>;
 }
 
-function* addScope(event: IUpdateEvent<any>, ignore: IUpdateEvent<any>, scope: IScopeContext) {
+function* addScope<T, TModel>(event: IUpdateEvent<any, T>, ignore: IUpdateEvent<any, T>, scope: Path<any, TModel>) {
     if (event.global || event !== ignore) {
-        event.selector = scope(event.selector);
+        event.selector = scope.join(event.selector);
     }
     yield event;
 }
@@ -47,19 +47,17 @@ function* addScope(event: IUpdateEvent<any>, ignore: IUpdateEvent<any>, scope: I
 export class Transform<TModel extends object> extends React.Component<ITranformProps<TModel>> {
     private transformers: Array<Transform<TModel>> = [];
     private _context: ITransformContext<TModel> | undefined;
-    transform = (events: IterableIterator<IUpdateEvent<TModel>>, state: IFormStorage<TModel>) => {
+    private scope = Path.root<any>() as Path<any, TModel | FieldsState<TModel> | ValidationModel<TModel>>;
+    transform = (events: IterableIterator<IUpdateEvent<TModel, UpdateValue>>, state: IFormStorage<any>) => {
         const { transformer } = this.props;
         const { scope } = this;
 
         let next = events;
 
         if (transformer) {
-            const valuesScope = fromProxy(autoCreateProxy(state.values), scope((f: TModel) => f));
-            const stateScope = fromProxy(autoCreateProxy(state.state), scope((f: FieldsState<TModel>) => f));
-            const validationScope = fromProxy(autoCreateProxy(state.validation), scope((f: IValidationState<TModel>) => f));
-            // const valuesScope = scope((f: TModel) => f)(state.values);
-            // const stateScope = scope((f: FieldsState<TModel>) => f)(state.state);
-            // const validationScope = scope((f: IValidationState<TModel>) => f)(state.validation);
+            const valuesScope = scope.getValue<TModel>(state.values);
+            const stateScope = scope.getValue<FieldsState<TModel>>(state.state);
+            const validationScope = scope.getValue(state.validation.errors, {} as ValidationModel<TModel>);
 
             next = exchangeIterator(
                 next,
@@ -68,7 +66,10 @@ export class Transform<TModel extends object> extends React.Component<ITranformP
                         ...state,
                         values: valuesScope,
                         state: stateScope,
-                        validation: validationScope
+                        validation: {
+                            ...state.validation,
+                            errors: validationScope
+                        }
                     }),
                     e => addScope(e, event, scope)
                 ));
@@ -109,7 +110,6 @@ export class Transform<TModel extends object> extends React.Component<ITranformP
             this._context.unMountTransform(this);
         }
     }
-    private scope: IScopeContext = s => s;
     private mountTransform = (value: Transform<TModel>) => {
         this.transformers.push(value);
     }

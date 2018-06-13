@@ -1,20 +1,20 @@
-import { IScopeContext } from "components/Scope";
 import deepEqual = require("deep-equal");
 import { isArray } from "util";
-import { FieldStateSelector, FieldValue, IFieldState, InputValue, IUpdateEvent, ModelFieldSelector } from "../interfaces/field";
+import { FieldValue, IFieldState, InputValue, IUpdateEvent, UpdateValue } from "../interfaces/field";
 import { FieldsState } from "../interfaces/form";
-import { autoCreateProxy, deepExtend, fromProxy, getPath, setPathValue } from "../tools";
+import { Path } from "../Path";
+import { deepExtend } from "../tools";
 
 /**
  * Update `model` with [[Field]] `state`
  * @param value [[Field]]s state
  * @param state [[Form]] `model`
  */
-export function updateFieldsState<T>(value: Partial<IFieldState>, state: FieldsState<T>, fields: Array<(model: FieldsState<T>) => any>) {
+export function updateFieldsState<T>(value: Partial<IFieldState>, state: FieldsState<T>, fields: Array<Path<FieldsState<T>, IFieldState>>) {
     const newModel: FieldsState<T> = { ...(state as any) };
     fields.forEach(selector => {
-        const prevValue = fromProxy<FieldsState<T>, IFieldState>(autoCreateProxy(newModel), selector, {});
-        setPathValue({ ...prevValue, ...value }, selector, newModel);
+        const prevValue = selector.getValue(newModel, {} as IFieldState);
+        selector.setValueImmutable(newModel, { ...prevValue, ...value });
     });
     return newModel;
 }
@@ -30,18 +30,14 @@ export function mergeModels<T extends object>(value: T, model: T) {
     return { model: newValue, isChanged: deepEqual(model, newValue) };
 }
 
-export function updateField<T, M>(field: FieldStateSelector<M>, index: number, value: T, state: IFieldState) {
-    return { field, index, value, state };
-}
-
-export const isField = <TModel extends object>(state: TModel, from: IUpdateEvent<TModel>, scope: IScopeContext) => {
-    const path = getPath(from.selector, state);
-    return <TValue>(field: ModelFieldSelector<TModel, TValue>, strict?: boolean) => {
-        return strict
-            ? path === getPath(scope(field), state)
-            : path.includes(getPath(scope(field), state));
+export const isField = <TModel extends object>(
+    state: TModel,
+    from: IUpdateEvent<TModel, UpdateValue>,
+    scope: Path<any, TModel>
+) =>
+    <TValue>(field: (values: TModel) => TValue, strict?: boolean) => {
+        return from.selector.includes(scope.join(Path.fromSelector(field)), strict);
     };
-};
 
 export function getInputValue<T>(value: T, type: string, forwardedValue?: InputValue, multiple?: boolean): InputValue {
     if (/radio/.test(type) || /checkbox/.test(type)) {
@@ -57,7 +53,7 @@ export function getInputValue<T>(value: T, type: string, forwardedValue?: InputV
         : castValue;
 }
 
-export function getInputChecked(value: FieldValue, type: string, forwardedValue?: InputValue) {
+export function getInputChecked(value: FieldValue | undefined, type: string, forwardedValue?: InputValue) {
     if (/checkbox/.test(type)) {
         return isArray(value) && forwardedValue
             ? value.indexOf(forwardedValue as string) !== -1

@@ -41,10 +41,27 @@ code {
     outline: none;
 }
 
+.error .text-input {
+    border-color: red;
+}
+
 .label {
     font-weight: bold;
     display: block;
     margin-bottom: .5rem;
+}
+
+.error .label {
+    color: red;
+}
+
+.input-feedback {
+    color: #999;
+    margin-top: .25rem;
+}
+
+.error .input-feedback {
+    color: red;
 }
 
 .input-group {

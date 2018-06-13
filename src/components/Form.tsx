@@ -5,13 +5,11 @@ import { isDiffEqual, isValueEqual } from "../helpers/field";
 import { mergeModels, updateFieldsState } from "../helpers/form";
 import { createFormFactory } from "../helpers/formFactory";
 
-import { FieldValue, IFieldState, IUpdateEvent } from "../interfaces/field";
+import { FieldPath, FieldValue, IFieldState, IUpdateEvent, UpdateValue } from "../interfaces/field";
 import { FieldsState, IFormConfiguration, IFormStorage } from "../interfaces/form";
 
-import { autoCreateProxy, forEachElement, fromProxy, getPath, setPathValue } from "../tools";
-import { Field } from "./Field";
-import { Transform } from "./Transform";
-import { Validation } from "./Validation";
+import { Path } from "../Path";
+import { forEachElement } from "../tools";
 import { Field as CField } from "./Field";
 import { ITransform } from "./Transform";
 import { IValidation } from "./Validation";
@@ -64,9 +62,9 @@ export interface IFormContext<TModel extends object> {
     /**
      * Update [[model]] [[Field]] state and call [[onModelChange]] from props
      */
-    handleChange: (event: IUpdateEvent<TModel>) => any;
-    mountField: (value: CField<any, TModel>) => any;
-    unMountField: (value: CField<any, TModel>) => any;
+    handleChange: (event: IUpdateEvent<TModel, UpdateValue>) => any;
+    mountField: (value: CField<any, TModel, any>) => any;
+    unMountField: (value: CField<any, TModel, any>) => any;
 }
 
 /**
@@ -111,7 +109,7 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
         config: defaultConfiguration
     };
 
-    private fields: Array<CField<any, TModel>> = [];
+    private fields: Array<CField<any, TModel, any>> = [];
     private transform: React.RefObject<ITransform<TModel>>;
     private validation: React.RefObject<IValidation<TModel>>;
     private storage: IFormStorage<TModel>;
@@ -229,7 +227,9 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
         this.storage.state = updateFieldsState(
             state,
             this.storage.state,
-            this.fields.filter(f => f.field.current !== null).map(f => (f.field.current as any).props.name)
+            this.fields
+                .filter(f => f.field.current !== null)
+                .map(f => f.path as Path<FieldsState<TModel>, IFieldState>)
         );
     }
     private resetToInital(initalValues?: TModel, initalState?: FieldsState<TModel>) {
@@ -314,26 +314,23 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
     /**
      * Update [[Field]] state with new `value` and sets form `isChanged` to `true`
      */
-    private handleChange = (event: IUpdateEvent<TModel>) => {
+    private handleChange = (event: IUpdateEvent<TModel, UpdateValue>) => {
         if (isDiffEqual(event, this.storage)) {
             return;
         }
-        const updatedFields: string[] = [];
+        const updatedFields: Array<FieldPath<TModel, any>> = [];
         const prevValues = this.storage.values;
         this.storage.values = { ...prevValues as any };
         this.storage.state = { ...this.storage.state as any };
 
-        const valuesProxy = autoCreateProxy(this.storage.values);
-
         if (this.transform.current) {
             const transforms = this.transform.current.transform([event][Symbol.iterator](), this.storage);
-            const stateProxy = autoCreateProxy(this.storage.state);
 
             forEachElement(transforms, ({ selector, value, state }) => {
                 let newState: IFieldState | null = null;
                 if (state !== undefined && state !== null) {
-                    const prevValue = fromProxy(valuesProxy, selector) as FieldValue;
-                    const prevState = fromProxy(stateProxy, selector, {}) as IFieldState;
+                    const prevValue = selector.getValue<FieldValue>(this.storage.values);
+                    const prevState = selector.getValue(this.storage.state, {} as IFieldState);
                     newState = {
                         ...prevState,
                         ...state,
@@ -344,18 +341,18 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
                 }
                 if (value !== undefined) {
                     if (state === undefined) {
-                        const prevValue = fromProxy(valuesProxy, selector) as FieldValue;
-                        const prevState = fromProxy(stateProxy, selector, {}) as IFieldState;
+                        const prevValue = selector.getValue<FieldValue>(this.storage.values);
+                        const prevState = selector.getValue(this.storage.state, {} as IFieldState);
                         newState = {
                             ...prevState,
                             isChanged: prevState.isChanged === true
                                 || prevValue !== undefined && !isValueEqual(value, prevValue)
                         };
                     }
-                    setPathValue(value, selector, this.storage.values);
+                    selector.setValueImmutable(this.storage.values, value);
                 }
-                setPathValue(newState, selector, this.storage.state);
-                updatedFields.push(getPath(selector, this.storage.values));
+                selector.setValueImmutable(this.storage.state, newState);
+                updatedFields.push(selector);
             });
         }
         this.storage.isChanged = true;
@@ -363,11 +360,10 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
 
         updatedFields.forEach(path1 => {
             this.fields.forEach(field => {
-                const fieldClass = field.field.current;
-                if (!fieldClass) {
+                if (!field.path) {
                     return;
                 }
-                if (path1 === fieldClass.props.path) {
+                if (field.path.includes(path1)) {
                     field.forceUpdate();
                 }
             }
@@ -376,10 +372,10 @@ export class Form<TModel extends object> extends React.Component<IFormProps<TMod
         // this.invokeFieldsUpdate();
         this.callModelChange(prevValues);
     }
-    private mountField = (value: CField<any, TModel>) => {
+    private mountField = (value: CField<any, TModel, any>) => {
         this.fields.push(value);
     }
-    private unMountField = (value: CField<any, TModel>) => {
+    private unMountField = (value: CField<any, TModel, any>) => {
         const id = this.fields.indexOf(value);
         if (id > -1) {
             this.fields.splice(id, 1);

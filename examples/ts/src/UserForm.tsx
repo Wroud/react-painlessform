@@ -1,7 +1,8 @@
 import * as React from "react";
 import { isString } from "util";
 import * as Yup from "yup";
-import { createFormFactory, IFormStorage, IsField, IUpdateEvent } from "react-painlessform"; // "react-painlessform";
+import { createFormFactory, FieldValue, IFormStorage, IsField, IUpdateEvent } from "react-painlessform"; // "react-painlessform";
+import { Path } from "react-painlessform";
 import { TextField } from "./FormPrimitives";
 
 export interface IUser {
@@ -11,12 +12,12 @@ export interface IUser {
 
 const { Field, Scope, Transform, Validation } = createFormFactory<IUser>();
 
-function* transformer(event: IUpdateEvent<IUser>, is: IsField<IUser>, { values }: IFormStorage<IUser>): IterableIterator<IUpdateEvent<IUser>> {
+function* transformer(event: IUpdateEvent<IUser, FieldValue>, is: IsField<IUser>, { values }: IFormStorage<IUser>): IterableIterator<IUpdateEvent<IUser, FieldValue>> {
   const { value } = event;
   if (is(f => f.lastName) && isString(value) && value.length > 0) {
     const upperValue = value.charAt(0).toUpperCase() + value.slice(1);
     yield {
-      selector: f => f.lastName,
+      selector: Path.fromSelector(f => f.lastName),
       value: upperValue
     };
     return;
@@ -24,7 +25,7 @@ function* transformer(event: IUpdateEvent<IUser>, is: IsField<IUser>, { values }
   if (is(f => f.firstName) && isString(value) && value.length > 0) {
     const upperValue = value.charAt(0).toUpperCase() + value.slice(1);
     yield {
-      selector: f => f.firstName,
+      selector: Path.fromSelector(f => f.firstName),
       value: upperValue
     };
     return;

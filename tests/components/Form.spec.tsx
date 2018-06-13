@@ -6,8 +6,9 @@ import { mount, ReactWrapper, shallow } from "enzyme";
 
 import { createFormFactory, IsField } from "../../src";
 import { IForm, IFormProps } from "../../src/components/Form";
-import { FieldSelector, IUpdateEvent } from "../../src/interfaces/field";
+import { IFieldState, IUpdateEvent, UpdateValue } from "../../src/interfaces/field";
 import { IFormStorage } from "../../src/interfaces/form";
+import { Path } from "../../src/Path";
 
 describe("Form", () => {
     interface IProps {
@@ -113,26 +114,26 @@ describe("Form", () => {
         </Field>
     );
 
-    function* transformer(event: IUpdateEvent<IModel["scope"]>, is: IsField<IModel["scope"]>, { values: v }: IFormStorage<IModel["scope"]>): IterableIterator<IUpdateEvent<IModel["scope"]>> {
+    function* transformer(event: IUpdateEvent<IModel["scope"], UpdateValue>, is: IsField<IModel["scope"]>, { values: v }: IFormStorage<IModel["scope"]>): IterableIterator<IUpdateEvent<IModel["scope"], UpdateValue>> {
         if (is(f => f.min) && event.value > (!v ? 0 : v.max)) {
             yield {
-                selector: f => f.max,
+                selector: Path.fromSelector(f => f.max),
                 value: event.value
             };
         }
         if (is(f => f.max) && event.value < (!v ? 0 : v.min)) {
             yield {
-                selector: f => f.min,
+                selector: Path.fromSelector(f => f.min),
                 value: event.value
             };
         }
         yield event;
     }
 
-    function* transformer2(event: IUpdateEvent<IModel>, is: IsField<IModel>, { values: v }: IFormStorage<IModel>): IterableIterator<IUpdateEvent<IModel>> {
+    function* transformer2(event: IUpdateEvent<IModel, UpdateValue>, is: IsField<IModel>, { values: v }: IFormStorage<IModel>): IterableIterator<IUpdateEvent<IModel, UpdateValue>> {
         if (is(f => f.field, true) && (!v || (event.value !== v.field && event.value === 15))) {
             yield {
-                selector: f => f.scope.max,
+                selector: Path.fromSelector(f => f.scope.max),
                 value: transformTestValue
             };
         }
@@ -304,10 +305,11 @@ describe("Form", () => {
 
         assert.deepEqual(v, expectedValues);
 
-        getFields.forEach(({ props: { name } }) => {
-            assert.strictEqual(name(state as any).isVisited || false, false);
-            assert.strictEqual(name(state as any).isChanged || false, false);
-            assert.strictEqual(name(state as any).isFocus || false, false);
+        getFields.forEach(({ field: { current: { props: { name } } } }) => {
+            const fstate = name.getValue<IFieldState, IFieldState>(state);
+            assert.strictEqual(fstate.isVisited || false, false);
+            assert.strictEqual(fstate.isChanged || false, false);
+            assert.strictEqual(fstate.isFocus || false, false);
         });
     });
 
