@@ -1,4 +1,12 @@
 export {
+    Path,
+    IPath,
+    IInstruction,
+    PathSelector,
+    isPath,
+    getPathInstructions
+} from "./Path";
+export {
     IUpdateEvent,
     FieldValue,
     FieldPath
