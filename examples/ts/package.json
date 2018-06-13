@@ -1,13 +1,13 @@
 {
   "name": "my-app",
-  "version": "3.1.0-beta3",
+  "version": "3.1.0-beta4",
   "main": "src/index.tsx",
   "dependencies": {
     "react": "16.4.0",
     "react-dom": "16.4.0",
     "react-scripts-ts": "^2.16.0",
     "yup": "^0.25.1",
-    "react-painlessform": "^3.1.0-beta3",
+    "react-painlessform": "^3.1.0-beta4",
     "classnames": "2.2.5"
   },
   "scripts": {

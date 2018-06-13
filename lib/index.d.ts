@@ -1,3 +1,4 @@
+export { Path, IPath, IInstruction, PathSelector, isPath, getPathInstructions } from "./Path";
 export { IUpdateEvent, FieldValue, FieldPath } from "./interfaces/field";
 export { IsField } from "./interfaces/transform";
 export { IFormConfiguration, IFormStorage } from "./interfaces/form";
