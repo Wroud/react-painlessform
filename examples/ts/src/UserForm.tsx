@@ -1,8 +1,7 @@
 import * as React from "react";
 import { isString } from "util";
 import * as Yup from "yup";
-import { createFormFactory, FieldValue, IFormStorage, IsField, IUpdateEvent } from "react-painlessform"; // "react-painlessform";
-import { Path } from "react-painlessform";
+import { Path, createFormFactory, FieldValue, IFormStorage, IsField, IUpdateEvent } from "react-painlessform"; // "react-painlessform";
 import { TextField } from "./FormPrimitives";
 
 export interface IUser {
