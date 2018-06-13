@@ -9,10 +9,10 @@ export interface IErrorMessage<T = {}> {
     meta?: T;
 }
 
-export class FormValidator<TModel, TMeta = {}> implements IValidator<TModel, IValidationErrors, TMeta> {
-    private validators: Array<IValidator<TModel, IValidationErrors, TMeta> | Yup.Schema<any>>;
+export class FormValidator<TModel, TMeta = {}> implements IValidator<TModel, IValidationErrors<TModel>, TMeta> {
+    private validators: Array<IValidator<TModel, IValidationErrors<TModel>, TMeta> | Yup.Schema<any>>;
 
-    constructor(...validators: Array<IValidator<TModel, IValidationErrors, TMeta> | Yup.Schema<any>>) {
+    constructor(...validators: Array<IValidator<TModel, IValidationErrors<TModel>, TMeta> | Yup.Schema<any>>) {
         this.validators = validators;
     }
 
@@ -28,13 +28,13 @@ export class FormValidator<TModel, TMeta = {}> implements IValidator<TModel, IVa
 }
 
 export function createFormValidator<TModel, TMeta = {}>(
-    ...validators: Array<IValidator<TModel, IValidationErrors, TMeta> | Yup.Schema<any>>
+    ...validators: Array<IValidator<TModel, IValidationErrors<TModel>, TMeta> | Yup.Schema<any>>
 ) {
     return new FormValidator(...validators);
 }
 
 export function createRawFormValidator<TModel, TMeta = {}>(
-    validator: Validator<TModel, IterableIterator<IValidationErrors>, TMeta>
+    validator: Validator<TModel, IterableIterator<IValidationErrors<TModel>>, TMeta>
 ) {
     return { validate: validator };
 }

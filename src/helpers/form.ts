@@ -67,7 +67,7 @@ export function getInputChecked(value: FieldValue | undefined, type: string, for
 
 export function getDefaultValue<T>(value: T, type: string, multiple?: boolean): T {
     if (/checkbox/.test(type)) {
-        return value || false;
+        return value || false as any;
     }
     if (/number|range/.test(type)) {
         return value === undefined ? 0 : value as any;

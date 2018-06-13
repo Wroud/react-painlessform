@@ -248,7 +248,7 @@ export class FieldClass<TValue extends FieldValue, TModel extends object, TSub> 
             ? castValue(value, nextValue, type, forwardedValue, multiple)
             : nextValue;
         const updState: IFieldState | undefined | null = nextState !== null && nextState !== Unset
-            ? { isVisited, isFocus, isChanged, ...nextState }
+            ? { isVisited, isFocus, isChanged, ...nextState as IFieldState } as IFieldState
             : nextState;
 
         handleChange({

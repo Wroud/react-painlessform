@@ -13,10 +13,13 @@ const deepEqual = require("deep-equal");
 const React = require("react");
 const field_1 = require("../helpers/field");
 const form_1 = require("../helpers/form");
+const formFactory_1 = require("../helpers/formFactory");
 const tools_1 = require("../tools");
-const Transform_1 = require("./Transform");
-const Validation_1 = require("./Validation");
+/**
+ * Default [[Form]] configuration
+ */
 exports.defaultConfiguration = {
+    htmlPrimitives: true,
     submitting: {
         preventDefault: true
     }
@@ -39,22 +42,22 @@ _a = React.createContext({
     mountField: () => ({}),
     unMountField: () => ({})
 }), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
+/**
+ * Form component controlls [[Field]]s and passes [[FormContext]]
+ */
 class Form extends React.Component {
     constructor(props) {
         super(props);
         this.fields = [];
-        this.mountField = (value) => {
-            this.fields.push(value);
-        };
-        this.unMountField = (value) => {
-            const id = this.fields.indexOf(value);
-            if (id > -1) {
-                this.fields.splice(id, 1);
-            }
-        };
+        /**
+         * Handles form submitting and `preventDefault` if
+         * `configure.submitting.preventDefault` === true
+         * sets all [[Field]]s `isChanged` to `false` and `isVisited` to `true`
+         * and fires [[onSubmit]] from props
+         */
         this.handleSubmit = (event) => {
             const { onSubmit, config } = this.props;
-            if (event && config && config.submitting.preventDefault) {
+            if (event && config.submitting.preventDefault) {
                 event.preventDefault();
             }
             this.validate();
@@ -77,8 +80,11 @@ class Form extends React.Component {
                 onSubmit(event)(this.storage.values, this.storage.validation.isValid);
             }
         };
+        /**
+         * Reset form to [[initValues]]
+         */
         this.handleReset = (event) => {
-            const { onReset, values, initValues } = this.props;
+            const { onReset, values } = this.props;
             if (onReset) {
                 onReset(event);
             }
@@ -87,6 +93,9 @@ class Form extends React.Component {
                 this.invokeFieldsUpdate();
             }
         };
+        /**
+         * Update [[Field]] state with new `value` and sets form `isChanged` to `true`
+         */
         this.handleChange = (event) => {
             if (field_1.isDiffEqual(event, this.storage)) {
                 return;
@@ -95,47 +104,53 @@ class Form extends React.Component {
             const prevValues = this.storage.values;
             this.storage.values = Object.assign({}, prevValues);
             this.storage.state = Object.assign({}, this.storage.state);
-            const valuesProxy = tools_1.autoCreateProxy(this.storage.values);
             if (this.transform.current) {
                 const transforms = this.transform.current.transform([event][Symbol.iterator](), this.storage);
-                const stateProxy = tools_1.autoCreateProxy(this.storage.state);
                 tools_1.forEachElement(transforms, ({ selector, value, state }) => {
                     let newState = null;
-                    if (value !== undefined) {
-                        if (state === undefined) {
-                            const prevValue = tools_1.fromProxy(valuesProxy, selector);
-                            const prevState = tools_1.fromProxy(stateProxy, selector, {});
-                            newState = Object.assign({}, prevState, { isChanged: prevState.isChanged === true
-                                    || prevValue !== undefined && !field_1.isValueEqual(value, prevValue) });
-                        }
-                        tools_1.setPathValue(value, selector, this.storage.values);
-                    }
                     if (state !== undefined && state !== null) {
-                        const prevValue = tools_1.fromProxy(valuesProxy, selector);
-                        const prevState = tools_1.fromProxy(stateProxy, selector, {});
+                        const prevValue = selector.getValue(this.storage.values);
+                        const prevState = selector.getValue(this.storage.state, {});
                         newState = Object.assign({}, prevState, state, { isChanged: prevState.isChanged === true
                                 || state.isChanged === true
                                 || prevValue !== undefined && value !== undefined && !field_1.isValueEqual(value, prevValue) });
                     }
-                    tools_1.setPathValue(newState, selector, this.storage.state);
+                    if (value !== undefined) {
+                        if (state === undefined) {
+                            const prevValue = selector.getValue(this.storage.values);
+                            const prevState = selector.getValue(this.storage.state, {});
+                            newState = Object.assign({}, prevState, { isChanged: prevState.isChanged === true
+                                    || prevValue !== undefined && !field_1.isValueEqual(value, prevValue) });
+                        }
+                        selector.setValueImmutable(this.storage.values, value);
+                    }
+                    selector.setValueImmutable(this.storage.state, newState);
                     updatedFields.push(selector);
                 });
             }
             this.storage.isChanged = true;
             this.validate();
-            updatedFields.forEach(selector => {
+            updatedFields.forEach(path1 => {
                 this.fields.forEach(field => {
-                    if (!field.field.current) {
+                    if (!field.path) {
                         return;
                     }
-                    const path1 = tools_1.getPath(selector, this.storage.values);
-                    const path2 = tools_1.getPath(field.field.current.props.name, this.storage.values);
-                    if (path1 === path2) {
+                    if (field.path.includes(path1)) {
                         field.forceUpdate();
                     }
                 });
             });
+            // this.invokeFieldsUpdate();
             this.callModelChange(prevValues);
+        };
+        this.mountField = (value) => {
+            this.fields.push(value);
+        };
+        this.unMountField = (value) => {
+            const id = this.fields.indexOf(value);
+            if (id > -1) {
+                this.fields.splice(id, 1);
+            }
         };
         this.storage = defaultStorage;
         this.storage.state = props.state || props.initState || {};
@@ -151,16 +166,26 @@ class Form extends React.Component {
     get getFields() {
         return this.fields;
     }
+    /**
+     * [[Form]] update [[storage]]
+     */
     shouldComponentUpdate(nextProps) {
-        const { values, config, isReset, isChanged, isSubmitting } = nextProps;
+        const { values, state, config, isReset, isChanged, isSubmitting } = nextProps;
         this.storage.config = config;
         if (isReset) {
-            this.resetToInital(values);
+            this.resetToInital(values, state);
         }
-        else if (values !== undefined) {
-            const { isChanged: isValuesChanged, model: newValues } = form_1.setModelValues(values, this.storage.values);
-            this.storage.values = newValues;
-            this.storage.isChanged = this.storage.isChanged || isValuesChanged;
+        else {
+            if (values !== undefined) {
+                const { isChanged: isValuesChanged, model: newValues } = form_1.mergeModels(values, this.storage.values);
+                this.storage.values = newValues;
+                this.storage.isChanged = this.storage.isChanged || isValuesChanged;
+            }
+            if (state !== undefined) {
+                const { isChanged: isStateChanged, model: newState } = form_1.mergeModels(state, this.storage.state);
+                this.storage.state = newState;
+                this.storage.isChanged = this.storage.isChanged || isStateChanged;
+            }
         }
         this.storage.validation = {
             errors: {},
@@ -179,10 +204,11 @@ class Form extends React.Component {
             mountField: this.mountField,
             unMountField: this.unMountField
         };
+        const { Transform, Validation } = formFactory_1.createFormFactory();
         return (React.createElement(exports.Provider, { value: context },
             React.createElement("form", Object.assign({ onSubmit: this.handleSubmit, onReset: this.handleReset }, rest),
-                React.createElement(Transform_1.Transform, { ref: this.transform },
-                    React.createElement(Validation_1.Validation, { ref: this.validation }, children)))));
+                React.createElement(Transform, { ref: this.transform },
+                    React.createElement(Validation, { ref: this.validation }, children)))));
     }
     componentDidMount() {
         this.fields.forEach(field => {
@@ -201,16 +227,23 @@ class Form extends React.Component {
         }
     }
     updateState(state) {
-        this.storage.state = form_1.updateFieldsState(state, this.storage.state, this.fields.filter(f => f.field.current !== null).map(f => f.field.current.props.name));
+        this.storage.state = form_1.updateFieldsState(state, this.storage.state, this.fields
+            .filter(f => f.field.current !== null)
+            .map(f => f.path));
     }
-    resetToInital(initalValues) {
-        const { storage, fields, props: { initValues } } = this;
+    resetToInital(initalValues, initalState) {
+        const { storage, props: { initValues, initState } } = this;
         storage.values = initalValues || initValues || {};
-        this.updateState({
-            isChanged: false,
-            isFocus: false,
-            isVisited: false
-        });
+        if (initalState || initState) {
+            storage.state = initalState || initState;
+        }
+        else {
+            this.updateState({
+                isChanged: false,
+                isFocus: false,
+                isVisited: false
+            });
+        }
         this.storage.validation = {
             errors: {},
             isValid: true
@@ -218,6 +251,9 @@ class Form extends React.Component {
         storage.isChanged = false;
         storage.isSubmitting = false;
     }
+    /**
+     * Transform `model` to `values` and call `onModelChange`
+     */
     callModelChange(prevModel) {
         if (!this.props.onModelChange) {
             return;
@@ -236,3 +272,4 @@ Form.defaultProps = {
 };
 exports.Form = Form;
 var _a;
+//# sourceMappingURL=Form.js.map

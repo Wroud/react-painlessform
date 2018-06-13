@@ -4,20 +4,26 @@ const React = require("react");
 const util_1 = require("util");
 const formFactory_1 = require("../helpers/formFactory");
 const validation_1 = require("../helpers/validation");
+const Path_1 = require("../Path");
 const tools_1 = require("../tools");
 _a = React.createContext({
     scope: {},
     isValid: true
 }), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
+/**
+ * React Component that accepts [[IValidationProps]] as props
+ * That component connect to [[FormContext]] and use passed `validator`, `scopeValidator`
+ * to validate [[Form]] model, errors was passed via [[ValidationContext]]
+ */
 class Validation extends React.Component {
     constructor(props) {
         super(props);
         this.validators = [];
-        this.scope = f => f;
+        this.scope = Path_1.Path.root();
         this.validate = ({ values, validation }) => {
             this.validationContext.scope = [];
             this.validationContext.isValid = true;
-            const valuesScope = tools_1.fromProxy(tools_1.autoCreateProxy(values), this.scope((f) => f));
+            const valuesScope = this.scope.getValue(values);
             const errorsCollection = this.validator(valuesScope);
             tools_1.forEachElement(errorsCollection, ({ selector, scope, errors }) => {
                 if (util_1.isArray(scope) && scope.length > 0) {
@@ -25,8 +31,9 @@ class Validation extends React.Component {
                     this.validationContext.isValid = false;
                 }
                 if (util_1.isArray(errors) && errors.length > 0 && selector) {
-                    const validationError = tools_1.fromProxy(tools_1.autoCreateProxy(validation.errors), this.scope(selector), []);
-                    tools_1.setPathValue([...validationError, ...errors], this.scope(selector), validation.errors);
+                    const scopedSelector = this.scope.join(selector);
+                    const validationError = scopedSelector.getValue(validation.errors, []);
+                    scopedSelector.setValueImmutable(validation.errors, [...validationError, ...errors]);
                     this.validationContext.isValid = false;
                 }
             });
@@ -76,6 +83,9 @@ class Validation extends React.Component {
             this._context.unMountValidation(this);
         }
     }
+    /**
+     * Validation function that accepts [[FormContext]] and validate [[Form]] `model`
+     */
     *validator(model) {
         const props = validation_1.getProps(this.props);
         const state = this.state;
@@ -90,7 +100,7 @@ class Validation extends React.Component {
             yield* validation_1.yupValidator(validator, model, { state, props }, config);
         }
         else {
-            yield* validator.validate(model, { state, props, config });
+            yield* validator.validate(model, { state, props, config: config });
         }
     }
 }
@@ -100,3 +110,4 @@ Validation.defaultProps = {
 };
 exports.Validation = Validation;
 var _a;
+//# sourceMappingURL=Validation.js.map

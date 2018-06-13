@@ -5,11 +5,11 @@ export interface IValidator<TValue, TError, TMeta = {}> {
 }
 
 export class ArrayValidator<TValue, TError, TMeta = {}> implements IValidator<TValue, TError, TMeta> {
-    private name: string;
+    // private name: string;
     private validators: Array<Validator<TValue, TError[], TMeta>>;
 
     constructor(name: string, validators: Array<Validator<TValue, TError[], TMeta>>) {
-        this.name = name;
+        // this.name = name;
         this.validators = validators;
         this.validate = this.validate.bind(this);
     }

@@ -6,7 +6,7 @@ const tools_1 = require("../tools");
 function castValue(to, value, type, forwardedValue, multiple) {
     let result = value;
     if (/checkbox/.test(type)) {
-        result = (value === true);
+        result = value === true;
         if (forwardedValue !== undefined && multiple) {
             let castTo = Array.isArray(to) ? [...to] : [];
             const indexOf = castTo.indexOf(forwardedValue);
@@ -33,11 +33,11 @@ exports.castValue = castValue;
 function isDiffEqual(diff, model) {
     let equal = true;
     if (diff.value !== undefined) {
-        const value = tools_1.fromProxy(tools_1.autoCreateProxy(model.values), diff.selector);
+        const value = diff.selector.getValue(model.values);
         equal = equal && isValueEqual(value, diff.value);
     }
     if (diff.state !== undefined) {
-        const state = tools_1.fromProxy(tools_1.autoCreateProxy(model.state), diff.selector);
+        const state = diff.selector.getValue(model.state);
         equal = equal && shallowequal(state, diff.state);
     }
     return equal;
@@ -50,3 +50,4 @@ function isValueEqual(diff, value) {
     return tools_1.isArrayEqual(diff, value);
 }
 exports.isValueEqual = isValueEqual;
+//# sourceMappingURL=field.js.map

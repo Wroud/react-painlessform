@@ -1,6 +1,6 @@
 /// <reference types="react" />
 import * as React from "react";
-import { IUpdateEvent } from "../interfaces/field";
+import { IUpdateEvent, UpdateValue } from "../interfaces/field";
 import { IFormStorage } from "../interfaces/form";
 import { IsField } from "../interfaces/transform";
 /**
@@ -11,7 +11,7 @@ export interface ITranformProps<TModel extends object> {
      * Transformer function that accepts changed `field` and his `value` and form `model`
      * and returns fields map to update values
      */
-    transformer?: (value: IUpdateEvent<TModel>, is: IsField<TModel>, state: IFormStorage<TModel>) => IterableIterator<IUpdateEvent<TModel>>;
+    transformer?: (value: IUpdateEvent<TModel, UpdateValue>, is: IsField<TModel>, state: Partial<IFormStorage<TModel>>) => IterableIterator<IUpdateEvent<TModel, UpdateValue>>;
     [key: string]: any;
 }
 export interface ITransformContext<T extends object> {
@@ -29,11 +29,11 @@ export interface ITransform<T extends object> extends Transform<T> {
 export declare class Transform<TModel extends object> extends React.Component<ITranformProps<TModel>> {
     private transformers;
     private _context;
-    transform: (events: IterableIterator<IUpdateEvent<TModel>>, state: IFormStorage<TModel>) => IterableIterator<IUpdateEvent<TModel>>;
+    private scope;
+    transform: (events: IterableIterator<IUpdateEvent<TModel, UpdateValue>>, state: IFormStorage<any>) => IterableIterator<IUpdateEvent<TModel, UpdateValue>>;
     render(): JSX.Element;
     componentDidMount(): void;
     componentWillUnmount(): void;
-    private scope;
     private mountTransform;
     private unMountTransform;
 }

@@ -1,16 +1,19 @@
+import { IErrorMessage } from "../FormValidator";
+import { Path } from "../Path";
 import { FieldsState } from "./form";
+import { ValidationModel } from "./validation";
 export interface IFieldState {
     isChanged: boolean;
     isVisited: boolean;
     isFocus: boolean;
 }
-export declare type InputValue = string[] | boolean | string | number;
-export interface IUpdateEvent<TModel> {
-    selector: FieldSelector<TModel>;
-    value?: InputValue | object | null;
+export declare type FieldPath<TModel, TValue> = Path<TModel | FieldsState<TModel> | ValidationModel<TModel>, TValue | IFieldState | Array<IErrorMessage<any>>>;
+export declare type InputValue = string[] | string | number;
+export declare type FieldValue = string[] | boolean | string | number | object;
+export declare type UpdateValue = FieldValue | null | undefined;
+export interface IUpdateEvent<TModel, TValue> {
+    selector: FieldPath<TModel, TValue>;
+    value?: TValue | null;
     state?: IFieldState | null;
     global?: boolean;
 }
-export declare type FieldStateSelector<TModel> = (state: FieldsState<TModel>) => IFieldState;
-export declare type FieldSelector<TModel> = (values: TModel | FieldsState<TModel>) => any;
-export declare type ModelFieldSelector<TModel, TValue> = (values: TModel) => TValue;

@@ -1,8 +1,8 @@
 /// <reference types="react" />
 import * as React from "react";
-import { IUpdateEvent } from "../interfaces/field";
+import { IUpdateEvent, UpdateValue } from "../interfaces/field";
 import { FieldsState, IFormConfiguration, IFormStorage } from "../interfaces/form";
-import { Field } from "./Field";
+import { Field as CField } from "./Field";
 /**
  * Describes [[Form]] props
  */
@@ -50,9 +50,9 @@ export interface IFormContext<TModel extends object> {
     /**
      * Update [[model]] [[Field]] state and call [[onModelChange]] from props
      */
-    handleChange: (event: IUpdateEvent<TModel>) => any;
-    mountField: (value: Field<any, TModel>) => any;
-    unMountField: (value: Field<any, TModel>) => any;
+    handleChange: (event: IUpdateEvent<TModel, UpdateValue>) => any;
+    mountField: (value: CField<any, TModel, any>) => any;
+    unMountField: (value: CField<any, TModel, any>) => any;
 }
 /**
  * Default [[Form]] configuration
@@ -73,7 +73,7 @@ export declare class Form<TModel extends object> extends React.Component<IFormPr
     private storage;
     constructor(props: IFormProps<TModel>);
     readonly getStorage: IFormStorage<TModel>;
-    readonly getFields: Field<any, TModel>[];
+    readonly getFields: CField<any, TModel, any>[];
     /**
      * [[Form]] update [[storage]]
      */
@@ -82,9 +82,7 @@ export declare class Form<TModel extends object> extends React.Component<IFormPr
     componentDidMount(): void;
     private validate();
     private updateState(state);
-    private resetToInital(initalValues?);
-    private mountField;
-    private unMountField;
+    private resetToInital(initalValues?, initalState?);
     /**
      * Transform `model` to `values` and call `onModelChange`
      */
@@ -105,4 +103,6 @@ export declare class Form<TModel extends object> extends React.Component<IFormPr
      * Update [[Field]] state with new `value` and sets form `isChanged` to `true`
      */
     private handleChange;
+    private mountField;
+    private unMountField;
 }

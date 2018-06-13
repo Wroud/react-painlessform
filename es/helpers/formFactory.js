@@ -5,6 +5,10 @@ const Form_1 = require("../components/Form");
 const Scope_1 = require("../components/Scope");
 const Transform_1 = require("../components/Transform");
 const Validation_1 = require("../components/Validation");
+/**
+ * Used for typings [[Form]], [[Field]], [[Transform]], [[Validation]]
+ * and their contexts with `model` type
+ */
 function createFormFactory() {
     return {
         Form: Form_1.Form,
@@ -20,3 +24,4 @@ function createFormFactory() {
     };
 }
 exports.createFormFactory = createFormFactory;
+//# sourceMappingURL=formFactory.js.map

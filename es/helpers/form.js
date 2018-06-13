@@ -2,50 +2,55 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const deepEqual = require("deep-equal");
 const util_1 = require("util");
+const Path_1 = require("../Path");
 const tools_1 = require("../tools");
-function updateFieldsState(value, model, fields) {
-    const newModel = Object.assign({}, model);
+/**
+ * Update `model` with [[Field]] `state`
+ * @param value [[Field]]s state
+ * @param state [[Form]] `model`
+ */
+function updateFieldsState(value, state, fields) {
+    const newModel = Object.assign({}, state);
     fields.forEach(selector => {
-        const prevValue = tools_1.fromProxy(tools_1.autoCreateProxy(newModel), selector, {});
-        tools_1.setPathValue(Object.assign({}, prevValue, value), selector, newModel);
+        const prevValue = selector.getValue(newModel, {});
+        selector.setValueImmutable(newModel, Object.assign({}, prevValue, value));
     });
     return newModel;
 }
 exports.updateFieldsState = updateFieldsState;
-function setModelValues(value, model, rest) {
+/**
+ * Sets `values` to `model`
+ * @param values fields values
+ * @param model [[Form]] `model`
+ */
+function mergeModels(value, model) {
     const newValue = Object.assign({}, model);
     tools_1.deepExtend(newValue, value);
     return { model: newValue, isChanged: deepEqual(model, newValue) };
 }
-exports.setModelValues = setModelValues;
-function updateField(field, index, value, state) {
-    return { field, index, value, state };
-}
-exports.updateField = updateField;
-exports.isField = (state, from, scope) => {
-    const path = tools_1.getPath(from.selector, state);
-    return (field, strict) => {
-        return strict
-            ? path === tools_1.getPath(scope(field), state)
-            : path.includes(tools_1.getPath(scope(field), state));
-    };
+exports.mergeModels = mergeModels;
+exports.isField = (state, from, scope) => (field, strict) => {
+    return from.selector.includes(scope.join(Path_1.Path.fromSelector(field)), strict);
 };
-function getInputValue(value, forwardedValue, type, multiple) {
+function getInputValue(value, type, forwardedValue, multiple) {
     if (/radio/.test(type) || /checkbox/.test(type)) {
-        return forwardedValue;
+        return forwardedValue || "";
     }
-    const defaultValue = multiple ? [] : "";
     const castValue = /number|range/.test(type) && isNaN(value)
         ? 0
-        : value;
+        : value === undefined
+            ? ""
+            : value;
     return forwardedValue !== undefined
         ? forwardedValue
         : castValue;
 }
 exports.getInputValue = getInputValue;
-function getInputChecked(value, forwardedValue, type) {
+function getInputChecked(value, type, forwardedValue) {
     if (/checkbox/.test(type)) {
-        return util_1.isArray(value) ? value.indexOf(forwardedValue) !== -1 : value;
+        return util_1.isArray(value) && forwardedValue
+            ? value.indexOf(forwardedValue) !== -1
+            : value;
     }
     if (/radio/.test(type)) {
         return value === forwardedValue;
@@ -53,7 +58,7 @@ function getInputChecked(value, forwardedValue, type) {
     return undefined;
 }
 exports.getInputChecked = getInputChecked;
-function getValue(value, type, forwardedValue, multiple) {
+function getDefaultValue(value, type, multiple) {
     if (/checkbox/.test(type)) {
         return value || false;
     }
@@ -66,4 +71,5 @@ function getValue(value, type, forwardedValue, multiple) {
             ? []
             : "";
 }
-exports.getValue = getValue;
+exports.getDefaultValue = getDefaultValue;
+//# sourceMappingURL=form.js.map

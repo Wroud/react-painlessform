@@ -1,4 +1,3 @@
-import { FieldClass } from "../components/Field";
 import { IFieldState } from "./field";
 import { IValidationState } from "./validation";
 

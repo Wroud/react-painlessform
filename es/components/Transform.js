@@ -3,34 +3,39 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const React = require("react");
 const __1 = require("..");
 const form_1 = require("../helpers/form");
+const Path_1 = require("../Path");
 const tools_1 = require("../tools");
 _a = React.createContext(undefined), exports.Provider = _a.Provider, exports.Consumer = _a.Consumer;
 function* addScope(event, ignore, scope) {
     if (event.global || event !== ignore) {
-        event.selector = scope(event.selector);
+        event.selector = scope.join(event.selector);
     }
     yield event;
 }
+/**
+ * Transform is React Component that accpts [[ITranformProps]] as props
+ * and passes [[transformer]] function as [[TransformContext]]
+ */
 class Transform extends React.Component {
     constructor() {
         super(...arguments);
         this.transformers = [];
+        this.scope = Path_1.Path.root();
         this.transform = (events, state) => {
             const { transformer } = this.props;
             const { scope } = this;
             let next = events;
             if (transformer) {
-                const valuesScope = tools_1.fromProxy(tools_1.autoCreateProxy(state.values), scope((f) => f));
-                const stateScope = tools_1.fromProxy(tools_1.autoCreateProxy(state.state), scope((f) => f));
-                const validationScope = tools_1.fromProxy(tools_1.autoCreateProxy(state.validation), scope((f) => f));
-                next = tools_1.exchangeIterator(next, event => tools_1.exchangeIterator(transformer(event, form_1.isField(state.values, event, scope), Object.assign({}, state, { values: valuesScope, state: stateScope, validation: validationScope })), e => addScope(e, event, scope)));
+                const valuesScope = scope.getValue(state.values);
+                const stateScope = scope.getValue(state.state);
+                const validationScope = scope.getValue(state.validation.errors, {});
+                next = tools_1.exchangeIterator(next, event => tools_1.exchangeIterator(transformer(event, form_1.isField(state.values, event, scope), Object.assign({}, state, { values: valuesScope, state: stateScope, validation: Object.assign({}, state.validation, { errors: validationScope }) })), e => addScope(e, event, scope)));
             }
             this.transformers.forEach(({ transform }) => {
                 next = transform(next, state);
             });
             return next;
         };
-        this.scope = s => s;
         this.mountTransform = (value) => {
             this.transformers.push(value);
         };
@@ -66,3 +71,4 @@ class Transform extends React.Component {
 }
 exports.Transform = Transform;
 var _a;
+//# sourceMappingURL=Transform.js.map

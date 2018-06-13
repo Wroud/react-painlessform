@@ -1,9 +1,10 @@
 /// <reference types="react" />
 import { IField, IFieldContext } from "../components/Field";
 import { IForm, IFormContext } from "../components/Form";
-import { IScope, IScopeContext } from "../components/Scope";
+import { IScope } from "../components/Scope";
 import { ITransform, ITransformContext } from "../components/Transform";
 import { IValidation, IValidationContext } from "../components/Validation";
+import { Path } from "../Path";
 export interface IConsumerProps<T> {
     children?: (context: T) => React.ReactNode;
 }
@@ -15,10 +16,10 @@ export interface IFormFactory<TModel extends object, TScope extends object = any
     Validation: IValidation<TModel>;
     Scope: IScope<TScope, TModel>;
     FormContext: Consumer<IFormContext<TModel>>;
-    FieldContext: Consumer<IFieldContext<any, TModel>>;
+    FieldContext: Consumer<IFieldContext<any, TModel, any>>;
     TransformContext: Consumer<ITransformContext<TModel>>;
     ValidationContext: Consumer<IValidationContext<TModel>>;
-    ScopeContext: Consumer<IScopeContext>;
+    ScopeContext: Consumer<Path<TModel, any>>;
 }
 /**
  * Used for typings [[Form]], [[Field]], [[Transform]], [[Validation]]

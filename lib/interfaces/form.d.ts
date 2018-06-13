@@ -6,12 +6,13 @@ export interface IFormStorage<T extends object> {
     validation: IValidationState<T>;
     isChanged: boolean;
     isSubmitting: boolean;
-    config?: IFormConfiguration;
+    config: IFormConfiguration;
 }
 export declare type FieldsState<T> = {
     [P in keyof T]: T[P] extends Array<infer S> ? S extends object ? Array<FieldsState<S>> : IFieldState[] : T[P] extends object ? FieldsState<T[P]> : IFieldState;
 };
 export interface IFormConfiguration {
+    htmlPrimitives: boolean;
     submitting: {
         preventDefault: boolean;
     };
