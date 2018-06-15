@@ -10,7 +10,9 @@ import { FieldsState, IFormConfiguration, IFormStorage } from "../interfaces/for
 
 import { Path } from "../Path";
 import { forEachElement } from "../tools";
+
 import { Field as CField } from "./Field";
+import { ISubscribe } from "./Subscribe";
 import { ITranformProps, ITransform } from "./Transform";
 import { IValidation, IValidationProps } from "./Validation";
 
@@ -40,7 +42,6 @@ export interface IFormProps<TModel extends object> extends React.FormHTMLAttribu
      */
     isReset?: boolean;
     isChanged?: boolean;
-    isSubmitting?: boolean;
     /**
      * Fire when [[Form]] changed
      */
@@ -87,8 +88,7 @@ const defaultStorage: IFormStorage<{}> = {
         errors: {},
         isValid: true
     },
-    isChanged: false,
-    isSubmitting: false
+    isChanged: false
 };
 
 export const { Provider, Consumer } = React.createContext<IFormContext<any>>({
@@ -114,6 +114,7 @@ export class Form<TModel extends object> extends React.Component<FormProps<TMode
     private fields: Array<CField<any, TModel, any>> = [];
     private transform: React.RefObject<ITransform<TModel>>;
     private validation: React.RefObject<IValidation<TModel>>;
+    private subscribers: React.RefObject<ISubscribe<TModel>>;
     private storage: IFormStorage<TModel>;
 
     constructor(props: FormProps<TModel>) {
@@ -123,10 +124,10 @@ export class Form<TModel extends object> extends React.Component<FormProps<TMode
         this.storage.state = props.state || props.initState || {} as FieldsState<TModel>;
         this.storage.values = props.values || props.initValues || {} as TModel;
         this.storage.isChanged = props.isChanged || false;
-        this.storage.isSubmitting = props.isSubmitting || false;
 
         this.transform = React.createRef<ITransform<TModel>>();
         this.validation = React.createRef<IValidation<TModel>>();
+        this.subscribers = React.createRef<ISubscribe<TModel>>();
     }
     get getStorage() {
         return this.storage;
@@ -142,7 +143,7 @@ export class Form<TModel extends object> extends React.Component<FormProps<TMode
             values,
             state,
             config,
-            isReset, isChanged, isSubmitting
+            isReset, isChanged
         } = nextProps;
 
         this.storage.config = config as any;
@@ -166,7 +167,6 @@ export class Form<TModel extends object> extends React.Component<FormProps<TMode
             isValid: true
         };
         this.storage.isChanged = isChanged !== undefined ? isChanged : this.storage.isChanged;
-        this.storage.isSubmitting = isSubmitting !== undefined ? isSubmitting : this.storage.isSubmitting;
         return true;
     }
 
@@ -204,16 +204,18 @@ export class Form<TModel extends object> extends React.Component<FormProps<TMode
             mountField: this.mountField,
             unMountField: this.unMountField
         };
-        const { Transform, Validation } = createFormFactory<TModel>();
+        const { Subscribe, Transform, Validation } = createFormFactory<TModel>();
         return (
             <Provider value={context}>
-                <form onSubmit={this.handleSubmit} onReset={this.handleReset} {...rest}>
-                    <Transform ref={this.transform} transformer={transformer} {...rest}>
-                        <Validation ref={this.validation as any} validator={validator} isValid={isValid} errors={errors} configure={configure} {...rest}>
-                            {children}
-                        </Validation>
-                    </Transform>
-                </form>
+                <Subscribe ref={this.subscribers}>
+                    <form onSubmit={this.handleSubmit} onReset={this.handleReset} {...rest}>
+                        <Transform ref={this.transform} transformer={transformer} {...rest}>
+                            <Validation ref={this.validation as any} validator={validator} isValid={isValid} errors={errors} configure={configure} {...rest}>
+                                {children}
+                            </Validation>
+                        </Transform>
+                    </form>
+                </Subscribe>
             </Provider >
         );
     }
@@ -261,7 +263,6 @@ export class Form<TModel extends object> extends React.Component<FormProps<TMode
             isValid: true
         };
         storage.isChanged = false;
-        storage.isSubmitting = false;
     }
     /**
      * Transform `model` to `values` and call `onModelChange`
@@ -300,7 +301,7 @@ export class Form<TModel extends object> extends React.Component<FormProps<TMode
                 isVisited: true
             });
         }
-        this.invokeFieldsUpdate();
+        this.forceUpdate();
         if (onSubmit) {
             onSubmit(event)(this.storage.values, this.storage.validation.isValid);
         }
@@ -315,11 +316,8 @@ export class Form<TModel extends object> extends React.Component<FormProps<TMode
         }
         if (!values) {
             this.resetToInital();
-            this.invokeFieldsUpdate();
+            this.forceUpdate();
         }
-    }
-    private invokeFieldsUpdate() {
-        this.fields.forEach(field => field.forceUpdate());
     }
     /**
      * Update [[Field]] state with new `value` and sets form `isChanged` to `true`
@@ -368,18 +366,9 @@ export class Form<TModel extends object> extends React.Component<FormProps<TMode
         this.storage.isChanged = true;
         this.validate();
 
-        updatedFields.forEach(path1 => {
-            this.fields.forEach(field => {
-                if (!field.path) {
-                    return;
-                }
-                if (field.path.includes(path1)) {
-                    field.forceUpdate();
-                }
-            }
-            );
-        });
-        // this.invokeFieldsUpdate();
+        if (this.subscribers.current) {
+            this.subscribers.current.smartUpdate(updatedFields);
+        }
         this.callModelChange(prevValues);
     }
     private mountField = (value: CField<any, TModel, any>) => {

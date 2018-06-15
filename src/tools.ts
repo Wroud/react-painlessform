@@ -1,5 +1,4 @@
 import * as React from "react";
-import { isArray } from "util";
 import * as Yup from "yup";
 
 export function deepExtend(destination, source) {
@@ -47,72 +46,6 @@ export function isYup(object): object is Yup.Schema<any> {
     return "validateSync" in object;
 }
 
-export function getFromObject(object, keys: string | string[], defaultVal = null): any {
-    keys = Array.isArray(keys) ? keys : keys.replace(/(\[(\d)\])/g, ".$2").split(".");
-    object = object[keys[0]];
-    if (object && keys.length > 1) {
-        return getFromObject(object, keys.slice(1), defaultVal);
-    }
-    return object === undefined ? defaultVal : object;
-}
-
-export function fromProxy<TModel, TValue>(proxy: TModel, selector: (model: TModel) => TValue, defaultValue?): TValue {
-    let value = selector(proxy);
-    if (typeof value === "object" && value["@autoCreatedProxy"] === true) {
-        value = value["@proxyTrueVal"];
-    }
-    return value === undefined
-        ? defaultValue
-        : value;
-}
-
-export function autoCreateProxy<T extends object>(model: T): T {
-    return new Proxy(model, {
-        get(target, prop) {
-            if (prop === "@proxyTrueVal") {
-                return target[prop];
-            }
-            const selectedVal = target[prop];
-            if (selectedVal === undefined || typeof selectedVal === "object") {
-                return autoCreateProxy({
-                    ...selectedVal || {},
-                    "@autoCreatedProxy": true,
-                    "@proxyTrueVal": selectedVal
-                });
-            }
-            return selectedVal;
-        }
-    });
-}
-
-export function getPath(selector: (obj) => any, data) {
-    let path = "";
-    const proxyFactory = object => new Proxy(object, {
-        get(target, prop) {
-            if (prop === undefined) {
-                return {};
-            }
-            path += !isNaN(prop.toString() as any)
-                ? `[${prop}]`
-                : path === ""
-                    ? `${prop}`
-                    : `.${prop}`;
-
-            let selectedVal = target[prop];
-            if (selectedVal === undefined) {
-                selectedVal = {};
-            }
-            if (typeof selectedVal === "object") {
-                return proxyFactory(selectedVal);
-            } else {
-                return selectedVal;
-            }
-        }
-    });
-    selector(proxyFactory(data));
-    return path;
-}
-
 export function forEachElement<TValue, TResult>(iterator: IterableIterator<TValue>, action: (element: TValue) => TResult) {
     let result = iterator.next();
     const array: TResult[] = [];
@@ -127,39 +60,5 @@ export function* exchangeIterator<TValue, TResult>(iterator: IterableIterator<TV
     while (!result.done) {
         yield* action(result.value);
         result = iterator.next();
-    }
-}
-
-export function setPathValue<T>(value: any, selector: (obj: T) => any, to: T) {
-    let lastProperty: PropertyKey = "";
-    let lastParent;
-    const proxyFactory = object => new Proxy(object, {
-        get(target, prop) {
-            if (prop === undefined) {
-                return undefined;
-            }
-            const newTarget = lastParent
-                ? !isNaN(prop.toString() as any) ? [...(isArray(target) ? target : [])] : { ...target }
-                : target;
-            if (lastParent) {
-                lastParent[lastProperty] = newTarget;
-            }
-            lastProperty = prop;
-            lastParent = newTarget;
-            if (newTarget[prop] === undefined) {
-                newTarget[prop] = {};
-            }
-            if (typeof newTarget[prop] === "object") {
-                return proxyFactory(newTarget[prop]);
-            } else {
-                return newTarget[prop];
-            }
-        }
-    });
-    selector(proxyFactory(to));
-    if (value === null) {
-        delete lastParent[lastProperty];
-    } else {
-        lastParent[lastProperty] = value;
     }
 }

@@ -6,7 +6,6 @@ export interface IFormStorage<T extends object> {
     state: FieldsState<T>;
     validation: IValidationState<T>;
     isChanged: boolean;
-    isSubmitting: boolean;
     config: IFormConfiguration;
 }
 

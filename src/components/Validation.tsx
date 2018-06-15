@@ -5,7 +5,7 @@ import * as Yup from "yup";
 import { IValidator } from "../ArrayValidator";
 import { IErrorMessage } from "../FormValidator";
 import { createFormFactory } from "../helpers/formFactory";
-import { getProps, yupValidator } from "../helpers/validation";
+import { yupValidator } from "../helpers/validation";
 import { IFormStorage } from "../interfaces/form";
 import { IValidationErrors, IValidationMeta, IValidatorConfig, IValidatorState } from "../interfaces/validation";
 import { Path } from "../Path";
@@ -143,7 +143,7 @@ export class Validation<TModel extends object> extends React.Component<IValidati
      * Validation function that accepts [[FormContext]] and validate [[Form]] `model`
      */
     private *validator(model?: TModel): IterableIterator<IValidationErrors<TModel>> {
-        const props = getProps(this.props);
+        const props = this.props;
         const state = this.state;
         const { errors, validator, configure: config } = props;
 

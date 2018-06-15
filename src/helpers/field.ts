@@ -25,16 +25,55 @@ export function castValue<T extends FieldValue>(
             }
             result = castTo;
         }
-        return result;
-    }
-    if (/radio/.test(type)) {
-        return result !== undefined
+    } else if (/radio/.test(type)) {
+        result = result !== undefined
             ? result
-            : to === forwardedValue
+            : to === undefined || to === forwardedValue
                 ? ""
                 : to;
     }
     return result;
+}
+export function getInputState(value: FieldValue | undefined, type: string, forwardedValue?: InputValue, multiple?: boolean) {
+    const isCheckbox = /checkbox/i.test(type);
+    const isRadio = /radio/i.test(type);
+    let checked: boolean | undefined;
+    let inputValue: InputValue;
+    if (isRadio || isCheckbox) {
+        checked = !isCheckbox
+            ? value === forwardedValue
+            : isArray(value) && forwardedValue
+                ? value.indexOf(forwardedValue as string) !== -1
+                : value as boolean;
+        inputValue = forwardedValue || "" as InputValue;
+    } else {
+        const castedValue = /number|range/i.test(type) && isNaN(value as any)
+            ? 0 : value === undefined ? "" : value;
+        inputValue = forwardedValue !== undefined
+            ? forwardedValue
+            : castedValue as InputValue;
+    }
+    return {
+        type,
+        value: inputValue,
+        checked,
+        multiple
+    };
+}
+
+export function getDefaultValue<T>(value: T, type: string, multiple?: boolean): T {
+    if (/checkbox/i.test(type)) {
+        return value || false as any;
+    }
+    if (/number|range/i.test(type)) {
+        return value === undefined ? 0 : value as any;
+    }
+
+    return value !== undefined
+        ? value
+        : multiple
+            ? []
+            : "" as any;
 }
 
 export function isDiffEqual<TModel extends object>(diff: IUpdateEvent<TModel, UpdateValue>, model: IFormStorage<TModel>) {

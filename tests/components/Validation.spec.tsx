@@ -69,12 +69,10 @@ describe("Validation Yup", () => {
                 .required("First name is required.")
         });
         wrapper = mount(
-            <Form>
-                <Validation validator={shape}>
-                    <Field name={f => f.field}>
-                        {({ inputHook }) => <input {...inputHook} />}
-                    </Field>
-                </Validation>
+            <Form validator={shape}>
+                <Field name={f => f.field}>
+                    {({ inputHook }) => <input {...inputHook} />}
+                </Field>
             </Form>
         );
     });

@@ -7,14 +7,14 @@ import {
     isSelectChangeEvent
 } from "../tools";
 
-import { castValue } from "../helpers/field";
-import { getDefaultValue, getInputChecked, getInputValue } from "../helpers/form";
+import { castValue, getDefaultValue, getInputState } from "../helpers/field";
 import { createFormFactory } from "../helpers/formFactory";
 
 import { FieldPath, FieldValue, IFieldState, InputValue } from "../interfaces/field";
-import { ISubscriptionsMap, Subscriptions, SubscriptionsMap } from "../interfaces/store";
+import { ISubscriptionsMap, SubscriptionsMap } from "../interfaces/store";
 
 import { IFormContext } from "./Form";
+import { ISubscribeContext, ISubscriber } from "./Subscribe";
 
 export interface IFieldClass<TModel extends object> {
     new <TValue, TSub>(props: IFieldClassProps<TValue, TModel, TSub>): FieldClass<TValue, TModel, TSub>;
@@ -108,10 +108,7 @@ export class FieldClass<TValue extends FieldValue, TModel extends object, TSub> 
             const value = getDefaultValue(fieldValue || defaultValue, type, multiple);
             inputHook = {
                 name: name.getPath(),
-                type,
-                value: getInputValue(value, type, forwardedValue, multiple),
-                checked: getInputChecked(value, type, forwardedValue),
-                multiple,
+                ...getInputState(value, type, forwardedValue, multiple),
                 onChange: this.handleHTMLInputChange,
                 onClick: this.onClick,
                 onFocus: this.handleFocus(true),
@@ -289,14 +286,15 @@ export interface IField<TModel extends object> extends Field<any, TModel, any> {
  * HOC for [[FieldClass]] that connects [[FormContext]], [[ValidationContext]]
  * and [[TransformContext]] and pass it to [[FieldClass]] as props
  */
-export class Field<TValue, TModel extends object, TSub extends ISubscriptionsMap<TModel>> extends React.Component<IFieldProps<TValue, TModel, TSub>> {
+export class Field<TValue, TModel extends object, TSub extends ISubscriptionsMap<TModel>> extends React.Component<IFieldProps<TValue, TModel, TSub>> implements ISubscriber {
     static defaultProps = { type: "text" };
     formContext!: IFormContext<TModel>;
+    subscribeContext!: ISubscribeContext<any, any>;
     path?: FieldPath<TModel, TValue>;
     field = React.createRef<FieldClass<TValue, TModel, SubscriptionsMap<TModel, TSub>>>();
-    subscriptions: Subscriptions<TModel> = [];
+    private subscriptions: Array<Path<any, any>> = [];
     render() {
-        const { FormContext, ValidationContext, ScopeContext } = createFormFactory<TModel>();
+        const { FormContext, SubscribeContext, ValidationContext, ScopeContext } = createFormFactory<TModel>();
         const {
             value: forwardedValue,
             defaultValue,
@@ -313,77 +311,96 @@ export class Field<TValue, TModel extends object, TSub extends ISubscriptionsMap
         } = this.props;
 
         return (
-            <ScopeContext>
-                {scope => (
-                    <FormContext>
-                        {formContext => (
-                            <ValidationContext>
-                                {({ scope: validationScope }) => {
-                                    this.formContext = formContext;
-                                    let fullRest: ({ [x: string]: any } & SubscriptionsMap<TModel, TSub>) = rest as any;
-                                    if (subscribe !== undefined) {
-                                        fullRest = { ...fullRest as any };
-                                        this.subscriptions = [];
-                                        Object.keys(subscribe).forEach(key => {
-                                            const subscription = scope.join(Path.fromSelector(subscribe[key]));
-                                            this.subscriptions.push(subscription);
-                                            fullRest[key] = subscription.getValue(formContext.storage.values);
-                                        });
-                                    }
-                                    this.path = scope.join(Path.fromSelector(name)) as FieldPath<TModel, TValue>;
-                                    const value = this.path.getValue<TValue>(formContext.storage.values);
-                                    const modelState = this.path.getValue(formContext.storage.state, {} as IFieldState);
-                                    const errors = this.path.getValue(formContext.storage.validation.errors, [] as Array<IErrorMessage<any>>);
+            <SubscribeContext>
+                {subscribeContext => (
+                    <ScopeContext>
+                        {scope => (
+                            <FormContext>
+                                {formContext => (
+                                    <ValidationContext>
+                                        {({ scope: validationScope }) => {
+                                            this.formContext = formContext;
+                                            this.subscribeContext = subscribeContext;
+                                            let fullRest: ({ [x: string]: any } & SubscriptionsMap<TModel, TSub>) = rest as any;
+                                            if (subscribe !== undefined) {
+                                                fullRest = { ...fullRest as any };
+                                                this.subscriptions = [];
+                                                Object.keys(subscribe).forEach(key => {
+                                                    const subscription = scope.join(Path.fromSelector(subscribe[key]));
+                                                    this.subscriptions.push(subscription);
+                                                    fullRest[key] = subscription.getValue(formContext.storage.values);
+                                                });
+                                            }
+                                            this.path = scope.join(Path.fromSelector(name)) as FieldPath<TModel, TValue>;
+                                            const value = this.path.getValue<TValue>(formContext.storage.values);
+                                            const modelState = this.path.getValue(formContext.storage.state, {} as IFieldState);
+                                            const errors = this.path.getValue(formContext.storage.validation.errors, [] as Array<IErrorMessage<any>>);
 
-                                    const isChanged = modelState.isChanged === true;
-                                    const isVisited = modelState.isVisited === true;
-                                    const isFocus = modelState.isFocus === true;
-                                    const isValid = errors.length === 0;
+                                            const isChanged = modelState.isChanged === true;
+                                            const isVisited = modelState.isVisited === true;
+                                            const isFocus = modelState.isFocus === true;
+                                            const isValid = errors.length === 0;
 
-                                    const _Field = FieldClass as IFieldClass<TModel>;
-                                    return (
-                                        <_Field
-                                            name={this.path}
-                                            type={type as string}
-                                            multiple={multiple}
-                                            value={value}
-                                            defaultValue={defaultValue}
-                                            forwardedValue={forwardedValue}
-                                            validationErrors={errors}
-                                            validationScope={validationScope}
-                                            form={formContext}
-                                            isChanged={isChanged}
-                                            isVisited={isVisited}
-                                            isValid={isValid}
-                                            isFocus={isFocus}
-                                            onClick={onClick}
-                                            onChange={onChange}
-                                            onBlur={onBlur}
-                                            onFocus={onFocus}
-                                            children={children}
-                                            rest={fullRest}
+                                            const _Field = FieldClass as IFieldClass<TModel>;
+                                            return (
+                                                <_Field
+                                                    name={this.path}
+                                                    type={type as string}
+                                                    multiple={multiple}
+                                                    value={value}
+                                                    defaultValue={defaultValue}
+                                                    forwardedValue={forwardedValue}
+                                                    validationErrors={errors}
+                                                    validationScope={validationScope}
+                                                    form={formContext}
+                                                    isChanged={isChanged}
+                                                    isVisited={isVisited}
+                                                    isValid={isValid}
+                                                    isFocus={isFocus}
+                                                    onClick={onClick}
+                                                    onChange={onChange}
+                                                    onBlur={onBlur}
+                                                    onFocus={onFocus}
+                                                    children={children}
+                                                    rest={fullRest}
 
-                                            ref={this.field}
-                                        />
-                                    );
-                                }}
-                            </ValidationContext>
+                                                    ref={this.field}
+                                                />
+                                            );
+                                        }}
+                                    </ValidationContext>
+                                )}
+                            </FormContext>
                         )}
-                    </FormContext>
+                    </ScopeContext>
                 )}
-            </ScopeContext>
+            </SubscribeContext>
         );
+    }
+
+    smartUpdate(events: Array<FieldPath<any, any>>) {
+        if (events.some(e => (this.path as Path<any, any>).includes(e))
+            || events.some(e => this.subscriptions.some(s => s.includes(e)))
+        ) {
+            this.forceUpdate();
+        }
     }
 
     componentDidMount() {
         if (this.formContext) {
             this.formContext.mountField(this);
         }
+        if (this.subscribeContext) {
+            this.subscribeContext.subscribe(this);
+        }
     }
 
     componentWillUnmount() {
         if (this.formContext) {
             this.formContext.unMountField(this);
+        }
+        if (this.subscribeContext) {
+            this.subscribeContext.unSubscribe(this);
         }
     }
 }

@@ -16,6 +16,18 @@ export class Path<TModel, TValue> {
         const { path, instructions } = getPathInstructions(selector, {});
         return new Path<TModel, TValue>(selector, path, instructions);
     }
+    static fromPath<TModel = any, TValue = any>(path: string) {
+        const parts = path.replace(/(\[(\d)\])/g, ".$2").split(".");
+        const instructions: IInstruction[] = [];
+        for (const unit of parts) {
+            const isIndex = !isNaN(unit.toString() as any);
+            instructions.push({ isIndex, key: unit.toString() });
+        }
+        if (instructions.length > 0) {
+            instructions[instructions.length - 1].isEnd = true;
+        }
+        return new Path<TModel, TValue>(f => f as any, path, instructions);
+    }
     static root<TModel>() {
         return new Path<TModel, TModel>(f => f, "", []);
     }
