@@ -11,12 +11,13 @@ export interface ISubscriber {
     smartUpdate(events: Array<FieldPath<any, any>>);
 }
 
-export interface ISubscribeProps<TModel, TSub extends ISubscriptionsMap<TModel>> {
+export interface ISubscribeProps<TModel extends object, TSub extends ISubscriptionsMap<TModel>> {
     to?: TSub;
+    children?: ((context: SubscriptionsMap<TSub>) => React.ReactNode) | React.ReactNode;
 }
 
 export interface ISubscribeContext<TModel extends object, TSub extends ISubscriptionsMap<TModel>> {
-    subscriptions: SubscriptionsMap<TModel, TSub>;
+    subscriptions: SubscriptionsMap<TSub>;
     subscribe: (subsciber: ISubscriber) => any;
     unSubscribe: (subsciber: ISubscriber) => any;
 }
@@ -77,7 +78,9 @@ export class Subscribe<TModel extends object, TSub extends ISubscriptionsMap<TMo
                                         });
                                     }
 
-                                    return <Provider value={this.subscribeContext}>{this.props.children}</Provider>;
+                                    return this.props.children && typeof this.props.children === "function"
+                                        ? this.props.children(this.subscribeContext.subscriptions)
+                                        : <Provider value={this.subscribeContext}>{this.props.children}</Provider>;
                                 }}
                             </ScopeContext>
                         )}

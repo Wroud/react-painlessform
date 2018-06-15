@@ -274,7 +274,7 @@ export interface IFieldProps<TValue, TModel extends object, TSub extends ISubscr
     onFocus?: () => any;
     onBlur?: () => any;
     onChange?: (value?: TValue | null, nextState?: IFieldState | null) => any;
-    children?: ((context: IFieldContext<TValue, TModel, SubscriptionsMap<TModel, TSub>>) => React.ReactNode) | React.ReactNode;
+    children?: ((context: IFieldContext<TValue, TModel, SubscriptionsMap<TSub>>) => React.ReactNode) | React.ReactNode;
     [key: string]: any;
 }
 
@@ -291,7 +291,7 @@ export class Field<TValue, TModel extends object, TSub extends ISubscriptionsMap
     formContext!: IFormContext<TModel>;
     subscribeContext!: ISubscribeContext<any, any>;
     path?: FieldPath<TModel, TValue>;
-    field = React.createRef<FieldClass<TValue, TModel, SubscriptionsMap<TModel, TSub>>>();
+    field = React.createRef<FieldClass<TValue, TModel, SubscriptionsMap<TSub>>>();
     private subscriptions: Array<Path<any, any>> = [];
     render() {
         const { FormContext, SubscribeContext, ValidationContext, ScopeContext } = createFormFactory<TModel>();
@@ -321,7 +321,7 @@ export class Field<TValue, TModel extends object, TSub extends ISubscriptionsMap
                                         {({ scope: validationScope }) => {
                                             this.formContext = formContext;
                                             this.subscribeContext = subscribeContext;
-                                            let fullRest: ({ [x: string]: any } & SubscriptionsMap<TModel, TSub>) = rest as any;
+                                            let fullRest: ({ [x: string]: any } & SubscriptionsMap<TSub>) = rest as any;
                                             if (subscribe !== undefined) {
                                                 fullRest = { ...fullRest as any };
                                                 this.subscriptions = [];
