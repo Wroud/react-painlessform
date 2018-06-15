@@ -301,7 +301,7 @@ export class Form<TModel extends object> extends React.Component<FormProps<TMode
                 isVisited: true
             });
         }
-        this.forceUpdate();
+        this.smartUpdate();
         if (onSubmit) {
             onSubmit(event)(this.storage.values, this.storage.validation.isValid);
         }
@@ -316,8 +316,15 @@ export class Form<TModel extends object> extends React.Component<FormProps<TMode
         }
         if (!values) {
             this.resetToInital();
-            this.forceUpdate();
+            this.smartUpdate();
         }
+    }
+    private smartUpdate() {
+        this.storage.validation = {
+            errors: {} as any,
+            isValid: true
+        };
+        this.forceUpdate();
     }
     /**
      * Update [[Field]] state with new `value` and sets form `isChanged` to `true`
