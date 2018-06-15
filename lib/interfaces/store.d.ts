@@ -1,8 +1,8 @@
 import { Path } from "../Path";
 export interface ISubscriptionsMap<TModel> {
-    [key: string]: <TValue>(model: TModel) => TValue;
+    [key: string]: (model: TModel) => any;
 }
-export declare type SubscriptionsMap<TModel, T extends ISubscriptionsMap<TModel>> = {
-    [P in keyof T]: T[P] extends ((model: TModel) => infer R) ? R : never;
+export declare type SubscriptionsMap<T extends ISubscriptionsMap<any>> = {
+    [P in keyof T]: ReturnType<T[P]>;
 };
 export declare type Subscriptions<TModel> = Array<Path<TModel, any>>;

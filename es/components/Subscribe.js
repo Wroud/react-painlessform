@@ -47,7 +47,9 @@ class Subscribe extends React.Component {
                     this.subscribeContext.subscriptions[key] = subscription.getValue(formContext.storage.values);
                 });
             }
-            return React.createElement(exports.Provider, { value: this.subscribeContext }, this.props.children);
+            return this.props.children && typeof this.props.children === "function"
+                ? this.props.children(this.subscribeContext.subscriptions)
+                : React.createElement(exports.Provider, { value: this.subscribeContext }, this.props.children);
         }))))));
     }
     componentDidMount() {

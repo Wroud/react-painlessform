@@ -108,7 +108,7 @@ export interface IFieldProps<TValue, TModel extends object, TSub extends ISubscr
     onFocus?: () => any;
     onBlur?: () => any;
     onChange?: (value?: TValue | null, nextState?: IFieldState | null) => any;
-    children?: ((context: IFieldContext<TValue, TModel, SubscriptionsMap<TModel, TSub>>) => React.ReactNode) | React.ReactNode;
+    children?: ((context: IFieldContext<TValue, TModel, SubscriptionsMap<TSub>>) => React.ReactNode) | React.ReactNode;
     [key: string]: any;
 }
 export interface IField<TModel extends object> extends Field<any, TModel, any> {
@@ -125,7 +125,7 @@ export declare class Field<TValue, TModel extends object, TSub extends ISubscrip
     formContext: IFormContext<TModel>;
     subscribeContext: ISubscribeContext<any, any>;
     path?: FieldPath<TModel, TValue>;
-    field: React.RefObject<FieldClass<TValue, TModel, SubscriptionsMap<TModel, TSub>>>;
+    field: React.RefObject<FieldClass<TValue, TModel, SubscriptionsMap<TSub>>>;
     private subscriptions;
     render(): JSX.Element;
     smartUpdate(events: Array<FieldPath<any, any>>): void;
