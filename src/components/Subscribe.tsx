@@ -29,9 +29,6 @@ export interface ISubscribe<TModel extends object = {}> extends Subscribe<TModel
 }
 
 export class Subscribe<TModel extends object, TSub extends ISubscriptionsMap<TModel>> extends React.Component<ISubscribeProps<TModel, TSub>> implements ISubscriber {
-    static defaultProps: ISubscribeProps<any, any> = {
-        to: {}
-    };
     private subscribers: ISubscriber[] = [];
     private subscriptions: Array<Path<any, any>> = [];
     private subscribeContext: ISubscribeContext<TModel, TSub>;
