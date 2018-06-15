@@ -33,8 +33,8 @@ function* transformer(event: IUpdateEvent<INumbers, FieldValue>, is: IsField<INu
 export const MinMaxCalc = ({ name, onRemove }: IProps) => (
   <Scope name={name}>
     <Transform transformer={transformer}>
-      <Field name={f => f.min} label="Minimum" placeholder="0" defaultValue={0} children={TextField} />
-      <Field name={f => f.max} label="Maximum" placeholder="0" defaultValue={0} children={TextField} />
+      <Field name={f => f.min} type="number" label="Minimum" placeholder="0" defaultValue={0} children={TextField} />
+      <Field name={f => f.max} type="number" label="Maximum" placeholder="0" defaultValue={0} children={TextField} />
     </Transform>
     <Subscribe to={{ min: f => f.min, max: f => f.max }}>
       {({ min, max }) => <div>Average: {(min + max) / 2}</div>}

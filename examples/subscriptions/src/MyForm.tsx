@@ -19,7 +19,10 @@ export class MyForm extends React.Component<{}, IState> {
   render() {
     const { numbers } = this.state;
     return (
-      <Form onSubmit={e => m => console.log(m)}>
+      <Form
+        onSubmit={e => m => console.log(m)}
+        initValues={{ numbers: [] }}
+      >
         {numbers.map(uId => (
           <MinMaxCalc
             name={(f: IMyForm) => f.numbers[uId]}
@@ -28,7 +31,12 @@ export class MyForm extends React.Component<{}, IState> {
           />
         ))}
         <Subscribe to={{ formNumbers: f => f.numbers }}>
-          {({ formNumbers }) => <div>Form average: {formNumbers.sum(n => n.min + n.max) / formNumbers.length / 2}</div>}
+          {({ formNumbers }) => {
+            if (!formNumbers) {
+              return false;
+            }
+            return <div>Form average: {formNumbers.sum(n => n.min + n.max) / formNumbers.length / 2}</div>;
+          }}
         </Subscribe>
         <br />
         <button type="button" onClick={this.addUser}>Add Numbers</button>
