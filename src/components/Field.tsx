@@ -379,8 +379,8 @@ export class Field<TValue, TModel extends object, TSub extends ISubscriptionsMap
     }
 
     smartUpdate(events: Array<FieldPath<any, any>>) {
-        if (events.some(e => (this.path as Path<any, any>).includes(e))
-            || events.some(e => this.subscriptions.some(s => s.includes(e)))
+        if (events.some(e => e.includes(this.path as Path<any, any>))
+            || events.some(e => this.subscriptions.some(s => e.includes(s)))
         ) {
             this.forceUpdate();
         }

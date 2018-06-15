@@ -47,7 +47,7 @@ export class Subscribe<TModel extends object, TSub extends ISubscriptionsMap<TMo
     }
 
     smartUpdate(events: Array<FieldPath<any, any>>) {
-        if (events.some(f => this.subscriptions.some(s => s.includes(f)))) {
+        if (events.some(f => this.subscriptions.some(s => f.includes(s)))) {
             this.forceUpdate();
             return;
         }
