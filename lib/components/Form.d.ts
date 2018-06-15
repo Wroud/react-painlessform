@@ -101,6 +101,7 @@ export declare class Form<TModel extends object> extends React.Component<FormPro
      * Reset form to [[initValues]]
      */
     private handleReset;
+    private smartUpdate();
     /**
      * Update [[Field]] state with new `value` and sets form `isChanged` to `true`
      */

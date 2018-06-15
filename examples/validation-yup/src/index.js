@@ -25,13 +25,15 @@ const validationYup = Yup.object().shape({
 class MyForm extends React.Component {
   render() {
     return (
-      <Form onReset={this.handleReset} onSubmit={this.handleSubmit}>
-        <Validation validator={validationYup}>
-          <Field name={f => f.user.firstName} label={"First Name"} placeholder={"John"} children={TextField} />
-          <Field name={f => f.user.lastName} label={"Last Name"} placeholder={"Doe"} children={TextField} />
-          <Field name={f => f.email} type={"email"} label={"Email"} placeholder={"Enter your email"} children={TextField} />
-          <Field name={f => f.agree} type={"checkbox"} label={"I agree with terms"} children={CheckBox} />
-        </Validation>
+      <Form
+        onReset={this.handleReset}
+        onSubmit={this.handleSubmit}
+        validator={validationYup}
+      >
+        <Field name={f => f.user.firstName} label={"First Name"} placeholder={"John"} children={TextField} />
+        <Field name={f => f.user.lastName} label={"Last Name"} placeholder={"Doe"} children={TextField} />
+        <Field name={f => f.email} type={"email"} label={"Email"} placeholder={"Enter your email"} children={TextField} />
+        <Field name={f => f.agree} type={"checkbox"} label={"I agree with terms"} children={CheckBox} />
         <button type="reset" className="outline">Reset</button>
         <button type="submit">Submit</button>
       </Form >
