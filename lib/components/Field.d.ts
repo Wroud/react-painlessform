@@ -2,8 +2,9 @@
 import * as React from "react";
 import { IErrorMessage } from "../FormValidator";
 import { FieldPath, FieldValue, IFieldState, InputValue } from "../interfaces/field";
-import { ISubscriptionsMap, Subscriptions, SubscriptionsMap } from "../interfaces/store";
+import { ISubscriptionsMap, SubscriptionsMap } from "../interfaces/store";
 import { IFormContext } from "./Form";
+import { ISubscribeContext, ISubscriber } from "./Subscribe";
 export interface IFieldClass<TModel extends object> {
     new <TValue, TSub>(props: IFieldClassProps<TValue, TModel, TSub>): FieldClass<TValue, TModel, TSub>;
 }
@@ -117,15 +118,17 @@ export interface IField<TModel extends object> extends Field<any, TModel, any> {
  * HOC for [[FieldClass]] that connects [[FormContext]], [[ValidationContext]]
  * and [[TransformContext]] and pass it to [[FieldClass]] as props
  */
-export declare class Field<TValue, TModel extends object, TSub extends ISubscriptionsMap<TModel>> extends React.Component<IFieldProps<TValue, TModel, TSub>> {
+export declare class Field<TValue, TModel extends object, TSub extends ISubscriptionsMap<TModel>> extends React.Component<IFieldProps<TValue, TModel, TSub>> implements ISubscriber {
     static defaultProps: {
         type: string;
     };
     formContext: IFormContext<TModel>;
+    subscribeContext: ISubscribeContext<any, any>;
     path?: FieldPath<TModel, TValue>;
     field: React.RefObject<FieldClass<TValue, TModel, SubscriptionsMap<TModel, TSub>>>;
-    subscriptions: Subscriptions<TModel>;
+    private subscriptions;
     render(): JSX.Element;
+    smartUpdate(events: Array<FieldPath<any, any>>): void;
     componentDidMount(): void;
     componentWillUnmount(): void;
 }

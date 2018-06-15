@@ -32,8 +32,7 @@ const defaultStorage = {
         errors: {},
         isValid: true
     },
-    isChanged: false,
-    isSubmitting: false
+    isChanged: false
 };
 _a = React.createContext({
     storage: defaultStorage,
@@ -75,7 +74,7 @@ class Form extends React.Component {
                     isVisited: true
                 });
             }
-            this.invokeFieldsUpdate();
+            this.forceUpdate();
             if (onSubmit) {
                 onSubmit(event)(this.storage.values, this.storage.validation.isValid);
             }
@@ -90,7 +89,7 @@ class Form extends React.Component {
             }
             if (!values) {
                 this.resetToInital();
-                this.invokeFieldsUpdate();
+                this.forceUpdate();
             }
         };
         /**
@@ -130,17 +129,9 @@ class Form extends React.Component {
             }
             this.storage.isChanged = true;
             this.validate();
-            updatedFields.forEach(path1 => {
-                this.fields.forEach(field => {
-                    if (!field.path) {
-                        return;
-                    }
-                    if (field.path.includes(path1)) {
-                        field.forceUpdate();
-                    }
-                });
-            });
-            // this.invokeFieldsUpdate();
+            if (this.subscribers.current) {
+                this.subscribers.current.smartUpdate(updatedFields);
+            }
             this.callModelChange(prevValues);
         };
         this.mountField = (value) => {
@@ -156,9 +147,9 @@ class Form extends React.Component {
         this.storage.state = props.state || props.initState || {};
         this.storage.values = props.values || props.initValues || {};
         this.storage.isChanged = props.isChanged || false;
-        this.storage.isSubmitting = props.isSubmitting || false;
         this.transform = React.createRef();
         this.validation = React.createRef();
+        this.subscribers = React.createRef();
     }
     get getStorage() {
         return this.storage;
@@ -170,7 +161,7 @@ class Form extends React.Component {
      * [[Form]] update [[storage]]
      */
     shouldComponentUpdate(nextProps) {
-        const { values, state, config, isReset, isChanged, isSubmitting } = nextProps;
+        const { values, state, config, isReset, isChanged } = nextProps;
         this.storage.config = config;
         if (isReset) {
             this.resetToInital(values, state);
@@ -192,11 +183,10 @@ class Form extends React.Component {
             isValid: true
         };
         this.storage.isChanged = isChanged !== undefined ? isChanged : this.storage.isChanged;
-        this.storage.isSubmitting = isSubmitting !== undefined ? isSubmitting : this.storage.isSubmitting;
         return true;
     }
     render() {
-        const _a = this.props, { componentId, actions, values, state, initValues, initState, children, config, isReset, isChanged, isSubmitting, onModelChange, onSubmit, onReset } = _a, rest = __rest(_a, ["componentId", "actions", "values", "state", "initValues", "initState", "children", "config", "isReset", "isChanged", "isSubmitting", "onModelChange", "onSubmit", "onReset"]);
+        const _a = this.props, { componentId, actions, values, state, initValues, initState, children, config, isReset, isChanged, isSubmitting, onModelChange, onSubmit, onReset, errors, isValid, validator, configure, transformer } = _a, rest = __rest(_a, ["componentId", "actions", "values", "state", "initValues", "initState", "children", "config", "isReset", "isChanged", "isSubmitting", "onModelChange", "onSubmit", "onReset", "errors", "isValid", "validator", "configure", "transformer"]);
         const context = {
             storage: this.storage,
             handleReset: this.handleReset,
@@ -204,11 +194,12 @@ class Form extends React.Component {
             mountField: this.mountField,
             unMountField: this.unMountField
         };
-        const { Transform, Validation } = formFactory_1.createFormFactory();
+        const { Subscribe, Transform, Validation } = formFactory_1.createFormFactory();
         return (React.createElement(exports.Provider, { value: context },
-            React.createElement("form", Object.assign({ onSubmit: this.handleSubmit, onReset: this.handleReset }, rest),
-                React.createElement(Transform, { ref: this.transform },
-                    React.createElement(Validation, { ref: this.validation }, children)))));
+            React.createElement(Subscribe, { ref: this.subscribers },
+                React.createElement("form", Object.assign({ onSubmit: this.handleSubmit, onReset: this.handleReset }, rest),
+                    React.createElement(Transform, Object.assign({ ref: this.transform, transformer: transformer }, rest),
+                        React.createElement(Validation, Object.assign({ ref: this.validation, validator: validator, isValid: isValid, errors: errors, configure: configure }, rest), children))))));
     }
     componentDidMount() {
         this.fields.forEach(field => {
@@ -249,7 +240,6 @@ class Form extends React.Component {
             isValid: true
         };
         storage.isChanged = false;
-        storage.isSubmitting = false;
     }
     /**
      * Transform `model` to `values` and call `onModelChange`
@@ -262,9 +252,6 @@ class Form extends React.Component {
         if (!deepEqual(values, prevModel)) {
             this.props.onModelChange(values, prevModel);
         }
-    }
-    invokeFieldsUpdate() {
-        this.fields.forEach(field => field.forceUpdate());
     }
 }
 Form.defaultProps = {

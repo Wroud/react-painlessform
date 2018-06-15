@@ -3,6 +3,8 @@ import * as React from "react";
 import { IUpdateEvent, UpdateValue } from "../interfaces/field";
 import { FieldsState, IFormConfiguration, IFormStorage } from "../interfaces/form";
 import { Field as CField } from "./Field";
+import { ITranformProps } from "./Transform";
+import { IValidationProps } from "./Validation";
 /**
  * Describes [[Form]] props
  */
@@ -29,7 +31,6 @@ export interface IFormProps<TModel extends object> extends React.FormHTMLAttribu
      */
     isReset?: boolean;
     isChanged?: boolean;
-    isSubmitting?: boolean;
     /**
      * Fire when [[Form]] changed
      */
@@ -41,6 +42,7 @@ export interface IFormProps<TModel extends object> extends React.FormHTMLAttribu
     onSubmit?: (event: React.FormEvent<HTMLFormElement>) => (values: TModel, isValid: boolean) => any;
     [rest: string]: any;
 }
+export declare type FormProps<TModel extends object> = IFormProps<TModel> & IValidationProps<TModel> & ITranformProps<TModel>;
 export interface IFormContext<TModel extends object> {
     storage: IFormStorage<TModel>;
     /**
@@ -60,24 +62,25 @@ export interface IFormContext<TModel extends object> {
 export declare const defaultConfiguration: IFormConfiguration;
 export declare const Provider: React.ComponentType<React.ProviderProps<IFormContext<any>>>, Consumer: React.ComponentType<React.ConsumerProps<IFormContext<any>>>;
 export interface IForm<TModel extends object> extends Form<TModel> {
-    new (props: IFormProps<TModel>): Form<TModel>;
+    new (props: FormProps<TModel>): Form<TModel>;
 }
 /**
  * Form component controlls [[Field]]s and passes [[FormContext]]
  */
-export declare class Form<TModel extends object> extends React.Component<IFormProps<TModel>> {
-    static defaultProps: Partial<IFormProps<any>>;
+export declare class Form<TModel extends object> extends React.Component<FormProps<TModel>> {
+    static defaultProps: Partial<FormProps<any>>;
     private fields;
     private transform;
     private validation;
+    private subscribers;
     private storage;
-    constructor(props: IFormProps<TModel>);
+    constructor(props: FormProps<TModel>);
     readonly getStorage: IFormStorage<TModel>;
     readonly getFields: CField<any, TModel, any>[];
     /**
      * [[Form]] update [[storage]]
      */
-    shouldComponentUpdate(nextProps: IFormProps<TModel>): boolean;
+    shouldComponentUpdate(nextProps: FormProps<TModel>): boolean;
     render(): JSX.Element;
     componentDidMount(): void;
     private validate();
@@ -98,7 +101,6 @@ export declare class Form<TModel extends object> extends React.Component<IFormPr
      * Reset form to [[initValues]]
      */
     private handleReset;
-    private invokeFieldsUpdate();
     /**
      * Update [[Field]] state with new `value` and sets form `isChanged` to `true`
      */

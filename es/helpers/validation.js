@@ -1,15 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const Path_1 = require("../Path");
-const tools_1 = require("../tools");
-function getProps(getters) {
-    const props = {};
-    Object.keys(getters).forEach(key => {
-        props[key] = typeof getters[key] === "function" ? getters[key]() : getters[key];
-    });
-    return props;
-}
-exports.getProps = getProps;
 function* yupErrors(error) {
     if (error.inner.length > 0) {
         for (const innerError of error.inner) {
@@ -17,17 +8,12 @@ function* yupErrors(error) {
         }
     }
     else if (error.errors.length > 0) {
-        if (error.path === undefined) {
-            yield {
-                scope: error.errors.map(e => ({ message: e }))
-            };
-        }
-        else {
-            yield {
-                selector: Path_1.Path.fromSelector(model => tools_1.getFromObject(model, error.path)),
-                errors: error.errors.map(e => ({ message: e }))
-            };
-        }
+        yield {
+            selector: !error.path
+                ? undefined
+                : Path_1.Path.fromPath(error.path),
+            errors: error.errors.map(e => ({ message: e }))
+        };
     }
 }
 exports.yupErrors = yupErrors;

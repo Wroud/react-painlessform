@@ -2,6 +2,7 @@
 import { IField, IFieldContext } from "../components/Field";
 import { IForm, IFormContext } from "../components/Form";
 import { IScope } from "../components/Scope";
+import { ISubscribe, ISubscribeContext } from "../components/Subscribe";
 import { ITransform, ITransformContext } from "../components/Transform";
 import { IValidation, IValidationContext } from "../components/Validation";
 import { Path } from "../Path";
@@ -15,11 +16,13 @@ export interface IFormFactory<TModel extends object, TScope extends object = any
     Transform: ITransform<TModel>;
     Validation: IValidation<TModel>;
     Scope: IScope<TScope, TModel>;
+    Subscribe: ISubscribe<TModel>;
     FormContext: Consumer<IFormContext<TModel>>;
     FieldContext: Consumer<IFieldContext<any, TModel, any>>;
     TransformContext: Consumer<ITransformContext<TModel>>;
     ValidationContext: Consumer<IValidationContext<TModel>>;
     ScopeContext: Consumer<Path<TModel, any>>;
+    SubscribeContext: Consumer<ISubscribeContext<TModel, any>>;
 }
 /**
  * Used for typings [[Form]], [[Field]], [[Transform]], [[Validation]]

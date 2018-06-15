@@ -9,6 +9,7 @@ export interface IPath<TModel, TValue> extends Path<TModel, TValue> {
 }
 export declare class Path<TModel, TValue> {
     static fromSelector<TModel, TValue>(selector: PathSelector<TModel, TValue>): Path<TModel, TValue>;
+    static fromPath<TModel = any, TValue = any>(path: string): Path<TModel, TValue>;
     static root<TModel>(): Path<TModel, TModel>;
     private selector;
     private path;

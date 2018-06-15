@@ -11,6 +11,18 @@ class Path {
         const { path, instructions } = getPathInstructions(selector, {});
         return new Path(selector, path, instructions);
     }
+    static fromPath(path) {
+        const parts = path.replace(/(\[(\d)\])/g, ".$2").split(".");
+        const instructions = [];
+        for (const unit of parts) {
+            const isIndex = !isNaN(unit.toString());
+            instructions.push({ isIndex, key: unit.toString() });
+        }
+        if (instructions.length > 0) {
+            instructions[instructions.length - 1].isEnd = true;
+        }
+        return new Path(f => f, path, instructions);
+    }
     static root() {
         return new Path(f => f, "", []);
     }
