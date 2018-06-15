@@ -32,10 +32,11 @@ export class MyForm extends React.Component<{}, IState> {
         ))}
         <Subscribe to={{ formNumbers: f => f.numbers }}>
           {({ formNumbers }) => {
-            if (!formNumbers) {
+            console.log(formNumbers);
+            if (!formNumbers || !Array.isArray(formNumbers)) {
               return false;
             }
-            return <div>Form average: {formNumbers.sum(n => n.min + n.max) / formNumbers.length / 2}</div>;
+            return <div>Form average: {formNumbers.reduce((n, s) => s + n.min + n.max, 0) / formNumbers.length / 2}</div>;
           }}
         </Subscribe>
         <br />
