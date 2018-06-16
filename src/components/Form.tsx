@@ -141,7 +141,9 @@ export class Form<TModel extends object> extends React.Component<FormProps<TMode
     shouldComponentUpdate(nextProps: FormProps<TModel>) {
         const {
             values,
+            initValues,
             state,
+            initState,
             config,
             isReset, isChanged
         } = nextProps;
@@ -149,18 +151,18 @@ export class Form<TModel extends object> extends React.Component<FormProps<TMode
         this.storage.config = config as any;
 
         if (isReset) {
-            this.resetToInital(values, state);
-        } else {
-            if (values !== undefined) {
-                const { isChanged: isValuesChanged, model: newValues } = mergeModels(values, this.storage.values);
-                this.storage.values = newValues;
-                this.storage.isChanged = this.storage.isChanged || isValuesChanged;
-            }
-            if (state !== undefined) {
-                const { isChanged: isStateChanged, model: newState } = mergeModels(state, this.storage.state);
-                this.storage.state = newState;
-                this.storage.isChanged = this.storage.isChanged || isStateChanged;
-            }
+            this.resetToInital(values || initValues, state || initState);
+            return true;
+        }
+        if (values !== undefined) {
+            const { isChanged: isValuesChanged, model: newValues } = mergeModels(values, this.storage.values);
+            this.storage.values = newValues;
+            this.storage.isChanged = this.storage.isChanged || isValuesChanged;
+        }
+        if (state !== undefined) {
+            const { isChanged: isStateChanged, model: newState } = mergeModels(state, this.storage.state);
+            this.storage.state = newState;
+            this.storage.isChanged = this.storage.isChanged || isStateChanged;
         }
         this.storage.validation = {
             errors: {} as any,
