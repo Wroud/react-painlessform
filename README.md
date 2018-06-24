@@ -33,7 +33,7 @@ npm install --save react-painlessform
 * [Yup validation](https://codesandbox.io/s/github/Wroud/react-painlessform/tree/master/examples/validation-yup)
 * [Transformations](https://codesandbox.io/s/github/Wroud/react-painlessform/tree/master/examples/transformations)
 * [Building reusable parts](https://codesandbox.io/s/github/Wroud/react-painlessform/tree/master/examples/ts)
-* [Model bilding](https://codesandbox.io/s/github/Wroud/react-painlessform/tree/master/examples/model)
+* [Model building](https://codesandbox.io/s/github/Wroud/react-painlessform/tree/master/examples/model)
 * [Subscriptions](https://codesandbox.io/s/github/Wroud/react-painlessform/tree/master/examples/subscriptions)
 * [Date range picker & selector with data from api](https://codesandbox.io/s/73nwk5ljxx)
 
